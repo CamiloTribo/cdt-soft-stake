@@ -1,21 +1,15 @@
+import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
-import { WorldAuthProvider } from 'next-world-auth/react'
+import { WorldAuthProvider } from "next-world-auth/react"
+import { TranslationProvider } from "../src/components/TranslationProvider"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"]
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"]
-})
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "World Mini App",
-  description: "Wallet authentication for World Mini Apps"
+  title: "Tribo Vault",
+  description: "Gana un 0.1% diario stakeando tus tokens CDT",
 }
 
 export default function RootLayout({
@@ -24,14 +18,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <WorldAuthProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children}
-        </body>
-      </WorldAuthProvider>
+    <html lang="es">
+      <body className={`${inter.className} bg-black text-white`}>
+        <TranslationProvider>
+          <WorldAuthProvider>{children}</WorldAuthProvider>
+        </TranslationProvider>
+      </body>
     </html>
   )
 }

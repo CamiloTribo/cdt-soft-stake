@@ -1,21 +1,44 @@
+/* Estas directivas son procesadas por Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Colores principales de Tribo Vault */
+  --background: #000000;
+  --foreground: #ffffff;
+  
+  /* Colores de acento */
+  --accent-primary: #4ebd0a;
+  --accent-primary-hover: #3fa008;
+  --accent-secondary: #ff1744;
+  --accent-secondary-hover: #ff2954;
+  
+  /* Colores de borde */
+  --border: #333333;
+  --border-light: #444444;
+  
+  /* Colores de texto */
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-muted: #666666;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Eliminamos las clases @apply para evitar errores en el editor */
+/* Estas clases se pueden usar directamente en los componentes con Tailwind */

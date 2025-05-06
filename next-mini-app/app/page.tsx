@@ -1,134 +1,271 @@
-'use client'
+"use client"
 
 import Image from "next/image"
-import { Tokens } from 'next-world-auth'
-import { useWorldAuth } from 'next-world-auth/react'
+import { useWorldAuth } from "next-world-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState, useCallback } from "react"
+import { useTranslation } from "../src/components/TranslationProvider"
+import { LanguageSelector } from "../src/components/LanguageSelector"
+
 export default function Home() {
-  const { isLoading, isInstalled, isAuthenticated, session, signInWorldID, signInWallet, signOut, getLocation, pay } = useWorldAuth()
+  const { t } = useTranslation()
+  const { isLoading, isAuthenticated, session, signInWallet, signInWorldID } = useWorldAuth()
+
+  const router = useRouter()
+  const [username, setUsername] = useState("")
+  const [isSavingUsername, setIsSavingUsername] = useState(false)
+  const [showUsernameForm, setShowUsernameForm] = useState(false)
+  const [usernameError, setUsernameError] = useState<string | null>(null)
+  const [isMascotHovered, setIsMascotHovered] = useState(false)
+
+  // Función para obtener un identificador único del usuario
+  const getUserIdentifier = useCallback(() => {
+    if (!session || !session.user || !session.user.walletAddress) return null
+    return session.user.walletAddress
+  }, [session])
+
+  // Verificar si el usuario está autenticado - Simplificado para evitar redirecciones automáticas
+  useEffect(() => {
+    if (isAuthenticated && session?.isAuthenticatedWallet) {
+      console.log("Usuario autenticado:", session)
+      // No hacemos nada automáticamente para evitar ciclos
+    }
+  }, [isAuthenticated, session])
+
+  // Función para manejar el clic en la mascota - Simplificada para ir al dashboard
+  const handleMascotClick = () => {
+    if (isAuthenticated && session?.isAuthenticatedWallet) {
+      router.push("/dashboard")
+    }
+  }
+
+  // Función para guardar username
+  const handleSaveUsername = async () => {
+    const identifier = getUserIdentifier()
+    if (!identifier || !username) {
+      console.error("No hay identifier o username")
+      return
+    }
+
+    try {
+      setIsSavingUsername(true)
+      setUsernameError(null)
+
+      console.log("Guardando username:", username, "para wallet:", identifier)
+
+      const response = await fetch("/api/username", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: identifier,
+          username: username,
+        }),
+      })
+
+      const data = await response.json()
+      console.log("Respuesta al guardar username:", data)
+
+      if (response.ok && data.success) {
+        console.log("Username guardado correctamente, redirigiendo a dashboard")
+
+        // Añadir un pequeño retraso antes de redirigir
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 500)
+      } else {
+        console.error("Error al guardar username:", data.error)
+        setUsernameError(data.error || t("error_username"))
+      }
+    } catch (error) {
+      console.error("Error registering username:", error)
+      setUsernameError(t("error_username"))
+    } finally {
+      setIsSavingUsername(false)
+    }
+  }
+
+  // Función para verificar si el usuario tiene username y redirigir al dashboard
+  const handleContinueToDashboard = async () => {
+    const identifier = getUserIdentifier()
+    if (!identifier) {
+      console.error("No se pudo obtener identificador de usuario")
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/username?wallet_address=${identifier}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        if (data.hasUsername) {
+          router.push("/dashboard")
+        } else {
+          setShowUsernameForm(true)
+        }
+      }
+    } catch (error) {
+      console.error("Error checking username:", error)
+      setShowUsernameForm(true)
+    }
+  }
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)] text-center">
-      <main className="flex flex-col gap-1 row-start-2 items-center">
-        <div className="text-2xl font-bold">World Mini App Template</div>
-        <div>Template available on <a href="https://github.com/gip/worlddev/tree/main/next-mini-app" target="_blank" rel="noopener noreferrer" style={{ color: '#0070f3', fontStyle: 'italic', textDecoration: 'underline' }}>GitHub</a></div>
+    <div className="min-h-screen bg-black text-white">
+      {/* Header simplificado para la página de inicio */}
+      <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center">
+            <Image src="/LOGO TRIBO Vault- sin fondo.png" alt="Tribo Logo" width={28} height={28} className="mr-2" />
+            <h1 className="text-xl font-bold">{t("tribo_vault")}</h1>
+          </div>
+          <LanguageSelector />
+        </div>
+      </div>
+
+      <main className="container max-w-4xl mx-auto px-4 py-12 pt-20 flex flex-col items-center">
+        {/* Main Content */}
         {isLoading ? (
           <div className="flex items-center justify-center mt-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]"></div>
           </div>
         ) : (
-          <>
-            {!isInstalled && <>
-              <div>This app is designed to be run on <a href="https://worldcoin.org/mini-app?app_id=app_a963cd2077f59caf1146198685eed59a&draft_id=meta_4d75d4955b27044f4ef562e60ad09d17" target="_blank" rel="noopener noreferrer">World App</a></div>
-              <Image src="/miniappqr.png" alt="Mini App QR Code" width={400} height={400} />
-              <hr style={{ width: "100px", margin: 10 }} />
-              {session && session.isAuthenticatedWorldID && <>
-                <div>You have authenticated with <span className="underline">World ID</span></div>
-                <div>Your unique app ID is available</div>
-                <div>Orb Verification Status: <span className="font-bold">{session.isOrbVerified ? 'verified ✓' : 'not verified ✗'}</span></div>
-                <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={signOut}
-                  >
-                    Logout
-                  </button>
-              </>}
-              {!(session && session.isAuthenticatedWorldID) && <>
-                <div>In a web context, it is however possible to sign in with World ID</div>
-                <div>You will need the <a href="https://worldcoin.org/world-app" target="_blank" rel="noopener noreferrer">World App</a> to sign in with World ID</div>
-                <button
-                  className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                  onClick={() => signInWorldID(null)}
+          <div className="w-full">
+            {/* Mascota Jefe Tribo */}
+            {(!isAuthenticated || !showUsernameForm) && (
+              <div className="relative flex justify-center mb-8">
+                <div
+                  className={`relative cursor-pointer transition-transform duration-300 ${
+                    isMascotHovered ? "scale-110" : ""
+                  }`}
+                  onMouseEnter={() => setIsMascotHovered(true)}
+                  onMouseLeave={() => setIsMascotHovered(false)}
+                  onClick={handleMascotClick}
                 >
-                  Sign in with World ID
-                </button>
-              </>}
-            </>}
-            {isInstalled && (isAuthenticated && session ? (
-              <>
-                <hr style={{ width: "100px", margin: 10 }} />
-                <div>You are logged in!</div>
-                <div className="flex gap-1 items-center flex-col sm:flex-row">
+                  <Image
+                    src="/Jefe Tribo Intro.png"
+                    alt="Jefe Tribo"
+                    width={200}
+                    height={200}
+                    className="animate-pulse"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Sección de verificación y conexión */}
+            {(!isAuthenticated || !showUsernameForm) && (
+              <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 mb-8">
+                <h2 className="text-2xl font-semibold mb-4 text-center text-white">{t("verify_as_human")}</h2>
+                <p className="text-center text-sm text-gray-400 mb-6">{t("verify_human_explanation")}</p>
+
+                {/* Botones de verificación y conexión */}
+                <div className="flex flex-col gap-4">
+                  {/* Botón de verificación humana - Usando aserción de tipo para evitar error de TypeScript */}
                   <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={signOut}
+                    onClick={() => signInWorldID({ state: "exampleState" })}
+                    className="w-full px-6 py-3 bg-[#ff1744] hover:bg-[#ff2954] text-white font-medium rounded-md transition-colors"
+                    disabled={session?.isAuthenticatedWorldID}
                   >
-                    Logout
+                    {session?.isAuthenticatedWorldID ? "✓ Verificado como humano" : t("verify_as_human")}
                   </button>
-                  <hr style={{ width: "100px", margin: 10 }} />
-                  {session.isAuthenticatedWallet && <>
-                    <div>You have authenticated with <span className="underline">World Wallet</span></div>
-                    <div>Welcome <b>{session?.user?.username}</b>!</div>
-                    <div>Your wallet address is: <span className="text-xs"><b>{session?.user?.walletAddress}</b></span></div>
+
+                  {/* Botón de conectar wallet */}
+                  <button
+                    onClick={signInWallet}
+                    className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors"
+                    disabled={session?.isAuthenticatedWallet}
+                  >
+                    {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : t("connect")}
+                  </button>
+
+                  {/* Botón para continuar al dashboard si está autenticado */}
+                  {isAuthenticated && session?.isAuthenticatedWallet && (
                     <button
-                      className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                      onClick={() => pay({ amount: 0.1, token: Tokens.WLD, recipient: '0x2Eb67DdFf6761bC0938e670bf1e1ed46110DDABb' })}
+                      onClick={handleContinueToDashboard}
+                      className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors mt-4"
                     >
-                      Tip the developer 0.1 WLD
+                      {t("go_dashboard")}
                     </button>
-                  </>}
-                  {!session.isAuthenticatedWallet && <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={signInWallet}
-                  >
-                    Sign in with World Wallet
-                  </button>}
-                  <hr style={{ width: "100px", margin: 10 }} />
-                  {session.isAuthenticatedWorldID && <>
-                    <div>You have authenticated with <span className="underline">World ID</span></div>
-                    <div>Your unique app ID is available</div>
-                    <div>Orb Verification Status: <span className="font-bold">{session.isOrbVerified ? 'verified ✓' : 'not verified ✗'}</span></div>
-                  </>}
-                  {!session.isAuthenticatedWorldID && <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={() => signInWorldID(null)}
-                  >
-                    Sign in with World ID
-                  </button>}
-                  <hr style={{ width: "100px", margin: 10 }} />
-                  <div>
-                  Your location is: {
-                    session?.extra?.location
-                      ? (<>
-                          <div>latitude: {session.extra.location.latitude}</div>
-                          <div>longitude: {session.extra.location.longitude}</div>
-                        </>)
-                      : 'unknown'
-                    }
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
+            {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
+              <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8 mb-8">
+                <h2 className="text-2xl font-semibold mb-6 text-white">{t("welcome_tribo")}</h2>
+                <p className="text-gray-300 mb-6">{t("choose_name")}</p>
+
+                <div className="mb-6">
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                    {t("triber_name")}
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={t("enter_name")}
+                    className="w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-[#4ebd0a] focus:border-[#4ebd0a] bg-black text-white"
+                  />
+                </div>
+
+                {usernameError && (
+                  <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
+                    <p className="text-sm text-[#ff1744]">{usernameError}</p>
                   </div>
-                  <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={getLocation}
-                  >
-                    {session?.extra?.location ? 'Update Location' : 'Get Location'}
-                  </button>
+                )}
+
+                <button
+                  onClick={handleSaveUsername}
+                  disabled={isSavingUsername || !username}
+                  className={`w-full px-6 py-3 rounded-md ${
+                    isSavingUsername || !username
+                      ? "bg-gray-700 cursor-not-allowed"
+                      : "bg-[#ff1744] hover:bg-[#ff2954] text-white"
+                  } font-medium transition-colors`}
+                >
+                  {isSavingUsername ? t("saving") : t("continue_dashboard")}
+                </button>
+              </div>
+            )}
+
+            {/* Sección de ganancias */}
+            {(!isAuthenticated || !showUsernameForm) && (
+              <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 mb-8">
+                <h2 className="text-2xl font-semibold mb-4 text-center text-white">{t("earn_daily")}</h2>
+
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-black/50 p-4 rounded-lg border border-gray-800 text-center">
+                    <p className="text-sm text-gray-400 mb-1">{t("daily")}</p>
+                    <p className="text-xl font-bold text-[#4ebd0a]">0.1%</p>
+                  </div>
+                  <div className="bg-black/50 p-4 rounded-lg border border-gray-800 text-center">
+                    <p className="text-sm text-gray-400 mb-1">{t("monthly")}</p>
+                    <p className="text-xl font-bold text-[#4ebd0a]">3%</p>
+                  </div>
+                  <div className="bg-black/50 p-4 rounded-lg border border-gray-800 text-center">
+                    <p className="text-sm text-gray-400 mb-1">{t("yearly")}</p>
+                    <p className="text-xl font-bold text-[#4ebd0a]">36.5%</p>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <>
-              <hr style={{ width: "100px", margin: 10 }} />
-                <div>A starter mini app in a few lines of code!</div>
-                <div>You are not authenticated - pick a method to sign in</div>
-                <hr style={{ width: "100px", margin: 10 }} />
-                <div className="flex gap-4 items-center flex-col sm:flex-row">
-                  <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={signInWallet}
-                  >
-                    Login with World Wallet
-                  </button>
-                  <hr style={{ width: "100px", margin: 10 }} />
-                  <button
-                    className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-                    onClick={() => signInWorldID(null)}
-                  >
-                    Login with World ID
-                  </button>
-                </div>
-              </>
-            ))}
-          </>
+
+                <p className="text-center text-sm text-gray-400 mb-6">{t("how_works_desc")}</p>
+              </div>
+            )}
+
+            {/* Resto del contenido... */}
+          </div>
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="py-6 text-center text-sm text-gray-500">
+        <p>{t("footer_home")}</p>
+      </footer>
     </div>
   )
 }
