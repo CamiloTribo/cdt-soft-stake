@@ -47,23 +47,6 @@ export default function Home() {
     }
   }
 
-  // Modifica la función handleWorldIDSignIn para simplificarla
-  const handleWorldIDSignIn = () => {
-    console.log("Botón de verificación humana clickeado")
-
-    try {
-      console.log("Objeto session:", session)
-      console.log("Intentando llamar a signInWorldID")
-
-      // Llamar a signInWorldID con un parámetro mínimo
-      signInWorldID({ state: "exampleState" })
-
-      console.log("signInWorldID llamado exitosamente")
-    } catch (error) {
-      console.error("Error al llamar signInWorldID:", error)
-    }
-  }
-
   // Función para guardar username
   const handleSaveUsername = async () => {
     const identifier = getUserIdentifier()
@@ -204,9 +187,9 @@ export default function Home() {
 
                 {/* Botones de verificación y conexión */}
                 <div className="flex flex-col gap-4">
-                  {/* Botón de verificación humana - Usando una función intermedia para manejar el parámetro state */}
+                  {/* Botón de verificación humana - Usando la implementación exacta de gip */}
                   <button
-                    onClick={handleWorldIDSignIn}
+                    onClick={() => signInWorldID({ state: "exampleState" })}
                     className="w-full px-6 py-3 bg-[#ff1744] hover:bg-[#ff2954] text-white font-medium rounded-md transition-colors"
                     disabled={session?.isAuthenticatedWorldID}
                     data-testid="verify-human-button"
