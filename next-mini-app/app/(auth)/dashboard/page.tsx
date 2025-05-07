@@ -13,12 +13,10 @@ const PriceDisplay = React.memo(
     initialPrice,
     stakedAmount,
     priceChange,
-    lastUpdated,
   }: {
     initialPrice: number | null
     stakedAmount: number
     priceChange: { value: number; isPositive: boolean }
-    lastUpdated?: string | null
   }) => {
     const { t } = useTranslation()
 
@@ -28,12 +26,17 @@ const PriceDisplay = React.memo(
     }, [initialPrice])
 
     // Calcular el valor estimado en USD
-    const calculateUsdValue = useMemo(() => {
+    const calculateUsdValue = () => {
       if (initialPrice && stakedAmount) {
         return (initialPrice * stakedAmount).toFixed(2)
       }
       return "0.00"
-    }, [initialPrice, stakedAmount])
+    }
+
+    // Calcular las ganancias anuales estimadas
+    const yearlyEarnings = useMemo(() => {
+      return Math.round(stakedAmount * 0.44)
+    }, [stakedAmount])
 
     return (
       <>
@@ -43,14 +46,14 @@ const PriceDisplay = React.memo(
             <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-[#4ebd0a]">$</span>
-              {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
+              {calculateUsdValue()} <span className="text-xs text-gray-400">USD</span>
             </p>
           </div>
           <div className="bg-black p-4 rounded-lg border border-gray-800">
             <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-[#4ebd0a]">+</span>
-              {Math.round(stakedAmount * 0.44).toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
+              {yearlyEarnings.toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
             </p>
           </div>
         </div>
@@ -88,20 +91,9 @@ const PriceDisplay = React.memo(
                 {priceChange.value.toFixed(2)}%
               </span>
             </div>
-            {lastUpdated && <p className="text-xs text-gray-500 mt-1">{new Date(lastUpdated).toLocaleTimeString()}</p>}
           </div>
-          <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
-            {/* Mini gráfico simulado */}
-            <div className="h-full w-full flex items-end">
-              <div className="h-[30%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[50%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[40%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[70%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[60%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[80%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[75%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-[90%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
-            </div>
+          <div className="h-10 w-20 flex items-center justify-center">
+            <span className="text-xs text-gray-400">Actualizado</span>
           </div>
         </div>
       </>
@@ -123,7 +115,6 @@ export default function Dashboard() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [username, setUsername] = useState("")
   const [cdtPrice, setCdtPrice] = useState<number | null>(null)
-  const [lastPriceUpdate, setLastPriceUpdate] = useState<string | null>(null)
 
   // Estado para el porcentaje de cambio del precio
   const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
@@ -215,7 +206,12 @@ export default function Dashboard() {
   const fetchTokenPrice = useCallback(async () => {
     try {
       console.log("Obteniendo precio del token en vivo...")
-      const response = await fetch("/api/token-price")
+      const response = await fetch("/api/token-price", {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      })
 
       if (!response.ok) {
         throw new Error(t("error_updating"))
@@ -225,11 +221,8 @@ export default function Dashboard() {
       console.log("Respuesta de la API token-price:", data)
 
       if (data.success) {
-        // Actualizar el precio y el timestamp
+        // Actualizar el precio
         setCdtPrice(data.price)
-        if (data.timestamp) {
-          setLastPriceUpdate(data.timestamp)
-        }
 
         // Generar un pequeño cambio aleatorio para simular movimiento en vivo
         // (ya que la API no proporciona el cambio de precio)
@@ -332,10 +325,13 @@ export default function Dashboard() {
   useEffect(() => {
     fetchStakingData()
 
-    // Configurar un intervalo para actualizar SOLO el precio cada 3 segundos
+    // Configurar un intervalo para actualizar el precio y recalcular valores cada 3 segundos
     const priceInterval = setInterval(() => {
-      fetchTokenPrice()
-    }, 3000) // 3 segundos en lugar de 10 segundos
+      fetchTokenPrice().then(() => {
+        // Forzar actualización de valores calculados
+        console.log("Actualizando valores calculados")
+      })
+    }, 3000) // 3 segundos
 
     return () => clearInterval(priceInterval)
   }, [fetchStakingData, fetchTokenPrice])
@@ -610,12 +606,7 @@ export default function Dashboard() {
           </div>
 
           {/* Componente separado para la sección de precio y estadísticas */}
-          <PriceDisplay
-            initialPrice={cdtPrice}
-            stakedAmount={stakedAmount}
-            priceChange={priceChange}
-            lastUpdated={lastPriceUpdate}
-          />
+          <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} priceChange={priceChange} />
 
           <button
             onClick={handleUpdateStake}
