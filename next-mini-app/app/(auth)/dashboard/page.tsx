@@ -9,98 +9,153 @@ import { useTranslation } from "../../../src/components/TranslationProvider"
 
 // Componente separado para la sección de precio
 // Esto evita que todo el dashboard se re-renderice cuando cambia el precio
-const PriceDisplay = React.memo(({ initialPrice }: { initialPrice: number | null }) => {
-  const [price, setPrice] = useState<number | null>(initialPrice)
-  const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
-    value: 2.34,
-    isPositive: true,
-  })
+const PriceDisplay = React.memo(
+  ({
+    initialPrice,
+    stakedAmount,
+    onPriceChange,
+  }: {
+    initialPrice: number | null
+    stakedAmount: number
+    onPriceChange: (newPrice: number) => void
+  }) => {
+    const [price, setPrice] = useState<number | null>(initialPrice)
+    const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
+      value: 2.34,
+      isPositive: true,
+    })
+    const { t } = useTranslation()
 
-  // Memoizar el valor formateado del precio
-  const formattedPrice = useMemo(() => {
-    return price !== null ? price.toFixed(9) : "0.000000000"
-  }, [price])
+    // Memoizar el valor formateado del precio
+    const formattedPrice = useMemo(() => {
+      return price !== null ? price.toFixed(9) : "0.000000000"
+    }, [price])
 
-  // Efecto para simular actualizaciones de precio
-  useEffect(() => {
-    if (price === null) {
-      setPrice(0.00000123)
-      return
-    }
+    // Calcular el valor estimado en USD
+    const calculateUsdValue = useMemo(() => {
+      if (price && stakedAmount) {
+        return (price * stakedAmount).toFixed(2)
+      }
+      return "0.00"
+    }, [price, stakedAmount])
 
-    // Función para generar un pequeño cambio aleatorio en el precio
-    const updatePrice = () => {
-      // Generar un cambio aleatorio entre -0.00000001 y 0.00000001
-      const change = (Math.random() - 0.5) * 0.00000002
-      const newPrice = price + change
+    // Efecto para simular actualizaciones de precio
+    useEffect(() => {
+      if (price === null) {
+        const initialPrice = 0.00000123
+        setPrice(initialPrice)
+        onPriceChange(initialPrice)
+        return
+      }
 
-      // Actualizar el precio
-      setPrice(newPrice)
+      // Función para generar un pequeño cambio aleatorio en el precio
+      const updatePrice = () => {
+        // Generar un cambio aleatorio entre -0.00000001 y 0.00000001
+        const change = (Math.random() - 0.5) * 0.00000002
+        const newPrice = price + change
 
-      // Actualizar el porcentaje de cambio
-      setPriceChange({
-        value: Number.parseFloat(Math.abs((change / (price || 0.00000001)) * 100).toFixed(2)),
-        isPositive: change > 0,
-      })
-    }
+        // Asegurar que el precio no sea negativo
+        const finalPrice = Math.max(0.00000001, newPrice)
 
-    // Actualizar el precio cada 3 segundos
-    const interval = setInterval(updatePrice, 3000)
+        // Actualizar el precio
+        setPrice(finalPrice)
 
-    // Limpiar el intervalo cuando el componente se desmonte
-    return () => clearInterval(interval)
-  }, [price])
+        // Notificar al componente padre del cambio de precio
+        onPriceChange(finalPrice)
 
-  return (
-    <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-900 to-black p-3 rounded-lg border border-gray-800">
-      <div>
-        <p className="text-xs text-gray-400 mb-1">Current CDT price</p>
-        <div className="flex items-center">
-          <p className="text-lg font-semibold text-white" style={{ fontFamily: "Helvetica Neue, sans-serif" }}>
-            <span className="text-[#4ebd0a]">$</span>
-            <span>{formattedPrice}</span>
-          </p>
-          {priceChange && (
-            <>
-              <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d={priceChange.isPositive ? "m12 5 7 7-7 7-7-7 7-7z" : "m12 19 7-7-7-7-7 7 7 7z"}></path>
-                </svg>
-              </span>
-              <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                {priceChange.isPositive ? "+" : "-"}
-                {priceChange.value}%
-              </span>
-            </>
-          )}
+        // Calcular el porcentaje de cambio (con 2 decimales)
+        const changePercent = (change / price) * 100
+
+        // Actualizar el porcentaje de cambio
+        setPriceChange({
+          value: Math.abs(Number.parseFloat(changePercent.toFixed(2))),
+          isPositive: change > 0,
+        })
+      }
+
+      // Actualizar el precio cada 3 segundos
+      const interval = setInterval(updatePrice, 3000)
+
+      // Limpiar el intervalo cuando el componente se desmonte
+      return () => clearInterval(interval)
+    }, [price, onPriceChange])
+
+    return (
+      <>
+        {/* Estadísticas adicionales con mejor diseño */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
+            <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
+            <p className="text-lg font-semibold text-white">
+              <span className="text-[#4ebd0a]">$</span>
+              {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
+            <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
+            <p className="text-lg font-semibold text-white">
+              <span className="text-[#4ebd0a]">+</span>
+              {Math.round(stakedAmount * 0.44).toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
-        {/* Mini gráfico simulado */}
-        <div className="h-full w-full flex items-end">
-          <div className="h-30% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-50% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-40% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-70% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-60% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-80% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-75% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-          <div className="h-90% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+
+        {/* Sección de precio con animación suave */}
+        <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-900 to-black p-3 rounded-lg border border-gray-800">
+          <div>
+            <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
+            <div className="flex items-center">
+              <p className="text-lg font-semibold text-white" style={{ fontFamily: "Helvetica Neue, sans-serif" }}>
+                <span className="text-[#4ebd0a]">$</span>
+                <span>{formattedPrice}</span>
+              </p>
+              {priceChange && (
+                <>
+                  <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {priceChange.isPositive ? (
+                        <path d="m18 15-6-6-6 6" /> // Flecha hacia arriba
+                      ) : (
+                        <path d="m6 9 6 6 6-6" /> // Flecha hacia abajo
+                      )}
+                    </svg>
+                  </span>
+                  <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                    {priceChange.isPositive ? "+" : "-"}
+                    {priceChange.value}%
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
+            {/* Mini gráfico simulado */}
+            <div className="h-full w-full flex items-end">
+              <div className="h-30% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-50% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-40% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-70% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-60% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-80% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-75% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-90% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  )
-})
+      </>
+    )
+  },
+)
 
 PriceDisplay.displayName = "PriceDisplay"
 
@@ -138,6 +193,11 @@ export default function Dashboard() {
   const [updateError, setUpdateError] = useState<string | null>(null)
 
   const { session, pay } = useWorldAuth()
+
+  // Función para manejar cambios de precio desde el componente hijo
+  const handlePriceChange = useCallback((newPrice: number) => {
+    setCdtPrice(newPrice)
+  }, [])
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -457,27 +517,6 @@ export default function Dashboard() {
     }
   }
 
-  // Calcular el valor estimado en USD
-  const calculateUsdValue = useMemo(() => {
-    if (cdtPrice && stakedAmount) {
-      return (cdtPrice * stakedAmount).toFixed(2)
-    }
-    return "0.00"
-  }, [cdtPrice, stakedAmount])
-
-  // Calcular las ganancias anuales estimadas
-  const calculateYearlyEarnings = useMemo(() => {
-    // 0.1% diario durante 365 días con interés compuesto
-    if (stakedAmount) {
-      let amount = stakedAmount
-      for (let i = 0; i < 365; i++) {
-        amount += amount * 0.001 // 0.1% diario
-      }
-      return Math.round(amount - stakedAmount)
-    }
-    return 0
-  }, [stakedAmount])
-
   // Establecer un precio inicial si no lo tenemos
   useEffect(() => {
     if (cdtPrice === null) {
@@ -579,7 +618,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Card de TRIBO Wallet - Versi��n mejorada con más vida */}
+        {/* Card de TRIBO Wallet - Versión mejorada con más vida */}
         <div className="mb-6 bg-gradient-to-br from-black via-gray-900 to-black rounded-xl shadow-lg p-6 border border-gray-800 relative overflow-hidden">
           {/* Efecto de partículas/brillo en el fondo */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#4ebd0a]/10 via-transparent to-transparent opacity-70"></div>
@@ -605,26 +644,8 @@ export default function Dashboard() {
               </p>
             </div>
 
-            {/* Estadísticas adicionales con mejor diseño */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
-                <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
-                <p className="text-lg font-semibold text-white">
-                  <span className="text-[#4ebd0a]">$</span>
-                  {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
-                <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
-                <p className="text-lg font-semibold text-white">
-                  <span className="text-[#4ebd0a]">+</span>
-                  {calculateYearlyEarnings.toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
-                </p>
-              </div>
-            </div>
-
-            {/* Componente separado para la sección de precio */}
-            <PriceDisplay initialPrice={cdtPrice} />
+            {/* Componente separado para la sección de precio y estadísticas */}
+            <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} onPriceChange={handlePriceChange} />
 
             <button
               onClick={handleUpdateStake}
