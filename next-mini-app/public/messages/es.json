@@ -93,5 +93,34 @@
 
   "verify_human_detective": "¡Haz clic para verificar que eres humano!",
   "verify_as_human": "Verificar que soy Humano",
-  "verify_human_explanation": "TRIBO Vault es exclusivamente para humanos. Esta verificación nos ayuda a mantener una plataforma segura y prevenir bots."
+  "verify_human_explanation": "TRIBO Vault es exclusivamente para humanos. Esta verificación nos ayuda a mantener una plataforma segura y prevenir bots.",
+
+  "user_profile": "Perfil de Usuario",
+  "manage_account": "Gestiona tu cuenta y revisa tus estadísticas",
+  "member_since": "Miembro desde",
+  "wallet_address": "Dirección de Wallet",
+  "last_claim": "Último claim",
+  "never": "Nunca",
+  "referral_program": "Programa de Referidos",
+  "invite_friends": "Invita a tus amigos a TRIBO Vault y ayuda a crecer la comunidad",
+  "your_referral_link": "Tu enlace de referido",
+  "active_referrals": "Referidos activos",
+  "view_details": "Ver detalles",
+  "staking_stats": "Estadísticas de Staking",
+  "total_balance": "Balance Total",
+  "yearly_projection": "Proyección anual (365 días)",
+  "estimated_earnings": "Ganancias estimadas",
+  "daily_average": "Promedio diario",
+  "view_full_history": "Ver historial completo",
+  "token_info": "Información del Token",
+  "current_price_token": "Precio actual",
+  "change_24h": "Cambio 24h",
+  "market_cap": "Market Cap",
+  "volume_24h": "Volumen 24h",
+  "view_on_gecko": "Ver en Gecko Terminal",
+  "back_to_dashboard_btn": "Volver al Dashboard",
+  "best_way_stake": "La mejor forma de stakear tus CDT",
+
+  "detectriber_message": "Soy DETECTRIBER y quiero verificar que no seas un 🤖",
+  "verify_first": "¡Verifica que eres humano primero! 👇"
 }

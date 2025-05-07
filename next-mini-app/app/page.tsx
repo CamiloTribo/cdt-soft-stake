@@ -17,6 +17,7 @@ export default function Home() {
   const [showUsernameForm, setShowUsernameForm] = useState(false)
   const [usernameError, setUsernameError] = useState<string | null>(null)
   const [isMascotHovered, setIsMascotHovered] = useState(false)
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -32,10 +33,17 @@ export default function Home() {
     }
   }, [isAuthenticated, session])
 
-  // Función para manejar el clic en la mascota - Simplificada para ir al dashboard
+  // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
     if (isAuthenticated && session?.isAuthenticatedWallet) {
       router.push("/dashboard")
+    } else if (!session?.isAuthenticatedWorldID) {
+      // Si no está verificado como humano, mostrar mensaje de verificación
+      setShowVerificationMessage(true)
+      // Ocultar el mensaje después de 3 segundos
+      setTimeout(() => {
+        setShowVerificationMessage(false)
+      }, 3000)
     }
   }
 
@@ -160,9 +168,18 @@ export default function Home() {
           </div>
         ) : (
           <div className="w-full">
-            {/* Mascota DETECTRIBER - Reemplazando al Jefe Tribo */}
+            {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
             {(!isAuthenticated || !showUsernameForm) && (
               <div className="relative flex justify-center mb-8">
+                {/* Bocadillo de texto siempre visible */}
+                <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full border border-[#4ebd0a] whitespace-nowrap z-10">
+                  {showVerificationMessage
+                    ? "¡Verifica que eres humano primero! 👇"
+                    : "Soy DETECTRIBER y quiero verificar que no seas un 🤖"}
+                  {/* Triángulo para el bocadillo */}
+                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#4ebd0a]"></div>
+                </div>
+
                 <div
                   className={`relative cursor-pointer transition-transform duration-300 ${
                     isMascotHovered ? "scale-110" : ""
@@ -171,13 +188,13 @@ export default function Home() {
                   onMouseLeave={() => setIsMascotHovered(false)}
                   onClick={handleMascotClick}
                 >
-                  <Image src="/DETECTRIBER.png" alt="Detectriber" width={200} height={200} className="animate-pulse" />
-                  {/* Texto flotante que aparece al hacer hover */}
-                  {isMascotHovered && (
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full border border-[#4ebd0a] whitespace-nowrap">
-                      {t("verify_human_detective")}
-                    </div>
-                  )}
+                  <Image
+                    src="/DETECTRIBER.png"
+                    alt="Detectriber"
+                    width={200}
+                    height={200}
+                    className={`${isMascotHovered ? "animate-bounce" : "animate-pulse"}`}
+                  />
                 </div>
               </div>
             )}
