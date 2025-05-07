@@ -7,27 +7,21 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 
-// Modificar el componente PriceDisplay para asegurarnos de que está correctamente memoizado
-// y no causa re-renderizados innecesarios
-
-// Asegurarnos de que el componente PriceDisplay esté correctamente memoizado
+// Modificar el componente PriceDisplay para que use el porcentaje real
 const PriceDisplay = React.memo(
   ({
     initialPrice,
     stakedAmount,
-    onPriceChange,
+    priceChange,
   }: {
     initialPrice: number | null
     stakedAmount: number
-    onPriceChange: (newPrice: number) => void
+    priceChange: { value: number; isPositive: boolean }
   }) => {
     // Usar useRef para mantener el precio sin causar re-renderizados
     const priceRef = React.useRef<number | null>(initialPrice)
+    // Usar useState solo para el valor que se muestra en pantalla
     const [displayPrice, setDisplayPrice] = useState<number | null>(initialPrice)
-    const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
-      value: 2.34,
-      isPositive: true,
-    })
     const { t } = useTranslation()
 
     // Memoizar el valor formateado del precio
@@ -43,52 +37,13 @@ const PriceDisplay = React.memo(
       return "0.00"
     }, [displayPrice, stakedAmount])
 
-    // Efecto para simular actualizaciones de precio
+    // Efecto para actualizar el precio mostrado cuando cambia el precio inicial
     useEffect(() => {
-      if (priceRef.current === null) {
-        const initialPriceValue = 0.00000123
-        priceRef.current = initialPriceValue
-        setDisplayPrice(initialPriceValue)
-        onPriceChange(initialPriceValue)
-        return
+      if (initialPrice !== null && initialPrice !== priceRef.current) {
+        priceRef.current = initialPrice
+        setDisplayPrice(initialPrice)
       }
-
-      // Función para generar un pequeño cambio aleatorio en el precio
-      const updatePrice = () => {
-        if (priceRef.current === null) return
-
-        // Generar un cambio aleatorio entre -0.00000001 y 0.00000001
-        const change = (Math.random() - 0.5) * 0.00000002
-        const newPrice = priceRef.current + change
-
-        // Asegurar que el precio no sea negativo
-        const finalPrice = Math.max(0.00000001, newPrice)
-
-        // Actualizar el precio en la referencia
-        priceRef.current = finalPrice
-
-        // Actualizar el precio mostrado
-        setDisplayPrice(finalPrice)
-
-        // Notificar al componente padre del cambio de precio
-        onPriceChange(finalPrice)
-
-        // Calcular el porcentaje de cambio (con 2 decimales)
-        const changePercent = (change / priceRef.current) * 100
-
-        // Actualizar el porcentaje de cambio
-        setPriceChange({
-          value: Math.abs(Number.parseFloat(changePercent.toFixed(2))),
-          isPositive: change > 0,
-        })
-      }
-
-      // Actualizar el precio cada 3 segundos
-      const interval = setInterval(updatePrice, 3000)
-
-      // Limpiar el intervalo cuando el componente se desmonte
-      return () => clearInterval(interval)
-    }, [onPriceChange])
+    }, [initialPrice])
 
     return (
       <>
@@ -119,33 +74,29 @@ const PriceDisplay = React.memo(
                 <span className="text-[#4ebd0a]">$</span>
                 <span>{formattedPrice}</span>
               </p>
-              {priceChange && (
-                <>
-                  <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      {priceChange.isPositive ? (
-                        <path d="m18 15-6-6-6 6" /> // Flecha hacia arriba
-                      ) : (
-                        <path d="m6 9 6 6 6-6" /> // Flecha hacia abajo
-                      )}
-                    </svg>
-                  </span>
-                  <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                    {priceChange.isPositive ? "+" : "-"}
-                    {priceChange.value}%
-                  </span>
-                </>
-              )}
+              <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {priceChange.isPositive ? (
+                    <path d="m18 15-6-6-6 6" /> // Flecha hacia arriba
+                  ) : (
+                    <path d="m6 9 6 6 6-6" /> // Flecha hacia abajo
+                  )}
+                </svg>
+              </span>
+              <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                {priceChange.isPositive ? "+" : "-"}
+                {priceChange.value.toFixed(2)}%
+              </span>
             </div>
           </div>
           <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
@@ -163,6 +114,17 @@ const PriceDisplay = React.memo(
           </div>
         </div>
       </>
+    )
+  },
+  // Función de comparación personalizada para evitar re-renderizados innecesarios
+  (prevProps, nextProps) => {
+    // Solo re-renderizar si cambia significativamente el precio inicial, el monto stakeado o el cambio de precio
+    return (
+      (prevProps.initialPrice === nextProps.initialPrice ||
+        Math.abs((prevProps.initialPrice || 0) - (nextProps.initialPrice || 0)) < 0.00000001) &&
+      prevProps.stakedAmount === nextProps.stakedAmount &&
+      prevProps.priceChange.value === nextProps.priceChange.value &&
+      prevProps.priceChange.isPositive === nextProps.priceChange.isPositive
     )
   },
 )
@@ -204,19 +166,27 @@ export default function Dashboard() {
 
   const { session, pay } = useWorldAuth()
 
+  // Función para obtener el precio del token
+  const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
+    value: 2.34,
+    isPositive: true,
+  })
+
   // Modificar la función handlePriceChange para evitar re-renderizados innecesarios
 
   // Función para manejar cambios de precio desde el componente hijo
+  /*
   const handlePriceChange = useCallback((newPrice: number) => {
     // Usar una función de actualización para evitar re-renderizados innecesarios
     setCdtPrice((prevPrice) => {
       // Solo actualizar si el precio ha cambiado significativamente
-      if (Math.abs((prevPrice || 0) - newPrice) > 0.00000001) {
+      if (prevPrice === null || Math.abs(prevPrice - newPrice) > 0.00000001) {
         return newPrice
       }
       return prevPrice
     })
   }, [])
+  */
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -276,7 +246,7 @@ export default function Dashboard() {
     })
   }
 
-  // Función para obtener el precio del token
+  // Modificar la función fetchTokenPrice para que también obtenga el porcentaje de cambio real
   const fetchTokenPrice = useCallback(async () => {
     try {
       const response = await fetch("/api/token-price")
@@ -286,6 +256,13 @@ export default function Dashboard() {
       const data = await response.json()
       if (data.success) {
         setCdtPrice(data.price)
+        // Si la API devuelve el porcentaje de cambio, lo usamos
+        if (data.priceChange !== undefined) {
+          setPriceChange({
+            value: Math.abs(data.priceChange),
+            isPositive: data.priceChange >= 0,
+          })
+        }
       } else {
         console.error("Error en la respuesta de la API:", data.error)
         // Establecer un precio por defecto en caso de error
@@ -298,7 +275,7 @@ export default function Dashboard() {
     }
   }, [t])
 
-  // Función para obtener datos de staking
+  // Asegurarnos de que fetchStakingData no cause re-renderizados innecesarios
   const fetchStakingData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -317,17 +294,26 @@ export default function Dashboard() {
 
       const data = await response.json()
 
-      setStakedAmount(data.staked_amount)
-      setPendingRewards(data.pending_rewards)
+      // Solo actualizar si los valores han cambiado
+      if (data.staked_amount !== stakedAmount) {
+        setStakedAmount(data.staked_amount)
+      }
+
+      if (data.pending_rewards !== pendingRewards) {
+        setPendingRewards(data.pending_rewards)
+      }
 
       if (data.last_claim_timestamp) {
         const lastClaim = new Date(data.last_claim_timestamp)
-        setLastClaimDate(lastClaim)
+        // Solo actualizar si la fecha ha cambiado
+        if (!lastClaimDate || lastClaim.getTime() !== lastClaimDate.getTime()) {
+          setLastClaimDate(lastClaim)
 
-        // Calcular próximo claim (24h después del último)
-        const nextClaim = new Date(lastClaim)
-        nextClaim.setHours(nextClaim.getHours() + 24)
-        setNextClaimTime(nextClaim)
+          // Calcular próximo claim (24h después del último)
+          const nextClaim = new Date(lastClaim)
+          nextClaim.setHours(nextClaim.getHours() + 24)
+          setNextClaimTime(nextClaim)
+        }
       }
 
       // Obtener el username del usuario con la nueva API
@@ -335,7 +321,7 @@ export default function Dashboard() {
         const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`)
         if (usernameResponse.ok) {
           const usernameData = await usernameResponse.json()
-          if (usernameData.username) {
+          if (usernameData.username && usernameData.username !== username) {
             setUsername(usernameData.username)
           }
         }
@@ -343,7 +329,7 @@ export default function Dashboard() {
         console.error("Error fetching username:", error)
       }
 
-      // Obtener el precio del token
+      // Obtener el precio del token solo si es necesario
       if (cdtPrice === null) {
         await fetchTokenPrice()
       }
@@ -352,7 +338,7 @@ export default function Dashboard() {
     } finally {
       setIsLoading(false)
     }
-  }, [getUserIdentifier, fetchTokenPrice, t, cdtPrice])
+  }, [getUserIdentifier, fetchTokenPrice, t, cdtPrice, stakedAmount, pendingRewards, lastClaimDate, username])
 
   // Actualizar el contador cada segundo
   useEffect(() => {
@@ -652,7 +638,7 @@ export default function Dashboard() {
           </div>
 
           {/* Componente separado para la sección de precio y estadísticas */}
-          <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} onPriceChange={handlePriceChange} />
+          <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} priceChange={priceChange} />
 
           <button
             onClick={handleUpdateStake}
