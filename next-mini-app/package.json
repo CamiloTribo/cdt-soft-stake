@@ -14,7 +14,7 @@
     "ethers": "^5.7.2",
     "next": "^15.3.1",
     "next-intl": "^4.1.0",
-    "next-world-auth": "^0.0.15",
+    "next-world-auth": "^0.0.17",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
