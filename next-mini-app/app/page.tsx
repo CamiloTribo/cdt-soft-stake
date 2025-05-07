@@ -45,7 +45,6 @@ export default function Home() {
 
     try {
       console.log("Objeto session:", session)
-      //console.log("Funciones disponibles en useWorldAuth:", Object.keys(useWorldAuth()))
       console.log("Intentando llamar a signInWorldID")
 
       // Llamar a signInWorldID con un parámetro mínimo
@@ -161,7 +160,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="w-full">
-            {/* Mascota Jefe Tribo */}
+            {/* Mascota DETECTRIBER - Reemplazando al Jefe Tribo */}
             {(!isAuthenticated || !showUsernameForm) && (
               <div className="relative flex justify-center mb-8">
                 <div
@@ -172,13 +171,13 @@ export default function Home() {
                   onMouseLeave={() => setIsMascotHovered(false)}
                   onClick={handleMascotClick}
                 >
-                  <Image
-                    src="/Jefe Tribo Intro.png"
-                    alt="Jefe Tribo"
-                    width={200}
-                    height={200}
-                    className="animate-pulse"
-                  />
+                  <Image src="/DETECTRIBER.png" alt="Detectriber" width={200} height={200} className="animate-pulse" />
+                  {/* Texto flotante que aparece al hacer hover */}
+                  {isMascotHovered && (
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full border border-[#4ebd0a] whitespace-nowrap">
+                      {t("verify_human_detective")}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
