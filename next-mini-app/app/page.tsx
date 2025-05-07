@@ -160,7 +160,7 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="container max-w-4xl mx-auto px-4 py-12 pt-20 flex flex-col items-center">
+      <main className="container max-w-4xl mx-auto px-4 py-12 main-content flex flex-col items-center">
         {/* Main Content */}
         {isLoading ? (
           <div className="flex items-center justify-center mt-4">
@@ -170,14 +170,11 @@ export default function Home() {
           <div className="w-full">
             {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
             {(!isAuthenticated || !showUsernameForm) && (
-              <div className="relative flex justify-center mb-8 mt-10">
-                {/* Bocadillo de texto siempre visible - Ajustado para que no se salga */}
-                <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full border border-[#4ebd0a] z-10 max-w-[90%] mx-auto">
+              <div className="detectriber-container flex justify-center mb-8 w-full">
+                <div className="speech-bubble">
                   <p className="text-center text-sm break-words">
                     {showVerificationMessage ? t("verify_first") : t("detectriber_message")}
                   </p>
-                  {/* Triángulo para el bocadillo */}
-                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#4ebd0a]"></div>
                 </div>
 
                 <div
@@ -312,6 +309,45 @@ export default function Home() {
       <footer className="py-6 text-center text-sm text-gray-500">
         <p>{t("footer_home")}</p>
       </footer>
+      <style jsx global>{`
+  .main-content {
+    padding-top: calc(4rem + 16px); /* Espacio para el header más un margen adicional */
+  }
+  
+  .detectriber-container {
+    margin-top: 2rem;
+    position: relative;
+    padding-top: 3rem; /* Espacio para el bocadillo */
+  }
+  
+  .speech-bubble {
+    position: absolute;
+    top: -2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid #4ebd0a;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    z-index: 10;
+    max-width: 90%;
+    margin: 0 auto;
+    white-space: normal;
+  }
+  
+  .speech-bubble:after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #4ebd0a;
+  }
+`}</style>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
 import Image from "next/image"
@@ -43,6 +43,11 @@ export default function Dashboard() {
   const [claimError, setClaimError] = useState<string | null>(null)
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
+
+  // Memoizar el valor formateado del precio para evitar re-renders innecesarios
+  const formattedPrice = React.useMemo(() => {
+    return cdtPrice !== null ? cdtPrice.toFixed(9) : "0.000000000"
+  }, [cdtPrice])
 
   const { session, pay } = useWorldAuth()
 
@@ -391,27 +396,38 @@ export default function Dashboard() {
 
   // Simular actualizaciones de precio en tiempo real
   useEffect(() => {
-    // Función para generar un pequeño cambio aleatorio en el precio
-    const generatePriceChange = () => {
-      if (cdtPrice) {
+    // Referencia para el intervalo
+    let intervalId: NodeJS.Timeout
+
+    // Solo iniciar el intervalo si tenemos un precio inicial
+    if (cdtPrice !== null) {
+      // Función para generar un pequeño cambio aleatorio en el precio
+      const generatePriceChange = () => {
         // Generar un cambio aleatorio entre -0.00000001 y 0.00000001
         const change = (Math.random() - 0.5) * 0.00000002
         const newPrice = cdtPrice + change
-        setCdtPrice(newPrice)
+
+        // Actualizar el precio sin causar re-renders completos
+        setCdtPrice((prevPrice) => {
+          if (prevPrice === null) return newPrice
+          return newPrice
+        })
 
         // Actualizar el porcentaje de cambio
         setPriceChange({
-          value: Number.parseFloat(((Math.abs(change) / cdtPrice) * 100).toFixed(2)),
+          value: Number.parseFloat(Math.abs((change / (cdtPrice || 0.00000001)) * 100).toFixed(2)),
           isPositive: change > 0,
         })
       }
+
+      // Actualizar el precio cada 3 segundos
+      intervalId = setInterval(generatePriceChange, 3000)
     }
 
-    // Actualizar el precio cada 3 segundos
-    const interval = setInterval(generatePriceChange, 3000)
-
     // Limpiar el intervalo cuando el componente se desmonte
-    return () => clearInterval(interval)
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
   }, [cdtPrice])
 
   if (isLoading) {
@@ -552,34 +568,40 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Sección de precio con animación */}
+            {/* Sección de precio con animación suave */}
             <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-900 to-black p-3 rounded-lg border border-gray-800">
               <div>
                 <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
                 <div className="flex items-center">
                   <p className="text-lg font-semibold text-white" style={{ fontFamily: "Helvetica Neue, sans-serif" }}>
                     <span className="text-[#4ebd0a]">$</span>
-                    <span className="price-animation">{cdtPrice?.toFixed(9) || "0.000000000"}</span>
+                    <span>{formattedPrice}</span>
                   </p>
-                  <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"} animate-pulse`}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d={priceChange.isPositive ? "m12 5 7 7-7 7-7-7 7-7z" : "m12 19 7-7-7-7-7 7 7 7z"}></path>
-                    </svg>
-                  </span>
-                  <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                    {priceChange.isPositive ? "+" : "-"}
-                    {priceChange.value}%
-                  </span>
+                  {priceChange && (
+                    <>
+                      <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path
+                            d={priceChange.isPositive ? "m12 5 7 7-7 7-7-7 7-7z" : "m12 19 7-7-7-7-7 7 7 7z"}
+                          ></path>
+                        </svg>
+                      </span>
+                      <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                        {priceChange.isPositive ? "+" : "-"}
+                        {priceChange.value}%
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
