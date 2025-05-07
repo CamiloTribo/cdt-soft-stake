@@ -7,7 +7,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 
-// Componente PriceDisplay simplificado
+// Componente PriceDisplay con flecha de dirección pero sin porcentaje
 const PriceDisplay = React.memo(
   ({
     initialPrice,
@@ -16,7 +16,7 @@ const PriceDisplay = React.memo(
   }: {
     initialPrice: number | null
     stakedAmount: number
-    priceChange: { value: number; isPositive: boolean }
+    priceChange: { isPositive: boolean }
   }) => {
     const { t } = useTranslation()
 
@@ -26,12 +26,12 @@ const PriceDisplay = React.memo(
     }, [initialPrice])
 
     // Calcular el valor estimado en USD
-    const calculateUsdValue = () => {
+    const calculateUsdValue = useMemo(() => {
       if (initialPrice && stakedAmount) {
         return (initialPrice * stakedAmount).toFixed(2)
       }
       return "0.00"
-    }
+    }, [initialPrice, stakedAmount])
 
     // Calcular las ganancias anuales estimadas
     const yearlyEarnings = useMemo(() => {
@@ -46,7 +46,7 @@ const PriceDisplay = React.memo(
             <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-[#4ebd0a]">$</span>
-              {calculateUsdValue()} <span className="text-xs text-gray-400">USD</span>
+              {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
             </p>
           </div>
           <div className="bg-black p-4 rounded-lg border border-gray-800">
@@ -86,14 +86,10 @@ const PriceDisplay = React.memo(
                   )}
                 </svg>
               </span>
-              <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                {priceChange.isPositive ? "+" : "-"}
-                {priceChange.value.toFixed(2)}%
-              </span>
             </div>
           </div>
-          <div className="h-10 w-20 flex items-center justify-center">
-            <span className="text-xs text-gray-400">Actualizado</span>
+          <div className="h-10 w-10 flex items-center justify-center">
+            <Image src="/TOKEN CDT.png" alt="CDT Token" width={24} height={24} className="rounded-full" />
           </div>
         </div>
       </>
@@ -114,13 +110,12 @@ export default function Dashboard() {
   const [isClaiming, setIsClaiming] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [username, setUsername] = useState("")
+  // Estado para el precio y su dirección
   const [cdtPrice, setCdtPrice] = useState<number | null>(null)
-
-  // Estado para el porcentaje de cambio del precio
-  const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
-    value: 2.34,
+  const [priceChange, setPriceChange] = useState<{ isPositive: boolean }>({
     isPositive: true,
   })
+  const [previousPrice, setPreviousPrice] = useState<number | null>(null)
 
   // Estado para controlar si es la primera visita
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -221,25 +216,25 @@ export default function Dashboard() {
       console.log("Respuesta de la API token-price:", data)
 
       if (data.success) {
+        // Guardar el precio anterior
+        setPreviousPrice(cdtPrice)
+
         // Actualizar el precio
         setCdtPrice(data.price)
 
-        // Generar un pequeño cambio aleatorio para simular movimiento en vivo
-        // (ya que la API no proporciona el cambio de precio)
-        const randomChange = (Math.random() * 3).toFixed(2)
-        const isPositive = Math.random() > 0.3 // 70% probabilidad de ser positivo
-
-        setPriceChange({
-          value: Number.parseFloat(randomChange),
-          isPositive: isPositive,
-        })
+        // Determinar si el precio subió o bajó
+        if (previousPrice !== null && cdtPrice !== null) {
+          setPriceChange({
+            isPositive: data.price >= previousPrice,
+          })
+        }
       } else {
         console.error("Error en la respuesta de la API:", data.error)
       }
     } catch (error) {
       console.error("Error al obtener el precio del token:", error)
     }
-  }, [t])
+  }, [t, cdtPrice, previousPrice])
 
   // Asegurarnos de que fetchStakingData no cause re-renderizados innecesarios
   const fetchStakingData = useCallback(async () => {
@@ -323,15 +318,13 @@ export default function Dashboard() {
 
   // Cargar datos iniciales y configurar actualizaciones periódicas
   useEffect(() => {
+    // Cargar todos los datos inicialmente
     fetchStakingData()
 
-    // Configurar un intervalo para actualizar el precio y recalcular valores cada 3 segundos
+    // Configurar un intervalo para actualizar SOLO el precio cada 60 segundos
     const priceInterval = setInterval(() => {
-      fetchTokenPrice().then(() => {
-        // Forzar actualización de valores calculados
-        console.log("Actualizando valores calculados")
-      })
-    }, 3000) // 3 segundos
+      fetchTokenPrice()
+    }, 60000) // 60 segundos
 
     return () => clearInterval(priceInterval)
   }, [fetchStakingData, fetchTokenPrice])
