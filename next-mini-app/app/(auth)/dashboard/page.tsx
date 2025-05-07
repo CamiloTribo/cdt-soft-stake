@@ -13,10 +13,12 @@ const PriceDisplay = React.memo(
     initialPrice,
     stakedAmount,
     priceChange,
+    lastUpdated,
   }: {
     initialPrice: number | null
     stakedAmount: number
     priceChange: { value: number; isPositive: boolean }
+    lastUpdated?: string | null
   }) => {
     const { t } = useTranslation()
 
@@ -86,18 +88,19 @@ const PriceDisplay = React.memo(
                 {priceChange.value.toFixed(2)}%
               </span>
             </div>
+            {lastUpdated && <p className="text-xs text-gray-500 mt-1">{new Date(lastUpdated).toLocaleTimeString()}</p>}
           </div>
           <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
             {/* Mini gráfico simulado */}
             <div className="h-full w-full flex items-end">
-              <div className="h-30% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-50% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-40% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-70% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-60% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-80% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-75% w-1 bg-[#4ebd0a] mx-[1px]"></div>
-              <div className="h-90% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[30%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[50%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[40%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[70%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[60%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[80%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[75%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
+              <div className="h-[90%] w-1 bg-[#4ebd0a] mx-[1px]"></div>
             </div>
           </div>
         </div>
@@ -120,6 +123,13 @@ export default function Dashboard() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [username, setUsername] = useState("")
   const [cdtPrice, setCdtPrice] = useState<number | null>(null)
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<string | null>(null)
+
+  // Estado para el porcentaje de cambio del precio
+  const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
+    value: 2.34,
+    isPositive: true,
+  })
 
   // Estado para controlar si es la primera visita
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -142,12 +152,6 @@ export default function Dashboard() {
   const [updateError, setUpdateError] = useState<string | null>(null)
 
   const { session, pay } = useWorldAuth()
-
-  // Estado para el porcentaje de cambio del precio
-  const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
-    value: 2.34,
-    isPositive: true,
-  })
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -221,8 +225,11 @@ export default function Dashboard() {
       console.log("Respuesta de la API token-price:", data)
 
       if (data.success) {
-        // Actualizar el precio
+        // Actualizar el precio y el timestamp
         setCdtPrice(data.price)
+        if (data.timestamp) {
+          setLastPriceUpdate(data.timestamp)
+        }
 
         // Generar un pequeño cambio aleatorio para simular movimiento en vivo
         // (ya que la API no proporciona el cambio de precio)
@@ -325,10 +332,10 @@ export default function Dashboard() {
   useEffect(() => {
     fetchStakingData()
 
-    // Configurar un intervalo para actualizar SOLO el precio cada 10 segundos
+    // Configurar un intervalo para actualizar SOLO el precio cada 3 segundos
     const priceInterval = setInterval(() => {
       fetchTokenPrice()
-    }, 10000) // 10 segundos
+    }, 3000) // 3 segundos en lugar de 10 segundos
 
     return () => clearInterval(priceInterval)
   }, [fetchStakingData, fetchTokenPrice])
@@ -603,7 +610,12 @@ export default function Dashboard() {
           </div>
 
           {/* Componente separado para la sección de precio y estadísticas */}
-          <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} priceChange={priceChange} />
+          <PriceDisplay
+            initialPrice={cdtPrice}
+            stakedAmount={stakedAmount}
+            priceChange={priceChange}
+            lastUpdated={lastPriceUpdate}
+          />
 
           <button
             onClick={handleUpdateStake}
