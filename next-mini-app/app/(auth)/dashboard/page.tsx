@@ -7,8 +7,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 
-// Componente separado para la sección de precio
-// Esto evita que todo el dashboard se re-renderice cuando cambia el precio
+// Modificar el componente PriceDisplay para asegurarnos de que está correctamente memoizado
+// y no causa re-renderizados innecesarios
+
+// Asegurarnos de que el componente PriceDisplay esté correctamente memoizado
 const PriceDisplay = React.memo(
   ({
     initialPrice,
@@ -19,7 +21,9 @@ const PriceDisplay = React.memo(
     stakedAmount: number
     onPriceChange: (newPrice: number) => void
   }) => {
-    const [price, setPrice] = useState<number | null>(initialPrice)
+    // Usar useRef para mantener el precio sin causar re-renderizados
+    const priceRef = React.useRef<number | null>(initialPrice)
+    const [displayPrice, setDisplayPrice] = useState<number | null>(initialPrice)
     const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
       value: 2.34,
       isPositive: true,
@@ -28,43 +32,49 @@ const PriceDisplay = React.memo(
 
     // Memoizar el valor formateado del precio
     const formattedPrice = useMemo(() => {
-      return price !== null ? price.toFixed(9) : "0.000000000"
-    }, [price])
+      return displayPrice !== null ? displayPrice.toFixed(9) : "0.000000000"
+    }, [displayPrice])
 
     // Calcular el valor estimado en USD
     const calculateUsdValue = useMemo(() => {
-      if (price && stakedAmount) {
-        return (price * stakedAmount).toFixed(2)
+      if (displayPrice && stakedAmount) {
+        return (displayPrice * stakedAmount).toFixed(2)
       }
       return "0.00"
-    }, [price, stakedAmount])
+    }, [displayPrice, stakedAmount])
 
     // Efecto para simular actualizaciones de precio
     useEffect(() => {
-      if (price === null) {
-        const initialPrice = 0.00000123
-        setPrice(initialPrice)
-        onPriceChange(initialPrice)
+      if (priceRef.current === null) {
+        const initialPriceValue = 0.00000123
+        priceRef.current = initialPriceValue
+        setDisplayPrice(initialPriceValue)
+        onPriceChange(initialPriceValue)
         return
       }
 
       // Función para generar un pequeño cambio aleatorio en el precio
       const updatePrice = () => {
+        if (priceRef.current === null) return
+
         // Generar un cambio aleatorio entre -0.00000001 y 0.00000001
         const change = (Math.random() - 0.5) * 0.00000002
-        const newPrice = price + change
+        const newPrice = priceRef.current + change
 
         // Asegurar que el precio no sea negativo
         const finalPrice = Math.max(0.00000001, newPrice)
 
-        // Actualizar el precio
-        setPrice(finalPrice)
+        // Actualizar el precio en la referencia
+        priceRef.current = finalPrice
+
+        // Actualizar el precio mostrado
+        setDisplayPrice(finalPrice)
 
         // Notificar al componente padre del cambio de precio
         onPriceChange(finalPrice)
 
         // Calcular el porcentaje de cambio (con 2 decimales)
-        const changePercent = (change / price) * 100
+        const changePercent = (change / priceRef.current) * 100
 
         // Actualizar el porcentaje de cambio
         setPriceChange({
@@ -78,20 +88,20 @@ const PriceDisplay = React.memo(
 
       // Limpiar el intervalo cuando el componente se desmonte
       return () => clearInterval(interval)
-    }, [price, onPriceChange])
+    }, [onPriceChange])
 
     return (
       <>
-        {/* Estadísticas adicionales con mejor diseño */}
+        {/* Estadísticas adicionales con diseño simplificado */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
+          <div className="bg-black p-4 rounded-lg border border-gray-800">
             <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-[#4ebd0a]">$</span>
               {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
             </p>
           </div>
-          <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
+          <div className="bg-black p-4 rounded-lg border border-gray-800">
             <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-[#4ebd0a]">+</span>
@@ -100,8 +110,8 @@ const PriceDisplay = React.memo(
           </div>
         </div>
 
-        {/* Sección de precio con animación suave */}
-        <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-900 to-black p-3 rounded-lg border border-gray-800">
+        {/* Sección de precio con diseño simplificado */}
+        <div className="flex items-center justify-between mb-6 bg-black p-3 rounded-lg border border-gray-800">
           <div>
             <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
             <div className="flex items-center">
@@ -194,9 +204,18 @@ export default function Dashboard() {
 
   const { session, pay } = useWorldAuth()
 
+  // Modificar la función handlePriceChange para evitar re-renderizados innecesarios
+
   // Función para manejar cambios de precio desde el componente hijo
   const handlePriceChange = useCallback((newPrice: number) => {
-    setCdtPrice(newPrice)
+    // Usar una función de actualización para evitar re-renderizados innecesarios
+    setCdtPrice((prevPrice) => {
+      // Solo actualizar si el precio ha cambiado significativamente
+      if (Math.abs((prevPrice || 0) - newPrice) > 0.00000001) {
+        return newPrice
+      }
+      return prevPrice
+    })
   }, [])
 
   // Función para obtener un identificador único del usuario
@@ -543,7 +562,7 @@ export default function Dashboard() {
       <div className="dashboard-content">
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
-          <div className="mb-6 bg-gradient-to-r from-[#4ebd0a]/20 to-black border-l-4 border-[#4ebd0a] p-4 rounded-md shadow-lg animate-fadeIn">
+          <div className="mb-6 bg-black border-l-4 border-[#4ebd0a] p-4 rounded-md shadow-lg animate-fadeIn">
             <div className="flex items-start">
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white">
@@ -618,115 +637,93 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Card de TRIBO Wallet - Versión mejorada con más vida */}
-        <div className="mb-6 bg-gradient-to-br from-black via-gray-900 to-black rounded-xl shadow-lg p-6 border border-gray-800 relative overflow-hidden">
-          {/* Efecto de partículas/brillo en el fondo */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#4ebd0a]/10 via-transparent to-transparent opacity-70"></div>
+        {/* Card de TRIBO Wallet - Versión simplificada con branding consistente */}
+        <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+          <div className="flex items-center mb-4">
+            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={32} height={32} className="mr-3" />
+            <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
+          </div>
 
-          <div className="relative z-10">
-            <div className="flex items-center mb-4">
-              <div className="bg-gradient-to-r from-[#4ebd0a]/20 to-black p-2 rounded-full mr-3 shadow-lg">
-                <Image
-                  src="/TRIBO Wallet sin fondo.png"
-                  alt="TRIBO Wallet"
-                  width={32}
-                  height={32}
-                  className="filter brightness-125"
-                />
-              </div>
-              <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
-            </div>
+          <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>
+          <div className="flex items-center mb-4">
+            <p className="text-3xl font-bold text-white">
+              {stakedAmount.toLocaleString()} <span className="text-[#4ebd0a]">CDT</span>
+            </p>
+          </div>
 
-            <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>
-            <div className="flex items-center mb-4">
-              <p className="text-3xl font-bold text-white">
-                {stakedAmount.toLocaleString()} <span className="text-[#4ebd0a]">CDT</span>
+          {/* Componente separado para la sección de precio y estadísticas */}
+          <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} onPriceChange={handlePriceChange} />
+
+          <button
+            onClick={handleUpdateStake}
+            disabled={isUpdating}
+            className={`w-full px-4 py-3 rounded-md ${
+              isUpdating ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+            } font-medium transition-colors`}
+          >
+            {isUpdating ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                {t("updating")}
+              </span>
+            ) : (
+              t("update_balance")
+            )}
+          </button>
+
+          {/* Mensaje de éxito para actualización de balance */}
+          {updateSuccess && !updateError && !isUpdating && (
+            <div className="mt-4 p-3 bg-black/70 border border-[#4ebd0a] rounded-md animate-pulse">
+              <p className="text-sm font-medium text-[#4ebd0a] flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                {updateSuccess}
               </p>
             </div>
+          )}
 
-            {/* Componente separado para la sección de precio y estadísticas */}
-            <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} onPriceChange={handlePriceChange} />
-
-            <button
-              onClick={handleUpdateStake}
-              disabled={isUpdating}
-              className={`w-full px-4 py-3 rounded-md ${
-                isUpdating
-                  ? "bg-gray-700 cursor-not-allowed"
-                  : "bg-gradient-to-r from-[#4ebd0a]/80 to-[#4ebd0a] hover:from-[#4ebd0a] hover:to-[#3fa008] text-black"
-              } font-medium transition-colors shadow-md`}
-            >
-              {isUpdating ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  {t("updating")}
-                </span>
-              ) : (
-                t("update_balance")
-              )}
-            </button>
-
-            {/* Mensaje de éxito para actualización de balance */}
-            {updateSuccess && !updateError && !isUpdating && (
-              <div className="mt-4 p-3 bg-black/70 border border-[#4ebd0a] rounded-md animate-pulse">
-                <p className="text-sm font-medium text-[#4ebd0a] flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {updateSuccess}
-                </p>
-              </div>
-            )}
-
-            {/* Mensaje de error para actualización de balance */}
-            {updateError && !isUpdating && (
-              <div className="mt-4 p-3 bg-black/70 border border-[#ff1744] rounded-md">
-                <p className="text-sm font-medium text-[#ff1744] flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  {t("error_updating")}
-                </p>
-                <p className="text-xs mt-1 text-[#ff1744]">{updateError}</p>
-              </div>
-            )}
-          </div>
+          {/* Mensaje de error para actualización de balance */}
+          {updateError && !isUpdating && (
+            <div className="mt-4 p-3 bg-black/70 border border-[#ff1744] rounded-md">
+              <p className="text-sm font-medium text-[#ff1744] flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                {t("error_updating")}
+              </p>
+              <p className="text-xs mt-1 text-[#ff1744]">{updateError}</p>
+            </div>
+          )}
         </div>
 
         {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - Ahora con fecha */}
