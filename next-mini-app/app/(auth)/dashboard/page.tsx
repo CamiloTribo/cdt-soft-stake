@@ -19,6 +19,10 @@ export default function Dashboard() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [username, setUsername] = useState("")
   const [cdtPrice, setCdtPrice] = useState<number | null>(null)
+  const [priceChange, setPriceChange] = useState<{ value: number; isPositive: boolean }>({
+    value: 2.34,
+    isPositive: true,
+  })
 
   // Estado para controlar si es la primera visita
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -109,6 +113,16 @@ export default function Dashboard() {
       }
       const data = await response.json()
       if (data.success) {
+        // Si ya tenemos un precio anterior, calculamos el cambio
+        if (cdtPrice) {
+          const oldPrice = cdtPrice
+          const newPrice = data.price
+          const changePercent = ((newPrice - oldPrice) / oldPrice) * 100
+          setPriceChange({
+            value: Number.parseFloat(((Math.abs(changePercent) / oldPrice) * 100).toFixed(2)),
+            isPositive: newPrice >= oldPrice,
+          })
+        }
         setCdtPrice(data.price)
       } else {
         console.error("Error en la respuesta de la API:", data.error)
@@ -116,7 +130,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Error al obtener el precio del token:", error)
     }
-  }, [t])
+  }, [t, cdtPrice])
 
   // Función para obtener datos de staking
   const fetchStakingData = useCallback(async () => {
@@ -375,6 +389,31 @@ export default function Dashboard() {
     return 0
   }
 
+  // Simular actualizaciones de precio en tiempo real
+  useEffect(() => {
+    // Función para generar un pequeño cambio aleatorio en el precio
+    const generatePriceChange = () => {
+      if (cdtPrice) {
+        // Generar un cambio aleatorio entre -0.00000001 y 0.00000001
+        const change = (Math.random() - 0.5) * 0.00000002
+        const newPrice = cdtPrice + change
+        setCdtPrice(newPrice)
+
+        // Actualizar el porcentaje de cambio
+        setPriceChange({
+          value: Number.parseFloat(((Math.abs(change) / cdtPrice) * 100).toFixed(2)),
+          isPositive: change > 0,
+        })
+      }
+    }
+
+    // Actualizar el precio cada 3 segundos
+    const interval = setInterval(generatePriceChange, 3000)
+
+    // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(interval)
+  }, [cdtPrice])
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -385,355 +424,478 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Banner de bienvenida - Solo se muestra en la primera visita */}
-      {isFirstVisit && (
-        <div className="mb-6 bg-gradient-to-r from-[#4ebd0a]/20 to-black border-l-4 border-[#4ebd0a] p-4 rounded-md shadow-lg animate-fadeIn">
-          <div className="flex items-start">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-white">
-                {t("welcome")}, {username}! 🎉
-              </h3>
-              <p className="text-gray-300 mt-2">{t("how_works_desc")}</p>
-              <div className="mt-3 flex gap-4">
-                <button
-                  onClick={handleUpdateStake}
-                  className="px-4 py-2 bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black font-medium rounded-md transition-colors text-sm"
-                >
-                  {t("update_balance")}
-                </button>
-                <button
-                  onClick={() => setIsFirstVisit(false)}
-                  className="px-4 py-2 bg-transparent border border-gray-600 hover:bg-gray-800 text-white rounded-md transition-colors text-sm"
-                >
-                  {t("disconnect")}
-                </button>
+      {/* Aplicar Helvetica Neue a todo el dashboard */}
+      <style jsx global>{`
+        .dashboard-content * {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+      `}</style>
+      <div className="dashboard-content">
+        {/* Banner de bienvenida - Solo se muestra en la primera visita */}
+        {isFirstVisit && (
+          <div className="mb-6 bg-gradient-to-r from-[#4ebd0a]/20 to-black border-l-4 border-[#4ebd0a] p-4 rounded-md shadow-lg animate-fadeIn">
+            <div className="flex items-start">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white">
+                  {t("welcome")}, {username}! 🎉
+                </h3>
+                <p className="text-gray-300 mt-2">{t("how_works_desc")}</p>
+                <div className="mt-3 flex gap-4">
+                  <button
+                    onClick={handleUpdateStake}
+                    className="px-4 py-2 bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black font-medium rounded-md transition-colors text-sm"
+                  >
+                    {t("update_balance")}
+                  </button>
+                  <button
+                    onClick={() => setIsFirstVisit(false)}
+                    className="px-4 py-2 bg-transparent border border-gray-600 hover:bg-gray-800 text-white rounded-md transition-colors text-sm"
+                  >
+                    {t("disconnect")}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Sección de usuario y saludo - Sin corona */}
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-white">
-          Tribo <span className="text-[#4ebd0a]">Vault</span>
-        </h2>
-        {username && (
-          <p className="text-white text-xl mt-1">
-            {t("hello")}, <span className="font-bold text-[#4ebd0a]">{username}</span>
-          </p>
         )}
-      </div>
 
-      {/* Botón Buy CDT - Primero según la captura */}
-      <div className="mb-6">
-        <Link
-          href={
-            process.env.NEXT_PUBLIC_BUY_CDT_URL ||
-            "https://world.org/mini-app?app_id=app_15daccf5b7d4ec9b7dbba044a8fdeab5"
-          }
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-md text-white font-medium text-lg transition-all duration-300 ${
-            isBuyButtonHovered ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1" : "bg-[#ff1744] hover:bg-[#ff2954]"
-          }`}
-          onMouseEnter={() => setIsBuyButtonHovered(true)}
-          onMouseLeave={() => setIsBuyButtonHovered(false)}
-          onTouchStart={() => setIsBuyButtonHovered(true)}
-          onTouchEnd={() => setIsBuyButtonHovered(false)}
-        >
-          <Image src="/TOKEN CDT.png" alt="CDT Token" width={28} height={28} className="rounded-full" />
-          <span className="font-bold">{t("buy_cdt")}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`ml-2 transition-transform duration-300 ${isBuyButtonHovered ? "translate-x-1" : ""}`}
+        {/* Sección de usuario y saludo - Sin corona */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-white">
+            Tribo <span className="text-[#4ebd0a]">Vault</span>
+          </h2>
+          {username && (
+            <p className="text-white text-xl mt-1">
+              {t("hello")}, <span className="font-bold text-[#4ebd0a]">{username}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Botón Buy CDT - Primero según la captura */}
+        <div className="mb-6">
+          <Link
+            href={
+              process.env.NEXT_PUBLIC_BUY_CDT_URL ||
+              "https://world.org/mini-app?app_id=app_15daccf5b7d4ec9b7dbba044a8fdeab5"
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-md text-white font-medium text-lg transition-all duration-300 ${
+              isBuyButtonHovered ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1" : "bg-[#ff1744] hover:bg-[#ff2954]"
+            }`}
+            onMouseEnter={() => setIsBuyButtonHovered(true)}
+            onMouseLeave={() => setIsBuyButtonHovered(false)}
+            onTouchStart={() => setIsBuyButtonHovered(true)}
+            onTouchEnd={() => setIsBuyButtonHovered(false)}
           >
-            <path d="M5 12h14"></path>
-            <path d="m12 5 7 7-7 7"></path>
-          </svg>
-        </Link>
-      </div>
-
-      {/* Card de TRIBO Wallet - Con estadísticas adicionales */}
-      <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
-        <div className="flex items-center mb-2">
-          <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={32} height={32} className="mr-3" />
-          <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
-        </div>
-        <p className="text-gray-400 text-sm mb-4">{t("tokens_staked")}</p>
-        <p className="text-3xl font-bold mb-2 text-white">{stakedAmount.toLocaleString()} CDT</p>
-
-        {/* Estadísticas adicionales */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-900/50 p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
-            <p className="text-lg font-semibold text-white">
-              ${calculateUsdValue()} <span className="text-xs text-gray-400">USD</span>
-            </p>
-          </div>
-          <div className="bg-gray-900/50 p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
-            <p className="text-lg font-semibold text-white">
-              {calculateYearlyEarnings().toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
-            </p>
-          </div>
+            <Image src="/TOKEN CDT.png" alt="CDT Token" width={28} height={28} className="rounded-full" />
+            <span className="font-bold">{t("buy_cdt")}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`ml-2 transition-transform duration-300 ${isBuyButtonHovered ? "translate-x-1" : ""}`}
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Link>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-xs text-gray-400">{t("current_price")}</p>
-            <p className="text-sm font-medium text-white">${cdtPrice?.toFixed(9) || "0.000000000"}</p>
-          </div>
-        </div>
+        {/* Card de TRIBO Wallet - Versión mejorada con más vida */}
+        <div className="mb-6 bg-gradient-to-br from-black via-gray-900 to-black rounded-xl shadow-lg p-6 border border-gray-800 relative overflow-hidden">
+          {/* Efecto de partículas/brillo en el fondo */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#4ebd0a]/10 via-transparent to-transparent opacity-70"></div>
 
-        <button
-          onClick={handleUpdateStake}
-          disabled={isUpdating}
-          className={`w-full px-4 py-2 rounded-md ${
-            isUpdating ? "bg-gray-700 cursor-not-allowed" : "bg-black hover:bg-gray-900 border border-gray-700"
-          } transition-colors`}
-        >
-          {isUpdating ? t("updating") : t("update_balance")}
-        </button>
+          <div className="relative z-10">
+            <div className="flex items-center mb-4">
+              <div className="bg-gradient-to-r from-[#4ebd0a]/20 to-black p-2 rounded-full mr-3 shadow-lg">
+                <Image
+                  src="/TRIBO Wallet sin fondo.png"
+                  alt="TRIBO Wallet"
+                  width={32}
+                  height={32}
+                  className="filter brightness-125"
+                />
+              </div>
+              <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
+            </div>
 
-        {/* Mensaje de éxito para actualización de balance */}
-        {updateSuccess && !updateError && !isUpdating && (
-          <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-md">
-            <p className="text-sm font-medium text-[#4ebd0a]">{updateSuccess}</p>
-          </div>
-        )}
+            <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>
+            <div className="flex items-center mb-4">
+              <p className="text-3xl font-bold text-white">
+                {stakedAmount.toLocaleString()} <span className="text-[#4ebd0a]">CDT</span>
+              </p>
+            </div>
 
-        {/* Mensaje de error para actualización de balance */}
-        {updateError && !isUpdating && (
-          <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-md">
-            <p className="text-sm font-medium text-[#ff1744]">{t("error_updating")}</p>
-            <p className="text-xs mt-1 text-[#ff1744]">{updateError}</p>
-          </div>
-        )}
-      </div>
-
-      {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - Ahora con fecha */}
-      <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
-        <h2 className="text-xl font-semibold mb-4 text-center text-[#4ebd0a]">{t("next_claim")}</h2>
-
-        {/* Countdown con barra */}
-        {nextClaimTime ? (
-          <>
-            <div className="flex flex-col items-center mb-5">
-              <div className="text-4xl font-mono font-bold mb-3 text-white">{timeRemaining}</div>
-              {/* Fecha del próximo claim */}
-              <div className="text-sm text-gray-400">
-                {nextClaimTime ? formatDate(nextClaimTime) : "Fecha no disponible"}
+            {/* Estadísticas adicionales con mejor diseño */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
+                <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
+                <p className="text-lg font-semibold text-white">
+                  <span className="text-[#4ebd0a]">$</span>
+                  {calculateUsdValue()} <span className="text-xs text-gray-400">USD</span>
+                </p>
+              </div>
+              <div className="bg-gradient-to-br from-gray-900 to-black p-4 rounded-lg border border-gray-800 shadow-md">
+                <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
+                <p className="text-lg font-semibold text-white">
+                  <span className="text-[#4ebd0a]">+</span>
+                  {calculateYearlyEarnings().toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
+                </p>
               </div>
             </div>
-            <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
-              <div
-                className="bg-[#4ebd0a] h-3 rounded-full"
-                style={{
-                  width: `${
-                    nextClaimTime && lastClaimDate
-                      ? Math.min(
-                          100,
-                          Math.max(
-                            0,
-                            100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
-                          ),
-                        )
-                      : 0
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </>
-        ) : (
-          <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
-        )}
 
-        {/* Cantidad a reclamar */}
-        <div className="text-center mb-5">
-          <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
-          <p className="text-4xl font-bold text-white">{pendingRewards.toLocaleString()} CDT</p>
+            {/* Sección de precio con animación */}
+            <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-900 to-black p-3 rounded-lg border border-gray-800">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
+                <div className="flex items-center">
+                  <p className="text-lg font-semibold text-white" style={{ fontFamily: "Helvetica Neue, sans-serif" }}>
+                    <span className="text-[#4ebd0a]">$</span>
+                    <span className="price-animation">{cdtPrice?.toFixed(9) || "0.000000000"}</span>
+                  </p>
+                  <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"} animate-pulse`}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d={priceChange.isPositive ? "m12 5 7 7-7 7-7-7 7-7z" : "m12 19 7-7-7-7-7 7 7 7z"}></path>
+                    </svg>
+                  </span>
+                  <span className={`ml-1 text-xs ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                    {priceChange.isPositive ? "+" : "-"}
+                    {priceChange.value}%
+                  </span>
+                </div>
+              </div>
+              <div className="h-10 w-20 bg-black/50 rounded-md overflow-hidden">
+                {/* Mini gráfico simulado */}
+                <div className="h-full w-full flex items-end">
+                  <div className="h-30% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-50% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-40% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-70% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-60% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-80% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-75% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                  <div className="h-90% w-1 bg-[#4ebd0a] mx-[1px]"></div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleUpdateStake}
+              disabled={isUpdating}
+              className={`w-full px-4 py-3 rounded-md ${
+                isUpdating
+                  ? "bg-gray-700 cursor-not-allowed"
+                  : "bg-gradient-to-r from-[#4ebd0a]/80 to-[#4ebd0a] hover:from-[#4ebd0a] hover:to-[#3fa008] text-black"
+              } font-medium transition-colors shadow-md`}
+            >
+              {isUpdating ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  {t("updating")}
+                </span>
+              ) : (
+                t("update_balance")
+              )}
+            </button>
+
+            {/* Mensaje de éxito para actualización de balance */}
+            {updateSuccess && !updateError && !isUpdating && (
+              <div className="mt-4 p-3 bg-black/70 border border-[#4ebd0a] rounded-md animate-pulse">
+                <p className="text-sm font-medium text-[#4ebd0a] flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {updateSuccess}
+                </p>
+              </div>
+            )}
+
+            {/* Mensaje de error para actualización de balance */}
+            {updateError && !isUpdating && (
+              <div className="mt-4 p-3 bg-black/70 border border-[#ff1744] rounded-md">
+                <p className="text-sm font-medium text-[#ff1744] flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  {t("error_updating")}
+                </p>
+                <p className="text-xs mt-1 text-[#ff1744]">{updateError}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Botón de reclamar */}
-        <button
-          onClick={handleClaimRewards}
-          disabled={isClaiming || pendingRewards <= 0}
-          className={`w-full px-4 py-3 rounded-md ${
-            isClaiming || pendingRewards <= 0 ? "bg-gray-700 cursor-not-allowed" : "bg-[#ff1744] hover:bg-[#ff2954]"
-          } text-white font-medium transition-colors`}
-        >
-          {isClaiming ? t("claiming") : pendingRewards <= 0 ? t("no_rewards") : t("claim_rewards")}
-        </button>
+        {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - Ahora con fecha */}
+        <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+          <h2 className="text-xl font-semibold mb-4 text-center text-[#4ebd0a]">{t("next_claim")}</h2>
 
-        {/* Mensajes de éxito/error para claim */}
-        {claimSuccess && !claimError && !isClaiming && (
-          <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-md">
-            <p className="text-sm font-medium text-[#4ebd0a]">{claimSuccess}</p>
+          {/* Countdown con barra */}
+          {nextClaimTime ? (
+            <>
+              <div className="flex flex-col items-center mb-5">
+                <div className="text-4xl font-mono font-bold mb-3 text-white">{timeRemaining}</div>
+                {/* Fecha del próximo claim */}
+                <div className="text-sm text-gray-400">
+                  {nextClaimTime ? formatDate(nextClaimTime) : "Fecha no disponible"}
+                </div>
+              </div>
+              <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
+                <div
+                  className="bg-[#4ebd0a] h-3 rounded-full"
+                  style={{
+                    width: `${
+                      nextClaimTime && lastClaimDate
+                        ? Math.min(
+                            100,
+                            Math.max(
+                              0,
+                              100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
+                            ),
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </>
+          ) : (
+            <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
+          )}
+
+          {/* Cantidad a reclamar */}
+          <div className="text-center mb-5">
+            <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
+            <p className="text-4xl font-bold text-white">{pendingRewards.toLocaleString()} CDT</p>
           </div>
-        )}
 
-        {claimError && !isClaiming && (
-          <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-md">
-            <p className="text-sm font-medium text-[#ff1744]">{t("error_claiming")}</p>
-            <p className="text-xs mt-1 text-[#ff1744]">{claimError}</p>
-          </div>
-        )}
-      </div>
-
-      {/* NUEVO: Link a historial de transacciones */}
-      <div className="mb-6">
-        <Link
-          href="/transactions"
-          className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
-            isTransactionsHovered
-              ? "bg-[#ff1744] shadow-lg transform -translate-y-1"
-              : "bg-[#4ebd0a] hover:bg-[#3fa008]"
-          }`}
-          onMouseEnter={() => setIsTransactionsHovered(true)}
-          onMouseLeave={() => setIsTransactionsHovered(false)}
-          onTouchStart={() => setIsTransactionsHovered(true)}
-          onTouchEnd={() => setIsTransactionsHovered(false)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-          </svg>
-          <span className="whitespace-nowrap">{t("view_transactions")}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform duration-300 ${isTransactionsHovered ? "translate-x-1" : ""}`}
-          >
-            <path d="M5 12h14"></path>
-            <path d="m12 5 7 7-7 7"></path>
-          </svg>
-        </Link>
-      </div>
-
-      {/* Botón de Discord - Corregido para que el texto no esté en dos líneas */}
-      <div className="mb-6 flex items-center gap-4">
-        <Image src="/Jefe Tribo Discord.png" alt="Discord" width={48} height={48} className="rounded-full" />
-        <Link
-          href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/tribo"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
-            isDiscordHovered ? "bg-[#5865F2] shadow-lg transform -translate-y-1" : "bg-[#5865F2]/80 hover:bg-[#5865F2]"
-          }`}
-          onMouseEnter={() => setIsDiscordHovered(true)}
-          onMouseLeave={() => setIsDiscordHovered(false)}
-          onTouchStart={() => setIsDiscordHovered(true)}
-          onTouchEnd={() => setIsDiscordHovered(false)}
-        >
-          <span className="whitespace-nowrap">{t("join_community")}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform duration-300 ${isDiscordHovered ? "translate-x-1" : ""}`}
-          >
-            <path d="M5 12h14"></path>
-            <path d="m12 5 7 7-7 7"></path>
-          </svg>
-        </Link>
-      </div>
-
-      {/* NUEVO: Botón de Swap CDT */}
-      <div className="mb-6">
-        <Link
-          href="https://world.org/mini-app?app_id=app_a4f7f3e62c1de0b9490a5260cb390b56"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
-            isSwapButtonHovered
-              ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1"
-              : "bg-[#ff1744]/80 hover:bg-[#ff1744]"
-          }`}
-          onMouseEnter={() => setIsSwapButtonHovered(true)}
-          onMouseLeave={() => setIsSwapButtonHovered(false)}
-          onTouchStart={() => setIsSwapButtonHovered(true)}
-          onTouchEnd={() => setIsSwapButtonHovered(false)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M16 3h5v5"></path>
-            <path d="M4 20 21 3"></path>
-            <path d="M21 16v5h-5"></path>
-            <path d="M15 15 3 3"></path>
-          </svg>
-          <span className="whitespace-nowrap">{t("swap_cdt")}</span>
-          <Image src="/TOKEN CDT.png" alt="CDT Token" width={20} height={20} className="rounded-full" />
-        </Link>
-      </div>
-
-      {/* Sección de propina - Movida al final */}
-      <div className="mb-6">
-        <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
-          <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">{t("support_project")}</h2>
-          <p className="text-gray-400 text-sm mb-4">{t("support_help")}</p>
+          {/* Botón de reclamar */}
           <button
-            onClick={handleSendCDT}
-            disabled={isSendingCDT}
+            onClick={handleClaimRewards}
+            disabled={isClaiming || pendingRewards <= 0}
             className={`w-full px-4 py-3 rounded-md ${
-              isSendingCDT ? "bg-gray-700 cursor-not-allowed" : "bg-[#ff1744] hover:bg-[#ff2954]"
+              isClaiming || pendingRewards <= 0 ? "bg-gray-700 cursor-not-allowed" : "bg-[#ff1744] hover:bg-[#ff2954]"
             } text-white font-medium transition-colors`}
           >
-            {isSendingCDT ? t("processing") : t("support_with")}
+            {isClaiming ? t("claiming") : pendingRewards <= 0 ? t("no_rewards") : t("claim_rewards")}
           </button>
 
-          {txHash && !txError && isSendingCDT === false && (
+          {/* Mensajes de éxito/error para claim */}
+          {claimSuccess && !claimError && !isClaiming && (
             <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-md">
-              <p className="text-sm font-medium text-[#4ebd0a]">{txHash}</p>
-              <p className="text-xs mt-1 text-[#4ebd0a]">{t("reward_message")}</p>
+              <p className="text-sm font-medium text-[#4ebd0a]">{claimSuccess}</p>
             </div>
           )}
 
-          {txError && isSendingCDT === false && (
+          {claimError && !isClaiming && (
             <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-md">
-              <p className="text-sm font-medium text-[#ff1744]">{t("error_sending")}</p>
-              <p className="text-xs mt-1 text-[#ff1744]">{txError}</p>
+              <p className="text-sm font-medium text-[#ff1744]">{t("error_claiming")}</p>
+              <p className="text-xs mt-1 text-[#ff1744]">{claimError}</p>
             </div>
           )}
+        </div>
+
+        {/* NUEVO: Link a historial de transacciones */}
+        <div className="mb-6">
+          <Link
+            href="/transactions"
+            className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
+              isTransactionsHovered
+                ? "bg-[#ff1744] shadow-lg transform -translate-y-1"
+                : "bg-[#4ebd0a] hover:bg-[#3fa008]"
+            }`}
+            onMouseEnter={() => setIsTransactionsHovered(true)}
+            onMouseLeave={() => setIsTransactionsHovered(false)}
+            onTouchStart={() => setIsTransactionsHovered(true)}
+            onTouchEnd={() => setIsTransactionsHovered(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span className="whitespace-nowrap">{t("view_transactions")}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isTransactionsHovered ? "translate-x-1" : ""}`}
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Link>
+        </div>
+
+        {/* Botón de Discord - Corregido para que el texto no esté en dos líneas */}
+        <div className="mb-6 flex items-center gap-4">
+          <Image src="/Jefe Tribo Discord.png" alt="Discord" width={48} height={48} className="rounded-full" />
+          <Link
+            href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/tribo"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
+              isDiscordHovered
+                ? "bg-[#5865F2] shadow-lg transform -translate-y-1"
+                : "bg-[#5865F2]/80 hover:bg-[#5865F2]"
+            }`}
+            onMouseEnter={() => setIsDiscordHovered(true)}
+            onMouseLeave={() => setIsDiscordHovered(false)}
+            onTouchStart={() => setIsDiscordHovered(true)}
+            onTouchEnd={() => setIsDiscordHovered(false)}
+          >
+            <span className="whitespace-nowrap">{t("join_community")}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isDiscordHovered ? "translate-x-1" : ""}`}
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Link>
+        </div>
+
+        {/* NUEVO: Botón de Swap CDT */}
+        <div className="mb-6">
+          <Link
+            href="https://world.org/mini-app?app_id=app_a4f7f3e62c1de0b9490a5260cb390b56"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
+              isSwapButtonHovered
+                ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1"
+                : "bg-[#ff1744]/80 hover:bg-[#ff1744]"
+            }`}
+            onMouseEnter={() => setIsSwapButtonHovered(true)}
+            onMouseLeave={() => setIsSwapButtonHovered(false)}
+            onTouchStart={() => setIsSwapButtonHovered(true)}
+            onTouchEnd={() => setIsSwapButtonHovered(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M16 3h5v5"></path>
+              <path d="M4 20 21 3"></path>
+              <path d="M21 16v5h-5"></path>
+              <path d="M15 15 3 3"></path>
+            </svg>
+            <span className="whitespace-nowrap">{t("swap_cdt")}</span>
+            <Image src="/TOKEN CDT.png" alt="CDT Token" width={20} height={20} className="rounded-full" />
+          </Link>
+        </div>
+
+        {/* Sección de propina - Movida al final */}
+        <div className="mb-6">
+          <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+            <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">{t("support_project")}</h2>
+            <p className="text-gray-400 text-sm mb-4">{t("support_help")}</p>
+            <button
+              onClick={handleSendCDT}
+              disabled={isSendingCDT}
+              className={`w-full px-4 py-3 rounded-md ${
+                isSendingCDT ? "bg-gray-700 cursor-not-allowed" : "bg-[#ff1744] hover:bg-[#ff2954]"
+              } text-white font-medium transition-colors`}
+            >
+              {isSendingCDT ? t("processing") : t("support_with")}
+            </button>
+
+            {txHash && !txError && isSendingCDT === false && (
+              <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-md">
+                <p className="text-sm font-medium text-[#4ebd0a]">{txHash}</p>
+                <p className="text-xs mt-1 text-[#4ebd0a]">{t("reward_message")}</p>
+              </div>
+            )}
+
+            {txError && isSendingCDT === false && (
+              <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-md">
+                <p className="text-sm font-medium text-[#ff1744]">{t("error_sending")}</p>
+                <p className="text-xs mt-1 text-[#ff1744]">{txError}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
