@@ -170,12 +170,12 @@ export default function Home() {
           <div className="w-full">
             {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
             {(!isAuthenticated || !showUsernameForm) && (
-              <div className="relative flex justify-center mb-8">
-                {/* Bocadillo de texto siempre visible */}
-                <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full border border-[#4ebd0a] whitespace-nowrap z-10">
-                  {showVerificationMessage
-                    ? "¡Verifica que eres humano primero! 👇"
-                    : "Soy DETECTRIBER y quiero verificar que no seas un 🤖"}
+              <div className="relative flex justify-center mb-8 mt-10">
+                {/* Bocadillo de texto siempre visible - Ajustado para que no se salga */}
+                <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black/80 px-4 py-2 rounded-full border border-[#4ebd0a] z-10 max-w-[90%] mx-auto">
+                  <p className="text-center text-sm break-words">
+                    {showVerificationMessage ? t("verify_first") : t("detectriber_message")}
+                  </p>
                   {/* Triángulo para el bocadillo */}
                   <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#4ebd0a]"></div>
                 </div>
