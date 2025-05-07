@@ -115,7 +115,6 @@ export default function Dashboard() {
   const [priceChange, setPriceChange] = useState<{ isPositive: boolean }>({
     isPositive: true,
   })
-  const [previousPrice, setPreviousPrice] = useState<number | null>(null)
 
   // Estado para controlar si es la primera visita
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -216,16 +215,20 @@ export default function Dashboard() {
       console.log("Respuesta de la API token-price:", data)
 
       if (data.success) {
-        // Guardar el precio anterior
-        setPreviousPrice(cdtPrice)
+        // Actualizar el precio y la dirección del cambio en una sola operación
+        const newPrice = data.price
 
-        // Actualizar el precio
-        setCdtPrice(data.price)
-
-        // Determinar si el precio subió o bajó
-        if (previousPrice !== null && cdtPrice !== null) {
+        // Actualizar en un solo paso para reducir renderizados
+        if (cdtPrice !== null) {
+          setCdtPrice(newPrice)
           setPriceChange({
-            isPositive: data.price >= previousPrice,
+            isPositive: newPrice >= cdtPrice,
+          })
+        } else {
+          // Primera carga
+          setCdtPrice(newPrice)
+          setPriceChange({
+            isPositive: true,
           })
         }
       } else {
@@ -234,12 +237,12 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Error al obtener el precio del token:", error)
     }
-  }, [t, cdtPrice, previousPrice])
+  }, [t, cdtPrice])
 
   // Asegurarnos de que fetchStakingData no cause re-renderizados innecesarios
   const fetchStakingData = useCallback(async () => {
     try {
-      setIsLoading(true)
+      // Eliminamos setIsLoading(true) de aquí para evitar parpadeos
 
       const identifier = getUserIdentifier()
       if (!identifier) {
@@ -294,9 +297,8 @@ export default function Dashboard() {
       await fetchTokenPrice()
     } catch (error) {
       console.error("Error fetching staking data:", error)
-    } finally {
-      setIsLoading(false)
     }
+    // Eliminamos setIsLoading(false) de aquí para centralizar en el useEffect principal
   }, [getUserIdentifier, fetchTokenPrice, t, stakedAmount, pendingRewards, lastClaimDate, username])
 
   // Actualizar el contador cada segundo
@@ -317,17 +319,41 @@ export default function Dashboard() {
   }, [nextClaimTime, formatTimeRemaining])
 
   // Cargar datos iniciales y configurar actualizaciones periódicas
+  // Usamos un enfoque diferente para evitar el warning de ESLint
   useEffect(() => {
-    // Cargar todos los datos inicialmente
-    fetchStakingData()
+    let isMounted = true
 
-    // Configurar un intervalo para actualizar SOLO el precio cada 60 segundos
+    // Establecer isLoading a true solo al inicio
+    setIsLoading(true)
+
+    // Función para cargar datos iniciales
+    const loadInitialData = async () => {
+      try {
+        await fetchStakingData()
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    // Cargar datos iniciales
+    loadInitialData()
+
+    // Configurar intervalo para actualizar el precio
     const priceInterval = setInterval(() => {
-      fetchTokenPrice()
+      if (isMounted) {
+        fetchTokenPrice()
+      }
     }, 60000) // 60 segundos
 
-    return () => clearInterval(priceInterval)
-  }, [fetchStakingData, fetchTokenPrice])
+    // Limpieza
+    return () => {
+      isMounted = false
+      clearInterval(priceInterval)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Dependencia vacía para que solo se ejecute una vez
 
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
