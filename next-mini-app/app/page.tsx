@@ -39,9 +39,22 @@ export default function Home() {
     }
   }
 
-  // Función para iniciar verificación con World ID
+  // Modifica la función handleWorldIDSignIn para simplificarla
   const handleWorldIDSignIn = () => {
-    signInWorldID({ state: "exampleState" })
+    console.log("Botón de verificación humana clickeado")
+
+    try {
+      console.log("Objeto session:", session)
+      //console.log("Funciones disponibles en useWorldAuth:", Object.keys(useWorldAuth()))
+      console.log("Intentando llamar a signInWorldID")
+
+      // Llamar a signInWorldID con un parámetro mínimo
+      signInWorldID({ state: "exampleState" })
+
+      console.log("signInWorldID llamado exitosamente")
+    } catch (error) {
+      console.error("Error al llamar signInWorldID:", error)
+    }
   }
 
   // Función para guardar username
@@ -92,7 +105,7 @@ export default function Home() {
   }
 
   // Función para verificar si el usuario tiene username y redirigir al dashboard
-  const handleContinueToDashboard = async () => {
+  const handleContinueToDashboard = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) {
       console.error("No se pudo obtener identificador de usuario")
@@ -114,7 +127,18 @@ export default function Home() {
       console.error("Error checking username:", error)
       setShowUsernameForm(true)
     }
-  }
+  }, [getUserIdentifier, router])
+
+  useEffect(() => {
+    if (isAuthenticated && session?.isAuthenticatedWallet) {
+      handleContinueToDashboard()
+    }
+  }, [isAuthenticated, session, handleContinueToDashboard])
+
+  // Efecto para registrar el estado del botón en la consola
+  useEffect(() => {
+    console.log("Estado del botón - disabled:", session?.isAuthenticatedWorldID)
+  }, [session?.isAuthenticatedWorldID])
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -172,6 +196,7 @@ export default function Home() {
                     onClick={handleWorldIDSignIn}
                     className="w-full px-6 py-3 bg-[#ff1744] hover:bg-[#ff2954] text-white font-medium rounded-md transition-colors"
                     disabled={session?.isAuthenticatedWorldID}
+                    data-testid="verify-human-button"
                   >
                     {session?.isAuthenticatedWorldID ? "✓ Verificado como humano" : t("verify_as_human")}
                   </button>
