@@ -76,7 +76,8 @@ export default function Dashboard() {
       const diffMs = targetDate.getTime() - now.getTime()
 
       if (diffMs <= 0) {
-        return t("no_rewards")
+        // Usar la clave "rewards_ready" para cuando las recompensas están listas
+        return t("rewards_ready")
       }
 
       const diffHrs = Math.floor(diffMs / (1000 * 60 * 60))

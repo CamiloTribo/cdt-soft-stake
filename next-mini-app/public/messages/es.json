@@ -18,6 +18,7 @@
   "claim_rewards": "Reclamar Recompensas",
   "claiming": "Reclamando...",
   "no_rewards": "No hay recompensas para reclamar",
+  "rewards_ready": "¡Recompensas listas para reclamar!",
   "rewards_claimed": "¡Recompensas reclamadas correctamente!",
   "error_claiming": "Error al reclamar recompensas",
   "view_transactions": "Ver historial de transacciones",

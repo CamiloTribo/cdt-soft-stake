@@ -18,6 +18,7 @@
   "claim_rewards": "Claim Rewards",
   "claiming": "Claiming...",
   "no_rewards": "No rewards to claim",
+  "rewards_ready": "Rewards ready to claim!",
   "rewards_claimed": "Rewards claimed successfully!",
   "error_claiming": "Error claiming rewards",
   "view_transactions": "View transaction history",

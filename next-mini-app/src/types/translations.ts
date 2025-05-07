@@ -18,6 +18,7 @@ export type TranslationKey =
   | "claim_rewards"
   | "claiming"
   | "no_rewards"
+  | "rewards_ready" // Añadida esta nueva clave
   | "rewards_claimed"
   | "error_claiming"
   | "view_transactions"

@@ -39,6 +39,11 @@ export default function Home() {
     }
   }
 
+  // Función para iniciar verificación con World ID
+  const handleWorldIDSignIn = () => {
+    signInWorldID({ state: "exampleState" })
+  }
+
   // Función para guardar username
   const handleSaveUsername = async () => {
     const identifier = getUserIdentifier()
@@ -162,9 +167,9 @@ export default function Home() {
 
                 {/* Botones de verificación y conexión */}
                 <div className="flex flex-col gap-4">
-                  {/* Botón de verificación humana - Usando aserción de tipo para evitar error de TypeScript */}
+                  {/* Botón de verificación humana - Usando una función intermedia para manejar el parámetro state */}
                   <button
-                    onClick={() => signInWorldID({ state: "exampleState" })}
+                    onClick={handleWorldIDSignIn}
                     className="w-full px-6 py-3 bg-[#ff1744] hover:bg-[#ff2954] text-white font-medium rounded-md transition-colors"
                     disabled={session?.isAuthenticatedWorldID}
                   >
