@@ -521,9 +521,7 @@ export default function Dashboard() {
     }
   }
 
-  // Buscar la función handleSimulateCDTTransaction y actualizarla
-
-  // Función para simular una transacción CDT
+  // Función para simular una transacción CDT usando el API en lugar de pay directamente
   const handleSimulateCDTTransaction = async () => {
     try {
       setIsSimulating(true)
@@ -536,26 +534,29 @@ export default function Dashboard() {
         throw new Error("No se pudo obtener la dirección del usuario")
       }
 
-      // Simular una transacción (envío de tokens del usuario a la wallet central)
-      const response = await fetch("/api/simulate-cdt-transaction", {
+      // Llamar a la API para simular la transacción
+      const response = await fetch("/api/send-cdt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 5, // Cantidad fija para la prueba
-          walletAddress: identifier, // La dirección del usuario como remitente
+          amount: 5,
+          from_address: identifier,
+          to_address: process.env.CENTRAL_WALLET_ADDRESS || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
+          description: "Envío de CDT a wallet central",
         }),
       })
 
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setSimulationHash(data.message || "Simulación exitosa")
+        setSimulationHash("¡Transacción completada correctamente!")
+
         // Si hay un hash de transacción, mostrarlo
         if (data.txHash) {
           console.log("Hash de transacción:", data.txHash)
         }
       } else {
-        setSimulationError(data.error || "Error en la simulación")
+        setSimulationError(data.error || "Error en la transacción")
       }
     } catch (error) {
       console.error("Error:", error)
@@ -970,9 +971,10 @@ export default function Dashboard() {
         {/* NUEVO: Sección de prueba de transacción CDT */}
         <div className="mb-6">
           <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
-            <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">Prueba de Transacción CDT</h2>
+            <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">Enviar CDT a Wallet Central</h2>
             <p className="text-gray-400 text-sm mb-4">
-              Esta es una función experimental para probar transacciones de CDT. No se moverán tokens reales.
+              Esta función te permite enviar 5 CDT a la wallet central del proyecto. Se realizará una transacción real
+              en la blockchain.
             </p>
 
             <button
@@ -982,7 +984,7 @@ export default function Dashboard() {
                 isSimulating ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
               } font-medium transition-colors`}
             >
-              {isSimulating ? "Simulando..." : "Simular Transacción CDT"}
+              {isSimulating ? "Procesando..." : "Enviar 5 CDT a Wallet Central"}
             </button>
 
             {simulationHash && !simulationError && !isSimulating && (
