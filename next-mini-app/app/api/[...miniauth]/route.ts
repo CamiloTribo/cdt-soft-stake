@@ -1,9 +1,4 @@
-import WorldAuth from "next-world-auth"
+import WorldAuth from 'next-world-auth'
 
-// Configuración simplificada usando solo propiedades válidas
-const handler = WorldAuth({
-  // No necesitamos pasar configuración adicional aquí
-  // WorldAuth tomará las variables de entorno automáticamente
-})
-
+const handler = WorldAuth({})
 export { handler as GET, handler as POST }
