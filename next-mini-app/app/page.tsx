@@ -9,7 +9,6 @@ import { LanguageSelector } from "../src/components/LanguageSelector"
 
 export default function Home() {
   const { t } = useTranslation()
-  // Mantenemos signInWorldID ya que lo vamos a usar
   const { isLoading, isAuthenticated, session, signInWallet, signInWorldID } = useWorldAuth()
 
   const router = useRouter()
@@ -186,7 +185,7 @@ export default function Home() {
 
                 {/* Botones de verificación y conexión */}
                 <div className="flex flex-col gap-4">
-                  {/* Botón de verificación humana - Volvemos a usar signInWorldID */}
+                  {/* Botón de verificación humana - Usando la implementación exacta de gip */}
                   <button
                     onClick={() => signInWorldID({ state: "exampleState" })}
                     className="w-full px-6 py-3 bg-[#ff1744] hover:bg-[#ff2954] text-white font-medium rounded-md transition-colors"
