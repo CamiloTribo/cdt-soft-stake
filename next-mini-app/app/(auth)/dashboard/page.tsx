@@ -7,6 +7,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 
+// Eliminar la declaración global de window.ethereum (si existe)
+
 // Componente PriceDisplay con flecha de dirección pero sin porcentaje
 const PriceDisplay = React.memo(
   ({
@@ -360,6 +362,8 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Dependencia vacía para que solo se ejecute una vez
 
+  // Reemplazar la función handleClaimRewards actual con esta nueva implementación
+
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) return
@@ -369,7 +373,33 @@ export default function Dashboard() {
       setClaimSuccess(null)
       setClaimError(null)
 
-      const response = await fetch("/api/claim", {
+      // Obtener información sobre las recompensas pendientes
+      const response = await fetch(`/api/pending-rewards?wallet_address=${identifier}`)
+      const rewardsInfo = await response.json()
+
+      if (!response.ok) {
+        throw new Error(rewardsInfo.error || t("error_claiming"))
+      }
+
+      if (!rewardsInfo.success || rewardsInfo.amount <= 0 || !rewardsInfo.canClaim) {
+        setClaimError(rewardsInfo.amount <= 0 ? t("no_rewards") : t("next_claim"))
+        return
+      }
+
+      // Cantidad de recompensas a reclamar
+      const rewardAmount = rewardsInfo.amount
+
+      // Dirección del contrato CDT (o contrato de recompensas)
+      // Eliminar o comentar esta línea:
+      // const rewardsContractAddress = process.env.CDT_CONTRACT_ADDRESS || "0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
+
+      console.log("Reclamando recompensas...")
+      console.log("- Usuario:", identifier)
+      console.log("- Cantidad:", rewardAmount, "CDT")
+
+      // En lugar de usar window.ethereum, llamamos directamente a la API de claim
+      // Esta API se encargará de enviar las recompensas al usuario
+      const claimResponse = await fetch("/api/claim", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -377,15 +407,15 @@ export default function Dashboard() {
         body: JSON.stringify({ wallet_address: identifier }),
       })
 
-      const data = await response.json()
+      const claimData = await claimResponse.json()
 
-      if (response.ok && data.success) {
-        setClaimSuccess(data.message || t("rewards_claimed"))
+      if (claimResponse.ok && claimData.success) {
+        setClaimSuccess(claimData.message || t("rewards_claimed"))
 
         // Recargar datos después de reclamar
         fetchStakingData()
       } else {
-        setClaimError(data.error || t("error_claiming"))
+        setClaimError(claimData.error || t("error_claiming"))
       }
     } catch (error) {
       console.error("Error claiming rewards:", error)
@@ -521,7 +551,8 @@ export default function Dashboard() {
     }
   }
 
-  // Función para simular una transacción CDT usando el API en lugar de pay directamente
+  // Función para enviar CDT a la wallet central usando directamente sendTransaction
+  // Reemplazar la función handleSimulateCDTTransaction con esta nueva implementación:
   const handleSimulateCDTTransaction = async () => {
     try {
       setIsSimulating(true)
@@ -534,33 +565,76 @@ export default function Dashboard() {
         throw new Error("No se pudo obtener la dirección del usuario")
       }
 
-      // Llamar a la API para simular la transacción
-      const response = await fetch("/api/send-cdt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: 5,
-          from_address: identifier,
-          to_address: process.env.CENTRAL_WALLET_ADDRESS || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
-          description: "Envío de CDT a wallet central",
-        }),
-      })
+      // Cantidad fija para la transacción real
+      const amount = 5
 
-      const data = await response.json()
+      // Dirección de la wallet central
+      const centralWalletAddress = process.env.CENTRAL_WALLET_ADDRESS || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6"
 
-      if (response.ok && data.success) {
-        setSimulationHash("¡Transacción completada correctamente!")
+      // Dirección del contrato CDT
+      const cdtContractAddress = process.env.CDT_CONTRACT_ADDRESS || "0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
 
-        // Si hay un hash de transacción, mostrarlo
-        if (data.txHash) {
-          console.log("Hash de transacción:", data.txHash)
+      console.log("Enviando transacción REAL de CDT...")
+      console.log("- De:", identifier)
+      console.log("- A:", centralWalletAddress)
+      console.log("- Cantidad:", amount, "CDT")
+      console.log("- Contrato CDT:", cdtContractAddress)
+
+      // Usar el método pay de World Auth para enviar CDT
+      const result = (await pay({
+        amount: amount,
+        // En lugar de:
+        // token: cdtContractAddress as any,
+
+        // Usar:
+        token: cdtContractAddress as unknown as typeof Tokens.WLD,
+        recipient: centralWalletAddress,
+      })) as { success?: boolean; txHash?: string; transactionHash?: string }
+
+      console.log("Resultado completo de la transacción REAL:", JSON.stringify(result, null, 2))
+
+      // Verificación del éxito de la transacción
+      const hasSuccess = result && result.success === true
+      const hasHash = !!(result && (result.txHash || result.transactionHash))
+
+      if (hasHash || hasSuccess) {
+        // La transacción tiene un hash o success=true, lo que significa que se completó
+        const transactionHash = result.txHash || result.transactionHash || ""
+
+        setSimulationHash("¡Transacción REAL completada correctamente! Hash: " + transactionHash)
+
+        // Registrar la transacción en la base de datos
+        try {
+          const response = await fetch("/api/transactions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              wallet_address: identifier,
+              type: "send_cdt_to_central",
+              amount: amount,
+              token_type: "CDT",
+              tx_hash: transactionHash,
+              status: "success",
+              description: "Envío de CDT a wallet central",
+            }),
+          })
+
+          if (!response.ok) {
+            console.error("Error al registrar la transacción en la base de datos:", await response.text())
+          }
+        } catch (error) {
+          console.error("Error al registrar la transacción:", error)
         }
+      } else if (result && result.success === false) {
+        // La transacción fue explícitamente rechazada
+        setSimulationError("Transacción rechazada por el usuario")
       } else {
-        setSimulationError(data.error || "Error en la transacción")
+        // No hay hash ni éxito explícito, probablemente fue cancelada
+        setSimulationError("Transacción cancelada o no completada")
       }
     } catch (error) {
-      console.error("Error:", error)
-      setSimulationError(error instanceof Error ? error.message : "Error desconocido")
+      console.error("Error en transacción REAL:", error)
+      setSimulationError(error instanceof Error ? error.message : "Error desconocido en la transacción")
     } finally {
       setIsSimulating(false)
     }
@@ -973,8 +1047,8 @@ export default function Dashboard() {
           <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
             <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">Enviar CDT a Wallet Central</h2>
             <p className="text-gray-400 text-sm mb-4">
-              Esta función te permite enviar 5 CDT a la wallet central del proyecto. Se realizará una transacción real
-              en la blockchain.
+              Esta función realiza una transacción REAL de 5 CDT desde tu wallet a la wallet central del proyecto
+              utilizando el mini kit de World ID.
             </p>
 
             <button
@@ -984,7 +1058,7 @@ export default function Dashboard() {
                 isSimulating ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
               } font-medium transition-colors`}
             >
-              {isSimulating ? "Procesando..." : "Enviar 5 CDT a Wallet Central"}
+              {isSimulating ? "Procesando transacción real..." : "Enviar 5 CDT a Wallet Central (REAL)"}
             </button>
 
             {simulationHash && !simulationError && !isSimulating && (
@@ -995,7 +1069,7 @@ export default function Dashboard() {
 
             {simulationError && !isSimulating && (
               <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-md">
-                <p className="text-sm font-medium text-[#ff1744]">Error en la simulación</p>
+                <p className="text-sm font-medium text-[#ff1744]">Error en la transacción</p>
                 <p className="text-xs mt-1 text-[#ff1744]">{simulationError}</p>
               </div>
             )}
