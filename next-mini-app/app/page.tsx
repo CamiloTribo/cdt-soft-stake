@@ -25,7 +25,7 @@ export default function Home() {
     return session.user.walletAddress
   }, [session])
 
-  // Verificar si el usuario está autenticado - Simplificado para evitar redirecciones automáticas
+  // Función para verificar si el usuario está autenticado - Simplificado para evitar redirecciones automáticas
   useEffect(() => {
     if (isAuthenticated && session?.isAuthenticatedWallet) {
       console.log("Usuario autenticado:", session)
@@ -35,12 +35,10 @@ export default function Home() {
 
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
-    if (isAuthenticated && session?.isAuthenticatedWallet) {
+    if (isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID) {
       router.push("/dashboard")
-    } else if (!session?.isAuthenticatedWorldID) {
-      // Si no está verificado como humano, mostrar mensaje de verificación
+    } else {
       setShowVerificationMessage(true)
-      // Ocultar el mensaje después de 3 segundos
       setTimeout(() => {
         setShowVerificationMessage(false)
       }, 3000)
@@ -120,7 +118,7 @@ export default function Home() {
   }, [getUserIdentifier, router])
 
   useEffect(() => {
-    if (isAuthenticated && session?.isAuthenticatedWallet) {
+    if (isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID) {
       handleContinueToDashboard()
     }
   }, [isAuthenticated, session, handleContinueToDashboard])
@@ -207,7 +205,7 @@ export default function Home() {
                   </button>
 
                   {/* Botón para continuar al dashboard si está autenticado */}
-                  {isAuthenticated && session?.isAuthenticatedWallet && (
+                  {isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID && (
                     <button
                       onClick={handleContinueToDashboard}
                       className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors mt-4"
@@ -334,4 +332,3 @@ export default function Home() {
     </div>
   )
 }
-
