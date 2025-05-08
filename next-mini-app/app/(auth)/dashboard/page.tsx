@@ -124,6 +124,11 @@ export default function Dashboard() {
   const [txHash, setTxHash] = useState<string | null>(null)
   const [txError, setTxError] = useState<string | null>(null)
 
+  // Estado para la simulación de transacción
+  const [isSimulating, setIsSimulating] = useState(false)
+  const [simulationHash, setSimulationHash] = useState<string | null>(null)
+  const [simulationError, setSimulationError] = useState<string | null>(null)
+
   // Estado para los botones con hover
   const [isBuyButtonHovered, setIsBuyButtonHovered] = useState(false)
   const [isDiscordHovered, setIsDiscordHovered] = useState(false)
@@ -513,6 +518,50 @@ export default function Dashboard() {
       setTxError(error instanceof Error ? error.message : t("error_sending"))
     } finally {
       setIsSendingCDT(false)
+    }
+  }
+
+  // Buscar la función handleSimulateCDTTransaction y actualizarla
+
+  // Función para simular una transacción CDT
+  const handleSimulateCDTTransaction = async () => {
+    try {
+      setIsSimulating(true)
+      setSimulationError(null)
+      setSimulationHash(null)
+
+      // Obtener la dirección del usuario
+      const identifier = getUserIdentifier()
+      if (!identifier) {
+        throw new Error("No se pudo obtener la dirección del usuario")
+      }
+
+      // Simular una transacción (envío de tokens del usuario a la wallet central)
+      const response = await fetch("/api/simulate-cdt-transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: 5, // Cantidad fija para la prueba
+          walletAddress: identifier, // La dirección del usuario como remitente
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setSimulationHash(data.message || "Simulación exitosa")
+        // Si hay un hash de transacción, mostrarlo
+        if (data.txHash) {
+          console.log("Hash de transacción:", data.txHash)
+        }
+      } else {
+        setSimulationError(data.error || "Error en la simulación")
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      setSimulationError(error instanceof Error ? error.message : "Error desconocido")
+    } finally {
+      setIsSimulating(false)
     }
   }
 
@@ -917,8 +966,40 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* NUEVO: Sección de prueba de transacción CDT */}
+        <div className="mb-6">
+          <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+            <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">Prueba de Transacción CDT</h2>
+            <p className="text-gray-400 text-sm mb-4">
+              Esta es una función experimental para probar transacciones de CDT. No se moverán tokens reales.
+            </p>
+
+            <button
+              onClick={handleSimulateCDTTransaction}
+              disabled={isSimulating}
+              className={`w-full px-4 py-3 rounded-md ${
+                isSimulating ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+              } font-medium transition-colors`}
+            >
+              {isSimulating ? "Simulando..." : "Simular Transacción CDT"}
+            </button>
+
+            {simulationHash && !simulationError && !isSimulating && (
+              <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-md">
+                <p className="text-sm font-medium text-[#4ebd0a]">{simulationHash}</p>
+              </div>
+            )}
+
+            {simulationError && !isSimulating && (
+              <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-md">
+                <p className="text-sm font-medium text-[#ff1744]">Error en la simulación</p>
+                <p className="text-xs mt-1 text-[#ff1744]">{simulationError}</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
-
