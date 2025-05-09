@@ -1,11 +1,13 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"
+import React from "react"
+
+import Image from "next/image"
 import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
-import Image from "next/image"
-import Link from "next/link"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
+import Link from "next/link"
 
 // Componente PriceDisplay con flecha de dirección pero sin porcentaje
 const PriceDisplay = React.memo(
@@ -239,18 +241,17 @@ export default function Dashboard() {
     }
   }, [t, cdtPrice])
 
-  // Asegurarnos de que fetchStakingData no cause re-renderizados innecesarios
+  // Función optimizada para obtener datos de staking
   const fetchStakingData = useCallback(async () => {
     try {
-      // Eliminamos setIsLoading(true) de aquí para evitar parpadeos
-
       const identifier = getUserIdentifier()
       if (!identifier) {
         console.error("No se pudo obtener identificador de usuario")
         return
       }
 
-      const response = await fetch(`/api/staking?wallet_address=${identifier}`)
+      // Añadir timestamp para evitar caché
+      const response = await fetch(`/api/staking?wallet_address=${identifier}&_t=${Date.now()}`)
 
       if (!response.ok) {
         throw new Error(t("error_loading"))
@@ -258,8 +259,9 @@ export default function Dashboard() {
 
       const data = await response.json()
 
-      // Solo actualizar si los valores han cambiado
+      // Actualizar solo si los valores han cambiado
       if (data.staked_amount !== stakedAmount) {
+        console.log(`Balance actualizado: ${data.staked_amount} (anterior: ${stakedAmount})`)
         setStakedAmount(data.staked_amount)
       }
 
@@ -280,26 +282,25 @@ export default function Dashboard() {
         }
       }
 
-      // Obtener el username del usuario con la nueva API
-      try {
-        const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`)
-        if (usernameResponse.ok) {
-          const usernameData = await usernameResponse.json()
-          if (usernameData.username && usernameData.username !== username) {
-            setUsername(usernameData.username)
+      // Obtener el username del usuario si es necesario
+      if (!username) {
+        try {
+          const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`)
+          if (usernameResponse.ok) {
+            const usernameData = await usernameResponse.json()
+            if (usernameData.username && usernameData.username !== username) {
+              setUsername(usernameData.username)
+            }
           }
+        } catch (error) {
+          console.error("Error fetching username:", error)
         }
-      } catch (error) {
-        console.error("Error fetching username:", error)
       }
-
-      // Obtener el precio del token
-      await fetchTokenPrice()
     } catch (error) {
       console.error("Error fetching staking data:", error)
+      // No mostrar error al usuario para actualizaciones automáticas
     }
-    // Eliminamos setIsLoading(false) de aquí para centralizar en el useEffect principal
-  }, [getUserIdentifier, fetchTokenPrice, t, stakedAmount, pendingRewards, lastClaimDate, username])
+  }, [getUserIdentifier, t, stakedAmount, pendingRewards, lastClaimDate, username])
 
   // Actualizar el contador cada segundo
   useEffect(() => {
@@ -318,8 +319,7 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [nextClaimTime, formatTimeRemaining])
 
-  // Cargar datos iniciales y configurar actualizaciones periódicas
-  // Usamos un enfoque diferente para evitar el warning de ESLint
+  // Cargar datos iniciales y configurar actualizaciones automáticas
   useEffect(() => {
     let isMounted = true
 
@@ -330,6 +330,8 @@ export default function Dashboard() {
     const loadInitialData = async () => {
       try {
         await fetchStakingData()
+        // Añadir llamada a fetchTokenPrice
+        await fetchTokenPrice()
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -340,26 +342,44 @@ export default function Dashboard() {
     // Cargar datos iniciales
     loadInitialData()
 
-    // Configurar intervalo para actualizar el precio
-    const priceInterval = setInterval(() => {
-      if (isMounted) {
+    // Función para actualizar cuando la ventana recupera el foco
+    const handleFocus = () => {
+      console.log("Ventana enfocada, actualizando balance...")
+      fetchStakingData()
+      // Añadir llamada a fetchTokenPrice
+      fetchTokenPrice()
+    }
+
+    // Función para actualizar cuando el usuario vuelve a la pestaña
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("Pestaña visible, actualizando balance...")
+        fetchStakingData()
+        // Añadir llamada a fetchTokenPrice
         fetchTokenPrice()
       }
-    }, 60000) // 60 segundos
+    }
 
-    // Limpieza
+    // Añadir event listeners
+    window.addEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    // Limpiar
     return () => {
       isMounted = false
-      clearInterval(priceInterval)
+      window.removeEventListener("focus", handleFocus)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Dependencia vacía para que solo se ejecute una vez
+  }, [fetchStakingData, fetchTokenPrice]) // Añadir fetchTokenPrice a las dependencias
 
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) return
 
     try {
+      // Actualizar el balance antes de reclamar
+      await fetchStakingData()
+
       setIsClaiming(true)
       setClaimSuccess(null)
       setClaimError(null)
@@ -921,4 +941,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

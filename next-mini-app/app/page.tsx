@@ -33,6 +33,41 @@ export default function Home() {
     }
   }, [isAuthenticated, session])
 
+  // Nuevo efecto para actualizar el nivel de verificación
+  useEffect(() => {
+    // Solo ejecutar si el usuario está autenticado
+    if (isAuthenticated && session?.user?.walletAddress) {
+      // Determinar el nivel de verificación
+      // Cambiamos la forma de determinar el nivel de verificación
+      // En lugar de usar session.credential?.type que no existe
+      const verificationLevel = session.isAuthenticatedWorldID ? "human" : "wallet"
+
+      console.log("Actualizando nivel de verificación:", verificationLevel)
+
+      // Actualizar el nivel de verificación en la base de datos
+      fetch("/api/update-verification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: session.user.walletAddress,
+          verification_level: verificationLevel,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            console.error("Error updating verification level")
+          } else {
+            console.log("Nivel de verificación actualizado correctamente")
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating verification level:", error)
+        })
+    }
+  }, [isAuthenticated, session])
+
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
     if (isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID) {

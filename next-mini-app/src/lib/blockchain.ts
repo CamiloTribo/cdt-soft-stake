@@ -55,14 +55,17 @@ export async function getCDTBalance(address: string): Promise<number> {
   } catch (error) {
     console.error("Error al obtener el balance de CDT:", error)
 
-    // En caso de error, devolver un valor simulado
-    console.log("Usando balance simulado debido a error")
-    return 1000 // Mantenemos el valor simulado de 1000 como en tu código original
+    // En lugar de devolver un valor simulado, devolvemos 0 y registramos el error
+    console.error("Error al obtener balance, devolviendo 0")
+    return 0
   }
 }
 
 // Función para enviar recompensas de staking usando la API de Alchemy directamente
-export async function sendRewards(toAddress: string, amount: number): Promise<string | null> {
+export async function sendRewards(
+  toAddress: string,
+  amount: number,
+): Promise<{ success: boolean; txHash: string | null; error?: string }> {
   console.log(`Enviando ${amount} CDT a ${toAddress}`)
 
   try {
@@ -85,6 +88,11 @@ export async function sendRewards(toAddress: string, amount: number): Promise<st
       console.error(
         `La wallet central no tiene suficiente CDT para enviar. Tiene ${cdtBalance} CDT, necesita ${amount} CDT`,
       )
+      return {
+        success: false,
+        txHash: null,
+        error: "Fondos insuficientes en la wallet central",
+      }
     }
 
     // Obtener el nonce actual para la wallet central usando la API de Alchemy
@@ -152,7 +160,7 @@ export async function sendRewards(toAddress: string, amount: number): Promise<st
     if (sendResponse.data && sendResponse.data.result) {
       const txHash = sendResponse.data.result
       console.log("Transacción enviada. Hash:", txHash)
-      return txHash
+      return { success: true, txHash }
     } else if (sendResponse.data && sendResponse.data.error) {
       throw new Error(`Error de Alchemy: ${JSON.stringify(sendResponse.data.error)}`)
     }
@@ -161,8 +169,11 @@ export async function sendRewards(toAddress: string, amount: number): Promise<st
   } catch (error) {
     console.error("Error al enviar recompensas:", error)
 
-    // En caso de error, devolver un hash simulado
-    console.log("Usando hash simulado debido a error")
-    return "0xsimulado" + Math.random().toString(16).substring(2, 10)
+    // En lugar de devolver un hash simulado, devolvemos error
+    return {
+      success: false,
+      txHash: null,
+      error: error instanceof Error ? error.message : "Error desconocido al enviar recompensas",
+    }
   }
 }
