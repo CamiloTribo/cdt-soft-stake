@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     // Buscar directamente en la tabla users
     const { data, error } = await supabase
       .from("users")
-      .select("username")
+      .select("username, total_claimed, referral_count")
       .eq("address", walletAddress)
       .maybeSingle()
 
@@ -30,10 +30,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ hasUsername: false, username: null })
     }
 
-    return NextResponse.json({ 
-      hasUsername: true, 
+    return NextResponse.json({
+      hasUsername: true,
       username: data.username,
-      referralLink: `https://tribovault.com/ref/${data.username}` 
+      referralLink: `https://tribovault.com/ref/${data.username}`,
+      total_claimed: data.total_claimed || 0,
+      referral_count: data.referral_count || 0,
     })
   } catch (error) {
     console.error("Error checking username:", error)
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
     if (!wallet_address || !username) {
       return NextResponse.json(
         { success: false, error: "Se requiere dirección de wallet y nombre de usuario" },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -64,41 +66,35 @@ export async function POST(request: Request) {
 
     // Si el usuario ya existe y tiene username, no permitimos cambiarlo
     if (existingUser && existingUser.username) {
-      return NextResponse.json(
-        { success: false, error: "Ya tienes un nombre de usuario registrado" },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: "Ya tienes un nombre de usuario registrado" }, { status: 400 })
     }
 
     // Intentar insertar el usuario con el username
-    const { error: insertError } = await supabase
-      .from("users")
-      .upsert([{ 
-        address: wallet_address, 
-        username: username 
-      }], { 
-        onConflict: 'address',  // Si hay conflicto en address, actualizar
-        ignoreDuplicates: false // No ignorar duplicados
-      })
+    const { error: insertError } = await supabase.from("users").upsert(
+      [
+        {
+          address: wallet_address,
+          username: username,
+        },
+      ],
+      {
+        onConflict: "address", // Si hay conflicto en address, actualizar
+        ignoreDuplicates: false, // No ignorar duplicados
+      },
+    )
 
     if (insertError) {
       console.error("Error al registrar username:", insertError)
-      return NextResponse.json(
-        { success: false, error: "Error al registrar nombre de usuario" },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, error: "Error al registrar nombre de usuario" }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       message: "Nombre de usuario registrado correctamente",
-      referralLink: `https://tribovault.com/ref/${username}`
+      referralLink: `https://tribovault.com/ref/${username}`,
     })
   } catch (error) {
     console.error("Error in username API:", error)
-    return NextResponse.json(
-      { success: false, error: "Error al registrar nombre de usuario" },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: "Error al registrar nombre de usuario" }, { status: 500 })
   }
 }
