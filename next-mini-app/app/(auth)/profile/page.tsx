@@ -10,7 +10,6 @@ type UserStats = {
   totalStaked: number
   totalClaimed: number
   referralCount: number
-  referralCode: string
 }
 
 export default function Profile() {
@@ -20,10 +19,10 @@ export default function Profile() {
     totalStaked: 0,
     totalClaimed: 0,
     referralCount: 0,
-    referralCode: "",
   })
   const [isCopied, setIsCopied] = useState(false)
   const [cdtPrice, setCdtPrice] = useState<number | null>(null)
+  const [lastClaimDate, setLastClaimDate] = useState<string | null>(null)
 
   const { isAuthenticated, session } = useWorldAuth()
   const router = useRouter()
@@ -66,7 +65,6 @@ export default function Profile() {
               ...prev,
               totalClaimed: usernameData.total_claimed || 0,
               referralCount: usernameData.referral_count || 0,
-              referralCode: usernameData.username,
             }))
           }
         }
@@ -92,6 +90,11 @@ export default function Profile() {
             ...prev,
             totalStaked: stakingData.staked_amount || 0,
           }))
+
+          // Obtener la fecha del último claim
+          if (stakingData.last_claim_timestamp) {
+            setLastClaimDate(stakingData.last_claim_timestamp)
+          }
         }
       } catch (error) {
         console.error("Error fetching staking data:", error)
@@ -153,6 +156,14 @@ export default function Profile() {
     return 0
   }
 
+  // Formatear la fecha del último claim
+  const formatLastClaimDate = () => {
+    if (!lastClaimDate) return "Nunca"
+
+    const date = new Date(lastClaimDate)
+    return date.toLocaleDateString()
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -203,8 +214,8 @@ export default function Profile() {
         <div className="max-w-4xl mx-auto">
           {/* Título de la página */}
           <div className="mb-6">
-            <h2 className="text-3xl font-bold text-white">TRIBO Wallet</h2>
-            <p className="text-gray-400 mt-1">Gestiona tus tokens y referidos</p>
+            <h2 className="text-3xl font-bold text-white">TRIBO Vault</h2>
+            <p className="text-gray-400 mt-1">Estadísticas de Staking</p>
           </div>
 
           {/* Estadísticas */}
@@ -236,9 +247,15 @@ export default function Profile() {
                 <p className="text-sm text-gray-400">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
 
                 <div className="mt-4 pt-4 border-t border-gray-800">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-400">Último claim</p>
+                    <p className="text-sm text-white">{formatLastClaimDate()}</p>
+                  </div>
                   <div className="flex justify-between items-center mt-2">
                     <p className="text-sm text-gray-400">Promedio diario</p>
-                    <p className="text-sm text-white">{Math.round(userStats.totalClaimed / 30).toLocaleString()} CDT</p>
+                    <p className="text-sm text-white">
+                      {userStats.totalClaimed > 0 ? Math.round(userStats.totalClaimed / 30).toLocaleString() : "0"} CDT
+                    </p>
                   </div>
                   <div className="mt-4">
                     <Link
