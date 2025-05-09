@@ -113,7 +113,8 @@ export async function GET(request: Request) {
           id,
           username,
           address,
-          created_at
+          created_at,
+          staked_amount
         )
       `)
       .eq("referrer_id", user.id)
