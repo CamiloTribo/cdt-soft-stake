@@ -396,10 +396,9 @@ export default function Profile() {
           <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
             <h4 className="text-lg font-semibold text-[#4ebd0a] mb-3">Programa de Referidos</h4>
 
-            {/* Tabs para la sección de referidos */}
+            {/* Tabs para la sección de referidos - Eliminada la pestaña "Amigos" */}
             <div className="flex border-b border-gray-800 mb-5">
               <button className="px-4 py-2 border-b-2 border-[#4ebd0a] text-[#4ebd0a] font-medium">Invitar</button>
-              <button className="px-4 py-2 text-gray-400 hover:text-white">Amigos</button>
             </div>
 
             <p className="text-sm text-gray-300 mb-4">
@@ -455,10 +454,10 @@ export default function Profile() {
               <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
             </div>
 
-            {/* Total Referidos */}
+            {/* Invitaciones Totales */}
             <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
               <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-400">Total Referidos</p>
+                <p className="text-sm text-gray-400">Invitaciones Totales</p>
                 <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
               </div>
             </div>
