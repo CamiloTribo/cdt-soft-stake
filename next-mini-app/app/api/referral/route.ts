@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { getUserByAddress, supabase } from "@/src/lib/supabase"
 
-// Registrar un nuevo referido
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -9,7 +8,7 @@ export async function POST(request: Request) {
 
     if (!wallet_address || !referral_code) {
       return NextResponse.json(
-        { success: false, error: "Wallet address and referral code are required" },
+        { success: false, error: "Se requiere dirección de wallet y código de referido" },
         { status: 400 },
       )
     }
@@ -18,7 +17,7 @@ export async function POST(request: Request) {
     const user = await getUserByAddress(wallet_address)
 
     if (!user) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
+      return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 })
     }
 
     // Buscar al referente por su código de referido (username)
@@ -29,16 +28,15 @@ export async function POST(request: Request) {
       .single()
 
     if (referrerError || !referrer) {
-      return NextResponse.json({ success: false, error: "Invalid referral code" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Código de referido inválido" }, { status: 400 })
     }
 
     // Verificar que el usuario no se esté refiriendo a sí mismo
     if (user.id === referrer.id) {
-      return NextResponse.json({ success: false, error: "You cannot refer yourself" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "No puedes referirte a ti mismo" }, { status: 400 })
     }
 
     // Verificar si ya existe esta relación de referido
-    // Corregimos la línea para eliminar la variable no utilizada
     const { data: existingReferral } = await supabase
       .from("referrals")
       .select("*")
@@ -47,7 +45,7 @@ export async function POST(request: Request) {
       .maybeSingle()
 
     if (existingReferral) {
-      return NextResponse.json({ success: false, error: "This referral relationship already exists" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Esta relación de referido ya existe" }, { status: 400 })
     }
 
     // Registrar el referido
@@ -61,7 +59,7 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error("Error registering referral:", insertError)
-      return NextResponse.json({ success: false, error: "Failed to register referral" }, { status: 500 })
+      return NextResponse.json({ success: false, error: "Error al registrar referido" }, { status: 500 })
     }
 
     // Actualizar el contador de referidos del referente
@@ -77,10 +75,58 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Referral registered successfully",
+      message: "Referido registrado con éxito",
     })
   } catch (error) {
     console.error("Error in referral API:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Error interno del servidor" }, { status: 500 })
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url)
+    const walletAddress = url.searchParams.get("wallet_address")
+
+    if (!walletAddress) {
+      return NextResponse.json({ success: false, error: "Se requiere dirección de wallet" }, { status: 400 })
+    }
+
+    // Buscar al usuario por su dirección de wallet
+    const user = await getUserByAddress(walletAddress)
+
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Usuario no encontrado" }, { status: 404 })
+    }
+
+    // Obtener los referidos del usuario
+    const { data: referrals, error } = await supabase
+      .from("referrals")
+      .select(`
+        id,
+        created_at,
+        referred:referred_id(
+          id,
+          username,
+          address,
+          created_at
+        )
+      `)
+      .eq("referrer_id", user.id)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching referrals:", error)
+      return NextResponse.json({ success: false, error: "Error al obtener referidos" }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      referrals,
+      count: referrals.length,
+    })
+  } catch (error) {
+    console.error("Error in referrals API:", error)
+    return NextResponse.json({ success: false, error: "Error interno del servidor" }, { status: 500 })
   }
 }
