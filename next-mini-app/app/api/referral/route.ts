@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // Buscar al referente por su código de referido (username)
     const { data: referrer, error: referrerError } = await supabase
       .from("users")
-      .select("id")
+      .select("id, referral_count")
       .eq("username", referral_code)
       .single()
 
@@ -63,9 +63,13 @@ export async function POST(request: Request) {
     }
 
     // Actualizar el contador de referidos del referente
+    // En lugar de usar RPC, incrementamos directamente el valor
+    const currentCount = referrer.referral_count || 0
+    const newCount = currentCount + 1
+
     const { error: updateError } = await supabase
       .from("users")
-      .update({ referral_count: supabase.rpc("increment", { row_id: referrer.id, column_name: "referral_count" }) })
+      .update({ referral_count: newCount })
       .eq("id", referrer.id)
 
     if (updateError) {
