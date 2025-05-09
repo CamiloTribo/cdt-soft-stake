@@ -313,12 +313,6 @@ export default function Profile() {
                     <p className="text-sm text-gray-400">Último claim</p>
                     <p className="text-sm text-white">{formatLastClaimDate()}</p>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-sm text-gray-400">Promedio diario</p>
-                    <p className="text-sm text-white">
-                      {userStats.totalClaimed > 0 ? Math.round(userStats.totalClaimed / 30).toLocaleString() : "0"} CDT
-                    </p>
-                  </div>
                   <div className="mt-4">
                     <Link
                       href="/transactions"

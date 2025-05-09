@@ -135,6 +135,8 @@ export default function Dashboard() {
   const [priceChange, setPriceChange] = useState<{ isPositive: boolean }>({
     isPositive: true,
   })
+  // Estado para el total claimed
+  const [totalClaimed, setTotalClaimed] = useState(0)
 
   // Estado para controlar si es la primera visita
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -314,6 +316,8 @@ export default function Dashboard() {
             const usernameData = await usernameResponse.json()
             if (usernameData.username && usernameData.username !== username) {
               setUsername(usernameData.username)
+              // Obtener el total claimed
+              setTotalClaimed(usernameData.total_claimed || 0)
             }
           }
         } catch (error) {
@@ -569,6 +573,14 @@ export default function Dashboard() {
     }
   }
 
+  // Calcular el valor estimado en USD
+  const calculateUsdValue = (amount: number) => {
+    if (cdtPrice && amount) {
+      return (cdtPrice * amount).toFixed(2)
+    }
+    return "0.00"
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -630,7 +642,12 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Contadores de usuarios */}
+        {/* NUEVA SECCIÓN: CDTs Ganados */}
+        <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+          <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
+          <p className="text-4xl font-bold text-white mb-1">{totalClaimed.toLocaleString()} CDT</p>
+          <p className="text-sm text-[#ff1744]">≈ ${calculateUsdValue(totalClaimed)} USD reclamados</p>
+        </div>
 
         {/* Botón Buy CDT - Primero según la captura */}
         <div className="mb-6">
