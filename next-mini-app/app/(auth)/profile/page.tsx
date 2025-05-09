@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { useWorldAuth } from "next-world-auth/react"
 import Image from "next/image"
 import Link from "next/link"
+// Eliminamos la importación de useTranslation si no la estamos usando
+// import { useTranslation } from "../../../src/components/TranslationProvider"
 
 type UserStats = {
   totalStaked: number
@@ -17,6 +19,8 @@ type UserStats = {
 }
 
 export default function Profile() {
+  // Eliminamos la línea que causa el error
+  // const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
   const [username, setUsername] = useState("")
   const [userStats, setUserStats] = useState<UserStats>({
@@ -51,9 +55,6 @@ export default function Profile() {
         return
       }
 
-      // En una implementación real, esto vendría de una API
-      // Por ahora, simulamos los datos
-
       // Obtener el username del usuario
       try {
         const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`)
@@ -67,22 +68,57 @@ export default function Profile() {
         console.error("Error fetching username:", error)
       }
 
-      // Simular estadísticas del usuario
-      // En una implementación real, esto vendría de una API
-      const mockStats: UserStats = {
-        totalStaked: 7490000.616,
-        totalClaimed: 74900.06,
-        referralCount: 12,
-        referralCode: username || "user" + Math.floor(Math.random() * 1000),
-        referralUrl: `${process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribovault.com"}?ref=${username || "user" + Math.floor(Math.random() * 1000)}`,
-        joinDate: new Date(Date.now() - Math.random() * 10000000000).toISOString().split("T")[0],
-        lastClaimDate: new Date(Date.now() - Math.random() * 1000000000).toISOString(),
+      // Obtener datos de staking y referidos
+      try {
+        // Obtener datos de staking
+        const stakingResponse = await fetch(`/api/staking?wallet_address=${identifier}`)
+        let stakedAmount = 0
+
+        if (stakingResponse.ok) {
+          const stakingData = await stakingResponse.json()
+          stakedAmount = stakingData.staked_amount || 0
+        }
+
+        // Obtener datos de referidos y total reclamado
+        const userDataResponse = await fetch(`/api/user-data?wallet_address=${identifier}`)
+        let referralCount = 0
+        let totalClaimed = 0
+
+        if (userDataResponse.ok) {
+          const userData = await userDataResponse.json()
+          referralCount = userData.referralCount || 0
+          totalClaimed = userData.totalClaimed || 0
+        }
+
+        // Actualizar estadísticas del usuario
+        const referralCode = username || "user" + Math.floor(Math.random() * 1000)
+        const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribovault.com"
+
+        setUserStats({
+          totalStaked: stakedAmount,
+          totalClaimed: totalClaimed,
+          referralCount: referralCount,
+          referralCode: referralCode,
+          referralUrl: `${websiteUrl}?ref=${referralCode}`,
+          joinDate: new Date(Date.now() - Math.random() * 10000000000).toISOString().split("T")[0], // Temporal
+          lastClaimDate: new Date(Date.now() - Math.random() * 1000000000).toISOString(), // Temporal
+        })
+      } catch (error) {
+        console.error("Error fetching user data:", error)
       }
 
-      setUserStats(mockStats)
-
-      // Obtener el precio del token CDT (simulado por ahora)
-      setCdtPrice(0.00000123)
+      // Obtener el precio del token CDT
+      try {
+        const priceResponse = await fetch("/api/token-price")
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json()
+          if (priceData.success) {
+            setCdtPrice(priceData.price)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching token price:", error)
+      }
     } catch (error) {
       console.error("Error fetching user data:", error)
     } finally {

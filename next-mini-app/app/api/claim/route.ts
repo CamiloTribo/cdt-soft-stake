@@ -58,6 +58,22 @@ export async function POST(request: Request) {
       // Continuamos aunque falle el registro de la transacción
     }
 
+    // Actualizar el total_claimed del usuario
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        total_claimed: supabase.rpc("increment_total_claimed", {
+          user_id: user.id,
+          amount: claimResult.amount,
+        }),
+      })
+      .eq("id", user.id)
+
+    if (updateError) {
+      console.error("Error updating total_claimed:", updateError)
+      // Continuamos aunque falle la actualización
+    }
+
     return NextResponse.json({
       success: true,
       message: "¡Recompensas reclamadas correctamente!",
