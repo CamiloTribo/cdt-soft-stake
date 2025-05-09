@@ -214,30 +214,49 @@ export default function Home() {
             {/* UN SOLO CONTADOR: Humanos verificados (pero realmente muestra el total) */}
             <div className="bg-black rounded-xl shadow-lg p-4 border border-gray-800 mb-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Humanos verificados</p>
-                  <p className="text-2xl font-bold text-white">
-                    {isLoadingUsers ? (
-                      <span className="inline-block w-12 h-6 bg-gray-700 animate-pulse rounded"></span>
-                    ) : (
-                      totalUsers.toLocaleString()
-                    )}
-                  </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#4ebd0a"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="m16 11 2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#4ebd0a]">Humanos verificados</p>
+                    <p className="text-2xl font-bold text-white">
+                      {isLoadingUsers ? (
+                        <span className="inline-block w-12 h-6 bg-gray-700 animate-pulse rounded"></span>
+                      ) : (
+                        totalUsers.toLocaleString()
+                      )}
+                    </p>
+                  </div>
                 </div>
-                <div className="h-10 w-10 flex items-center justify-center bg-[#ff1744]/20 rounded-full">
+                <div className="h-10 w-10 flex items-center justify-center bg-[#1E88E5]/20 rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
                     height="24"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#ff1744"
+                    stroke="#1E88E5"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
               </div>

@@ -914,7 +914,7 @@ export default function Dashboard() {
             className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
               isSwapButtonHovered
                 ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1"
-                : "bg-[#ff1744]/80 hover:bg-[#ff1744]"
+                : "bg-[#ff1744] hover:bg-[#ff2954]"
             }`}
             onMouseEnter={() => setIsSwapButtonHovered(true)}
             onMouseLeave={() => setIsSwapButtonHovered(false)}
