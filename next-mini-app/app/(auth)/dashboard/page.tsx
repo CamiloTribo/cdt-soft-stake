@@ -886,20 +886,20 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Sección de ganancias */}
-        <div className="mt-6 border border-[#4ebd0a] rounded-xl p-5">
+        {/* Sección de ganancias - MODIFICADA con el estilo solicitado */}
+        <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
           <h3 className="text-xl font-semibold mb-4 text-center text-white">{t("earn_daily")}</h3>
 
           <div className="grid grid-cols-3 gap-4 mb-5">
-            <div className="bg-black/50 p-4 rounded-lg border border-gray-800 text-center">
+            <div className="bg-black/50 p-4 rounded-lg border border-[#4ebd0a] text-center">
               <p className="text-sm text-gray-400 mb-1">{t("daily")}</p>
               <p className="text-2xl font-bold text-[#4ebd0a]">0.1%</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-lg border border-gray-800 text-center">
+            <div className="bg-black/50 p-4 rounded-lg border border-[#4ebd0a] text-center">
               <p className="text-sm text-gray-400 mb-1">{t("monthly")}</p>
               <p className="text-2xl font-bold text-[#4ebd0a]">3%</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-lg border border-gray-800 text-center">
+            <div className="bg-black/50 p-4 rounded-lg border border-[#4ebd0a] text-center">
               <p className="text-sm text-gray-400 mb-1">{t("yearly")}</p>
               <p className="text-2xl font-bold text-[#4ebd0a]">36.5%</p>
             </div>
