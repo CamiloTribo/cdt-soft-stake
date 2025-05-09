@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getUserByAddress, supabase } from "@/src/lib/supabase"
+import { getUserByAddress, updateVerificationLevel } from "@/src/lib/supabase"
 
 export async function POST(request: Request) {
   try {
@@ -22,15 +22,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // Actualizar el nivel de verificación
-    const { error } = await supabase.from("users").update({ verification_level }).eq("id", user.id)
+    // Actualizar el nivel de verificación usando la función de supabase
+    const success = await updateVerificationLevel(user.id, verification_level)
 
-    if (error) {
-      console.error("Error updating verification level:", error)
+    if (!success) {
       return NextResponse.json({ error: "Failed to update verification level" }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      message: `Nivel de verificación actualizado a: ${verification_level}`,
+    })
   } catch (error) {
     console.error("Error in update-verification API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

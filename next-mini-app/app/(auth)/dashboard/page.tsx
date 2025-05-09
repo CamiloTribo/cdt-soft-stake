@@ -401,6 +401,7 @@ export default function Dashboard() {
         fetchStakingData()
       } else {
         setClaimError(data.error || t("error_claiming"))
+        console.error("Error details:", data.details || "No details provided")
       }
     } catch (error) {
       console.error("Error claiming rewards:", error)

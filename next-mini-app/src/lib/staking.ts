@@ -105,12 +105,16 @@ export async function claimRewards(
     console.log(`Enviando ${rewardAmount} CDT a ${userAddress}`)
 
     // Enviar recompensas a través de la blockchain
-    const txHash = await sendRewards(userAddress, rewardAmount)
+    const sendResult = await sendRewards(userAddress, rewardAmount)
 
-    if (!txHash) return { success: false, amount: 0, txHash: null }
+    // Verificar si la transacción fue exitosa
+    if (!sendResult.success || !sendResult.txHash) {
+      console.error("Error en sendRewards:", sendResult.error || "Transacción fallida")
+      return { success: false, amount: 0, txHash: null }
+    }
 
     // Actualizar la fecha del último claim (sin total_claimed)
-    const now = new Date() // Añadido aquí ya que se comentó arriba
+    const now = new Date()
     const { error } = await supabase
       .from("staking_info")
       .update({
@@ -121,10 +125,10 @@ export async function claimRewards(
 
     if (error) {
       console.error("Error updating staking info after claim:", error)
-      return { success: false, amount: rewardAmount, txHash: txHash }
+      return { success: false, amount: rewardAmount, txHash: sendResult.txHash }
     }
 
-    return { success: true, amount: rewardAmount, txHash: txHash }
+    return { success: true, amount: rewardAmount, txHash: sendResult.txHash }
   } catch (error) {
     console.error("Error al reclamar recompensas:", error)
     return { success: false, amount: 0, txHash: null }

@@ -37,10 +37,20 @@ export default function Home() {
   useEffect(() => {
     // Solo ejecutar si el usuario está autenticado
     if (isAuthenticated && session?.user?.walletAddress) {
-      // Determinar el nivel de verificación
-      // Cambiamos la forma de determinar el nivel de verificación
-      // En lugar de usar session.credential?.type que no existe
-      const verificationLevel = session.isAuthenticatedWorldID ? "human" : "wallet"
+      // Por ahora, simplemente usamos "human" si está verificado con World ID
+      // y "wallet" si solo tiene wallet conectada
+      let verificationLevel = "wallet"
+
+      if (session.isAuthenticatedWorldID) {
+        verificationLevel = "human"
+
+        // Añadir logs para depuración - Esto nos permitirá ver la estructura completa
+        console.log("Session completa:", JSON.stringify(session, null, 2))
+        console.log("User:", JSON.stringify(session.user, null, 2))
+
+        // Cuando sepamos la estructura exacta, podremos actualizar esta lógica
+        // para distinguir entre "human" y "orb"
+      }
 
       console.log("Actualizando nivel de verificación:", verificationLevel)
 
