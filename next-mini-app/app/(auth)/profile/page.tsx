@@ -26,6 +26,17 @@ type Referral = {
   }
 }
 
+// Función para formatear números grandes (K, M, B)
+function formatBalance(balance: number): string {
+  if (balance >= 1000000) {
+    return (balance / 1000000).toFixed(1) + "M"
+  } else if (balance >= 1000) {
+    return (balance / 1000).toFixed(1) + "K"
+  } else {
+    return balance.toFixed(1)
+  }
+}
+
 export default function Profile() {
   const [isLoading, setIsLoading] = useState(true)
   const [username, setUsername] = useState("")
@@ -273,17 +284,6 @@ export default function Profile() {
     return date.toLocaleDateString()
   }
 
-  // Función para formatear números grandes (K, M, B)
-  function formatBalance(balance: number): string {
-    if (balance >= 1000000) {
-      return (balance / 1000000).toFixed(1) + "M"
-    } else if (balance >= 1000) {
-      return (balance / 1000).toFixed(1) + "K"
-    } else {
-      return balance.toFixed(1)
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -392,7 +392,7 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Sección de referidos mejorada */}
+          {/* Sección de referidos */}
           <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
             <h4 className="text-lg font-semibold text-[#4ebd0a] mb-3">Programa de Referidos</h4>
 
@@ -402,132 +402,134 @@ export default function Profile() {
               <button className="px-4 py-2 text-gray-400 hover:text-white">Amigos</button>
             </div>
 
+            <p className="text-sm text-gray-300 mb-4">
+              Comparte tu código de referido con amigos y gana recompensas cuando se unan
+            </p>
+
             {/* Tu código de referido */}
-            <div className="mb-5">
-              <p className="text-sm text-gray-300 mb-3">
-                Comparte tu código de referido con amigos y gana recompensas cuando se unan
-              </p>
-
-              <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
-                <p className="text-sm text-gray-400 mb-2">Tu código de referido</p>
-                <div className="flex items-center">
-                  <input
-                    type="text"
-                    value={username}
-                    readOnly
-                    className="flex-1 bg-black border border-gray-700 rounded-l-md px-3 py-2 text-sm font-mono text-white"
-                  />
-                  <button
-                    onClick={copyReferralCode}
-                    className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-md"
-                  >
-                    {isCopied ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M20 6 9 17l-5-5"></path>
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                      </svg>
-                    )}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
+            <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
+              <p className="text-sm text-gray-400 mb-2">Tu código de referido</p>
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  value={username}
+                  readOnly
+                  className="flex-1 bg-black border border-gray-700 rounded-l-md px-3 py-2 text-sm font-mono text-white"
+                />
+                <button
+                  onClick={copyReferralCode}
+                  className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-md"
+                >
+                  {isCopied ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5"></path>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
               </div>
+              <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
+            </div>
 
-              <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-400">Total Referidos</p>
-                  <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
-                </div>
-              </div>
-
-              {/* Lista de referidos */}
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-white">Tus referidos</p>
-
-                {isLoadingReferrals ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"></div>
-                  </div>
-                ) : referralsError ? (
-                  <div className="bg-black/30 rounded-lg p-4 text-center">
-                    <p className="text-red-500 text-sm">{referralsError}</p>
-                  </div>
-                ) : referrals.length === 0 ? (
-                  <div className="bg-gray-900/30 rounded-lg p-4 text-center">
-                    <p className="text-gray-400 text-sm">Aún no tienes referidos</p>
-                    <p className="text-xs text-gray-500 mt-1">Comparte tu código para comenzar a invitar amigos</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {referrals.map((referral) => (
-                      <div
-                        key={referral.id}
-                        className="bg-black/30 rounded-lg p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#4ebd0a"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                              <circle cx="9" cy="7" r="4"></circle>
-                              <line x1="19" y1="8" x2="19" y2="14"></line>
-                              <line x1="16" y1="11" x2="22" y2="11"></line>
-                            </svg>
-                          </div>
-                          <div>
-                            <p className="text-white font-medium">@{referral.referred.username}</p>
-                            <p className="text-xs text-gray-400">Unido el {formatDate(referral.referred.created_at)}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="bg-[#4ebd0a]/10 rounded-full px-3 py-1 flex items-center">
-                            <Image src="/TOKEN CDT.png" alt="CDT Token" width={16} height={16} className="mr-1" />
-                            <span className="text-[#4ebd0a] text-sm font-medium">
-                              {formatBalance(referral.referred.staked_amount || 0)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {/* Total Referidos */}
+            <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-400">Total Referidos</p>
+                <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
               </div>
             </div>
 
+            {/* Lista de referidos */}
+            <div className="mb-5">
+              <p className="text-sm font-medium text-white mb-3">Tus referidos</p>
+
+              {isLoadingReferrals ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"></div>
+                </div>
+              ) : referralsError ? (
+                <div className="bg-black/30 rounded-lg p-4 text-center">
+                  <p className="text-red-500 text-sm">{referralsError}</p>
+                </div>
+              ) : referrals.length === 0 ? (
+                <div className="bg-gray-900/30 rounded-lg p-4 text-center">
+                  <p className="text-gray-400 text-sm">Aún no tienes referidos</p>
+                  <p className="text-xs text-gray-500 mt-1">Comparte tu código para comenzar a invitar amigos</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {referrals.map((referral) => (
+                    <div
+                      key={referral.id}
+                      className="bg-black/30 rounded-lg p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
+                    >
+                      <div className="flex items-center">
+                        <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#4ebd0a"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <line x1="19" y1="8" x2="19" y2="14"></line>
+                            <line x1="16" y1="11" x2="22" y2="11"></line>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">@{referral.referred.username}</p>
+                          <p className="text-xs text-gray-400">Unido el {formatDate(referral.referred.created_at)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="bg-[#4ebd0a]/10 rounded-full px-3 py-1 flex items-center">
+                          <Image src="/TOKEN CDT.png" alt="CDT Token" width={16} height={16} className="mr-1" />
+                          <span className="text-[#4ebd0a] text-sm font-medium">
+                            {formatBalance(referral.referred.staked_amount || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Separador */}
+            <div className="border-t border-gray-800 my-5"></div>
+
             {/* Formulario para añadir un referido */}
-            <div className="mt-5 pt-5 border-t border-gray-800">
+            <div>
               <p className="text-sm text-gray-300 mb-3">
                 ¿Te ha invitado un amigo? Introduce su código de referido aquí
               </p>

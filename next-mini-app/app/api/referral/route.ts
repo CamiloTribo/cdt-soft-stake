@@ -107,16 +107,15 @@ export async function GET(request: Request) {
     const { data: referrals, error } = await supabase
       .from("referrals")
       .select(`
-       id,
-       created_at,
-       referred:referred_id(
-         id,
-         username,
-         address,
-         created_at,
-         staked_amount
-       )
-     `)
+        id,
+        created_at,
+        referred:referred_id(
+          id,
+          username,
+          address,
+          created_at
+        )
+      `)
       .eq("referrer_id", user.id)
       .order("created_at", { ascending: false })
 
