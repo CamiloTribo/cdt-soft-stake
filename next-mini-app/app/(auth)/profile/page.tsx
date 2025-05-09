@@ -450,24 +450,10 @@ export default function Profile() {
                 <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
               </div>
 
-              <button className="w-full bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black font-medium py-3 px-4 rounded-md flex items-center justify-center gap-2 mb-5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                  <polyline points="16 6 12 2 8 6"></polyline>
-                  <line x1="12" y1="2" x2="12" y2="15"></line>
-                </svg>
-                Enviar Invitación
-              </button>
+              <div className="bg-gray-900/50 p-4 rounded-lg mb-5">
+                <p className="text-sm text-gray-400 mb-2">Referidos activos</p>
+                <p className="text-3xl font-bold text-white">{userStats.referralCount}</p>
+              </div>
 
               {/* Lista de referidos */}
               <div className="space-y-3">
@@ -506,8 +492,10 @@ export default function Profile() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             >
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                              <circle cx="12" cy="7" r="4"></circle>
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="9" cy="7" r="4"></circle>
+                              <line x1="19" y1="8" x2="19" y2="14"></line>
+                              <line x1="16" y1="11" x2="22" y2="11"></line>
                             </svg>
                           </div>
                           <div>
@@ -518,7 +506,19 @@ export default function Profile() {
                         <div className="flex items-center">
                           <div className="bg-[#4ebd0a]/10 rounded-full px-3 py-1 flex items-center">
                             <Image src="/TOKEN CDT.png" alt="CDT Token" width={16} height={16} className="mr-1" />
-                            <span className="text-[#4ebd0a] text-sm font-medium">+10</span>
+                            <span className="text-[#4ebd0a] text-sm font-medium">
+                              {/* Simulamos un balance aleatorio entre 1K y 2M */}
+                              {(() => {
+                                const balance = Math.floor(Math.random() * 2000000)
+                                if (balance >= 1000000) {
+                                  return (balance / 1000000).toFixed(1) + "M"
+                                } else if (balance >= 1000) {
+                                  return (balance / 1000).toFixed(1) + "K"
+                                } else {
+                                  return balance.toFixed(1)
+                                }
+                              })()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -546,7 +546,7 @@ export default function Profile() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`px-4 py-2 rounded-r-md ${
+                    className={`px-6 py-2 rounded-r-md font-medium text-base ${
                       isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
                     }`}
                   >
