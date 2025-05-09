@@ -9,6 +9,24 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 import Link from "next/link"
 
+// Función para generar el enlace a UNO con parámetros específicos para swap
+function getUnoDeeplinkUrl() {
+  const UNO_APP_ID = "app_a4f7f3e62c1de0b9490a5260cb390b56"
+  const CDT_TOKEN_ADDRESS = "0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
+  const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003"
+
+  // Configurar para comprar CDT con WLD (toToken=CDT, fromToken=WLD)
+  let path = `?tab=swap&fromToken=${WLD_TOKEN_ADDRESS}&toToken=${CDT_TOKEN_ADDRESS}`
+
+  // Añadir referrerAppId si está disponible
+  if (process.env.NEXT_PUBLIC_WORLDCOIN_APP_ID) {
+    path += `&referrerAppId=${process.env.NEXT_PUBLIC_WORLDCOIN_APP_ID}`
+  }
+
+  const encodedPath = encodeURIComponent(path)
+  return `https://worldcoin.org/mini-app?app_id=${UNO_APP_ID}&path=${encodedPath}`
+}
+
 // Componente PriceDisplay con flecha de dirección pero sin porcentaje
 const PriceDisplay = React.memo(
   ({
@@ -890,7 +908,7 @@ export default function Dashboard() {
         {/* NUEVO: Botón de Swap CDT */}
         <div className="mb-6">
           <Link
-            href="https://world.org/mini-app?app_id=app_a4f7f3e62c1de0b9490a5260cb390b56"
+            href={getUnoDeeplinkUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-md text-white font-medium transition-all duration-300 ${
