@@ -149,6 +149,7 @@ export default function Dashboard() {
   const [isDiscordHovered, setIsDiscordHovered] = useState(false)
   const [isSwapButtonHovered, setIsSwapButtonHovered] = useState(false)
   const [isTransactionsHovered, setIsTransactionsHovered] = useState(false)
+  const [isProfileHovered, setIsProfileHovered] = useState(false)
 
   // Estados para mensajes de claim y update
   const [claimSuccess, setClaimSuccess] = useState<string | null>(null)
@@ -667,9 +668,54 @@ export default function Dashboard() {
 
         {/* Card de TRIBO Wallet - Versión simplificada con branding consistente */}
         <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
-          <div className="flex items-center mb-4">
-            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={32} height={32} className="mr-3" />
-            <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={32} height={32} className="mr-3" />
+              <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
+            </div>
+            {/* Botón para ir a la página de perfil ampliado - DESTACADO Y VISIBLE */}
+            <Link
+              href="/profile"
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                isProfileHovered
+                  ? "bg-[#4ebd0a] text-black shadow-lg transform -translate-y-0.5"
+                  : "bg-gray-800 text-white hover:bg-gray-700"
+              }`}
+              onMouseEnter={() => setIsProfileHovered(true)}
+              onMouseLeave={() => setIsProfileHovered(false)}
+              onTouchStart={() => setIsProfileHovered(true)}
+              onTouchEnd={() => setIsProfileHovered(false)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Ver perfil completo</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isProfileHovered ? "translate-x-0.5" : ""}`}
+              >
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </Link>
           </div>
 
           <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>
