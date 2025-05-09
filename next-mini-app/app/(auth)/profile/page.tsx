@@ -14,6 +14,17 @@ type UserStats = {
   referralCount: number
 }
 
+type Referral = {
+  id: string
+  created_at: string
+  referred: {
+    id: string
+    username: string
+    address: string
+    created_at: string
+  }
+}
+
 export default function Profile() {
   const [isLoading, setIsLoading] = useState(true)
   const [username, setUsername] = useState("")
@@ -29,6 +40,11 @@ export default function Profile() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [referralSuccess, setReferralSuccess] = useState(false)
   const [referralError, setReferralError] = useState("")
+
+  // Estados para la lista de referidos
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [isLoadingReferrals, setIsLoadingReferrals] = useState(false)
+  const [referralsError, setReferralsError] = useState<string | null>(null)
 
   const { isAuthenticated, session } = useWorldAuth()
   const router = useRouter()
@@ -118,12 +134,44 @@ export default function Profile() {
       } catch (error) {
         console.error("Error fetching token price:", error)
       }
+
+      // Obtener la lista de referidos
+      fetchReferrals(identifier)
     } catch (error) {
       console.error("Error fetching user data:", error)
     } finally {
       setIsLoading(false)
     }
   }, [getUserIdentifier])
+
+  // Función para obtener la lista de referidos
+  const fetchReferrals = async (walletAddress: string) => {
+    if (!walletAddress) return
+
+    try {
+      setIsLoadingReferrals(true)
+      setReferralsError(null)
+
+      const response = await fetch(`/api/referral?wallet_address=${walletAddress}`)
+
+      if (!response.ok) {
+        throw new Error("Error al cargar referidos")
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.referrals) {
+        setReferrals(data.referrals)
+      } else {
+        setReferrals([])
+      }
+    } catch (err) {
+      console.error("Error fetching referrals:", err)
+      setReferralsError(err instanceof Error ? err.message : "Error al cargar referidos")
+    } finally {
+      setIsLoadingReferrals(false)
+    }
+  }
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -215,6 +263,12 @@ export default function Profile() {
     if (!lastClaimDate) return "Nunca"
 
     const date = new Date(lastClaimDate)
+    return date.toLocaleDateString()
+  }
+
+  // Función para formatear la fecha
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
     return date.toLocaleDateString()
   }
 
@@ -330,6 +384,18 @@ export default function Profile() {
           <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
             <h4 className="text-lg font-semibold text-[#4ebd0a] mb-3">Programa de Referidos</h4>
 
+            {/* Tabs para la sección de referidos */}
+            <div className="flex border-b border-gray-800 mb-5">
+              <button className="px-4 py-2 border-b-2 border-[#4ebd0a] text-[#4ebd0a] font-medium">Invitar</button>
+              <button className="px-4 py-2 text-gray-400 hover:text-white">Amigos</button>
+            </div>
+
+            {/* Contador de invitaciones totales */}
+            <div className="bg-black/30 rounded-xl border border-gray-800 p-4 mb-5 text-center">
+              <p className="text-gray-400 mb-2">Invitaciones Totales</p>
+              <p className="text-4xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
+            </div>
+
             {/* Tu código de referido */}
             <div className="mb-5">
               <p className="text-sm text-gray-300 mb-3">
@@ -384,13 +450,81 @@ export default function Profile() {
                 <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
               </div>
 
-              <div className="bg-gray-900/50 p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-gray-400">Referidos activos</p>
-                    <p className="text-xl font-bold text-white">{userStats.referralCount}</p>
+              <button className="w-full bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black font-medium py-3 px-4 rounded-md flex items-center justify-center gap-2 mb-5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                  <polyline points="16 6 12 2 8 6"></polyline>
+                  <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+                Enviar Invitación
+              </button>
+
+              {/* Lista de referidos */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-white">Tus referidos</p>
+
+                {isLoadingReferrals ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"></div>
                   </div>
-                </div>
+                ) : referralsError ? (
+                  <div className="bg-black/30 rounded-lg p-4 text-center">
+                    <p className="text-red-500 text-sm">{referralsError}</p>
+                  </div>
+                ) : referrals.length === 0 ? (
+                  <div className="bg-gray-900/30 rounded-lg p-4 text-center">
+                    <p className="text-gray-400 text-sm">Aún no tienes referidos</p>
+                    <p className="text-xs text-gray-500 mt-1">Comparte tu código para comenzar a invitar amigos</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {referrals.map((referral) => (
+                      <div
+                        key={referral.id}
+                        className="bg-black/30 rounded-lg p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
+                      >
+                        <div className="flex items-center">
+                          <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#4ebd0a"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">@{referral.referred.username}</p>
+                            <p className="text-xs text-gray-400">Unido el {formatDate(referral.referred.created_at)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="bg-[#4ebd0a]/10 rounded-full px-3 py-1 flex items-center">
+                            <Image src="/TOKEN CDT.png" alt="CDT Token" width={16} height={16} className="mr-1" />
+                            <span className="text-[#4ebd0a] text-sm font-medium">+10</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
