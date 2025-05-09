@@ -18,12 +18,37 @@ export default function Home() {
   const [usernameError, setUsernameError] = useState<string | null>(null)
   const [isMascotHovered, setIsMascotHovered] = useState(false)
   const [showVerificationMessage, setShowVerificationMessage] = useState(false)
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
     if (!session || !session.user || !session.user.walletAddress) return null
     return session.user.walletAddress
   }, [session])
+
+  // Función para obtener contadores de usuarios
+  const fetchUserCounts = useCallback(async () => {
+    try {
+      setIsLoadingUsers(true)
+      const response = await fetch("/api/total-users-count")
+      if (response.ok) {
+        const data = await response.json()
+        if (data.count !== undefined) {
+          setTotalUsers(data.count)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user counts:", error)
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }, [])
+
+  // Cargar contadores de usuarios al inicio
+  useEffect(() => {
+    fetchUserCounts()
+  }, [fetchUserCounts])
 
   // Función para verificar si el usuario está autenticado - Simplificado para evitar redirecciones automáticas
   useEffect(() => {
@@ -37,20 +62,10 @@ export default function Home() {
   useEffect(() => {
     // Solo ejecutar si el usuario está autenticado
     if (isAuthenticated && session?.user?.walletAddress) {
-      // Por ahora, simplemente usamos "human" si está verificado con World ID
-      // y "wallet" si solo tiene wallet conectada
-      let verificationLevel = "wallet"
-
-      if (session.isAuthenticatedWorldID) {
-        verificationLevel = "human"
-
-        // Añadir logs para depuración - Esto nos permitirá ver la estructura completa
-        console.log("Session completa:", JSON.stringify(session, null, 2))
-        console.log("User:", JSON.stringify(session.user, null, 2))
-
-        // Cuando sepamos la estructura exacta, podremos actualizar esta lógica
-        // para distinguir entre "human" y "orb"
-      }
+      // Determinar el nivel de verificación
+      // Cambiamos la forma de determinar el nivel de verificación
+      // En lugar de usar session.credential?.type que no existe
+      const verificationLevel = session.isAuthenticatedWorldID ? "human" : "wallet"
 
       console.log("Actualizando nivel de verificación:", verificationLevel)
 
@@ -70,13 +85,15 @@ export default function Home() {
             console.error("Error updating verification level")
           } else {
             console.log("Nivel de verificación actualizado correctamente")
+            // Actualizar contadores después de verificación
+            fetchUserCounts()
           }
         })
         .catch((error) => {
           console.error("Error updating verification level:", error)
         })
     }
-  }, [isAuthenticated, session])
+  }, [isAuthenticated, session, fetchUserCounts])
 
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
@@ -194,6 +211,38 @@ export default function Home() {
           </div>
         ) : (
           <div className="w-full">
+            {/* UN SOLO CONTADOR: Humanos verificados (pero realmente muestra el total) */}
+            <div className="bg-black rounded-xl shadow-lg p-4 border border-gray-800 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">Humanos verificados</p>
+                  <p className="text-2xl font-bold text-white">
+                    {isLoadingUsers ? (
+                      <span className="inline-block w-12 h-6 bg-gray-700 animate-pulse rounded"></span>
+                    ) : (
+                      totalUsers.toLocaleString()
+                    )}
+                  </p>
+                </div>
+                <div className="h-10 w-10 flex items-center justify-center bg-[#ff1744]/20 rounded-full">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#ff1744"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
             {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
             {(!isAuthenticated || !showUsernameForm) && (
               <div className="detectriber-container flex justify-center mb-8 w-full">

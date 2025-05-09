@@ -18,13 +18,24 @@ export async function getCDTBalance(address: string): Promise<number> {
   }
 
   try {
-    // Llamar a la API de Alchemy directamente
-    const response = await axios.post(ALCHEMY_API_URL, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "alchemy_getTokenBalances",
-      params: [address, [CDT_CONTRACT_ADDRESS]],
-    })
+    // Llamar a la API de Alchemy directamente con cache-busting
+    const timestamp = Date.now()
+    const response = await axios.post(
+      `${ALCHEMY_API_URL}?_t=${timestamp}`,
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "alchemy_getTokenBalances",
+        params: [address, [CDT_CONTRACT_ADDRESS]],
+      },
+      {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      },
+    )
 
     console.log("Respuesta de Alchemy:", JSON.stringify(response.data, null, 2))
 

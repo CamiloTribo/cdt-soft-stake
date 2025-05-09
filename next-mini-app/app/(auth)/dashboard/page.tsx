@@ -138,9 +138,6 @@ export default function Dashboard() {
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
 
-  // Nuevo estado para el contador de humanos verificados
-  const [verifiedUsers, setVerifiedUsers] = useState(0)
-
   const { session, pay } = useWorldAuth()
 
   // Función para obtener un identificador único del usuario
@@ -192,13 +189,13 @@ export default function Dashboard() {
 
   // Función para formatear fecha
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    const day = date.toLocaleDateString("es-ES", { day: "2-digit" })
+    const month = date.toLocaleDateString("es-ES", { month: "2-digit" })
+    const year = date.toLocaleDateString("es-ES", { year: "numeric" })
+    const hour = date.toLocaleTimeString("es-ES", { hour: "2-digit", hour12: false })
+    const minute = date.toLocaleTimeString("es-ES", { minute: "2-digit" })
+
+    return `${day}/${month}/${year} ${hour}:${minute}`
   }
 
   // Función para obtener el precio del token
@@ -244,21 +241,6 @@ export default function Dashboard() {
     }
   }, [t, cdtPrice])
 
-  // Función para obtener el contador de usuarios verificados
-  const fetchVerifiedUsers = useCallback(async () => {
-    try {
-      const response = await fetch("/api/verified-users-count")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.count) {
-          setVerifiedUsers(data.count)
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching verified users count:", error)
-    }
-  }, [])
-
   // Función optimizada para obtener datos de staking
   const fetchStakingData = useCallback(async () => {
     try {
@@ -269,7 +251,15 @@ export default function Dashboard() {
       }
 
       // Añadir timestamp para evitar caché
-      const response = await fetch(`/api/staking?wallet_address=${identifier}&_t=${Date.now()}`)
+      const timestamp = Date.now()
+      const response = await fetch(`/api/staking?wallet_address=${identifier}&_t=${timestamp}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      })
 
       if (!response.ok) {
         throw new Error(t("error_loading"))
@@ -277,11 +267,8 @@ export default function Dashboard() {
 
       const data = await response.json()
 
-      // Actualizar solo si los valores han cambiado
-      if (data.staked_amount !== stakedAmount) {
-        console.log(`Balance actualizado: ${data.staked_amount} (anterior: ${stakedAmount})`)
-        setStakedAmount(data.staked_amount)
-      }
+      // Actualizar siempre el balance con el valor real de la blockchain
+      setStakedAmount(data.staked_amount)
 
       if (data.pending_rewards !== pendingRewards) {
         setPendingRewards(data.pending_rewards)
@@ -318,7 +305,7 @@ export default function Dashboard() {
       console.error("Error fetching staking data:", error)
       // No mostrar error al usuario para actualizaciones automáticas
     }
-  }, [getUserIdentifier, t, stakedAmount, pendingRewards, lastClaimDate, username])
+  }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username])
 
   // Actualizar el contador cada segundo
   useEffect(() => {
@@ -350,8 +337,6 @@ export default function Dashboard() {
         await fetchStakingData()
         // Añadir llamada a fetchTokenPrice
         await fetchTokenPrice()
-        // Obtener contador de usuarios verificados
-        await fetchVerifiedUsers()
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -368,8 +353,6 @@ export default function Dashboard() {
       fetchStakingData()
       // Añadir llamada a fetchTokenPrice
       fetchTokenPrice()
-      // Actualizar contador de usuarios verificados
-      fetchVerifiedUsers()
     }
 
     // Función para actualizar cuando el usuario vuelve a la pestaña
@@ -379,8 +362,6 @@ export default function Dashboard() {
         fetchStakingData()
         // Añadir llamada a fetchTokenPrice
         fetchTokenPrice()
-        // Actualizar contador de usuarios verificados
-        fetchVerifiedUsers()
       }
     }
 
@@ -388,13 +369,21 @@ export default function Dashboard() {
     window.addEventListener("focus", handleFocus)
     document.addEventListener("visibilitychange", handleVisibilityChange)
 
+    // También actualizar cada 10 segundos automáticamente (más frecuente)
+    const interval = setInterval(() => {
+      console.log("Actualizando balance automáticamente...")
+      fetchStakingData()
+      fetchTokenPrice()
+    }, 10000) // 10 segundos (más frecuente)
+
     // Limpiar
     return () => {
       isMounted = false
       window.removeEventListener("focus", handleFocus)
       document.removeEventListener("visibilitychange", handleVisibilityChange)
+      clearInterval(interval)
     }
-  }, [fetchStakingData, fetchTokenPrice, fetchVerifiedUsers]) // Añadir fetchVerifiedUsers a las dependencias
+  }, [fetchStakingData, fetchTokenPrice])
 
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
@@ -569,7 +558,7 @@ export default function Dashboard() {
     )
   }
 
-  // URL directa al token CDT en World App
+  // URL directa al token CDT en World App - Asegurarse de que sea la correcta
   const cdtTokenUrl =
     "https://worldcoin.org/mini-app?app_id=app_15daccf5b7d4ec9b7dbba044a8fdeab5&path=app/token/0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
 
@@ -622,37 +611,11 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Contador de usuarios verificados */}
-        <div className="mb-6 bg-black rounded-xl shadow-lg p-4 border border-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Usuarios verificados</p>
-              <p className="text-2xl font-bold text-white">{verifiedUsers.toLocaleString()}</p>
-            </div>
-            <div className="h-10 w-10 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#4ebd0a"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-          </div>
-        </div>
+        {/* Contadores de usuarios */}
 
         {/* Botón Buy CDT - Primero según la captura */}
         <div className="mb-6">
-          <Link
+          <a
             href={cdtTokenUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -681,7 +644,7 @@ export default function Dashboard() {
               <path d="M5 12h14"></path>
               <path d="m12 5 7 7-7 7"></path>
             </svg>
-          </Link>
+          </a>
         </div>
 
         {/* Card de TRIBO Wallet - Versión simplificada con branding consistente */}
