@@ -99,7 +99,7 @@ export default function Transactions() {
       case "claim":
         return "Stake"
       case "support":
-        return "Apoyo"
+        return t("support")
       default:
         return type
     }

@@ -39,7 +39,7 @@ function formatBalance(balance: number): string {
 }
 
 export default function Profile() {
-  const { locale } = useTranslation()
+  const { t, locale } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
   const [username, setUsername] = useState("")
   const [userStats, setUserStats] = useState<UserStats>({
@@ -208,7 +208,7 @@ export default function Profile() {
     e.preventDefault()
 
     if (!referralCode.trim()) {
-      setReferralError("Por favor, introduce un código de referido")
+      setReferralError(t("please_enter_referral_code"))
       return
     }
 
@@ -241,11 +241,11 @@ export default function Profile() {
         // Actualizar datos para reflejar el nuevo referido
         fetchUserData()
       } else {
-        setReferralError(data.error || "Error al registrar el referido")
+        setReferralError(data.error || t("error_registering_referral"))
       }
     } catch (error) {
       console.error("Error registering referral:", error)
-      setReferralError("Error al procesar la solicitud")
+      setReferralError(t("error_processing_request"))
     } finally {
       setIsSubmitting(false)
     }
@@ -274,7 +274,7 @@ export default function Profile() {
 
   // Función para formatear la fecha del último claim
   const formatLastClaimDate = () => {
-    if (!lastClaimDate) return "Nunca"
+    if (!lastClaimDate) return t("never")
 
     const date = new Date(lastClaimDate)
     return date.toLocaleDateString()
@@ -308,22 +308,7 @@ export default function Profile() {
                   <span className="text-[#4ebd0a]">{username}</span>
                 </p>
                 <div className="mt-1 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
-                  <span className="text-[#4ebd0a] text-sm font-medium mr-1">
-                    {locale === "en" ? "Human" : "Humano"}
-                  </span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#4ebd0a"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 6 9 17l-5-5"></path>
-                  </svg>
+                  <span className="text-[#4ebd0a] text-sm font-medium">{locale === "en" ? "Human ✓" : "Humano ✓"}</span>
                 </div>
               </div>
             )}
@@ -331,15 +316,15 @@ export default function Profile() {
 
           {/* Balance Total */}
           <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">Balance Total</h4>
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">{t("total_balance")}</h4>
             <p className="text-4xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
             <p className="text-sm text-gray-400 mb-3">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
 
             <div className="border-t border-gray-800 my-3"></div>
 
-            <h5 className="text-base font-medium text-white mb-2">Proyección anual (365 días)</h5>
+            <h5 className="text-base font-medium text-white mb-2">{t("annual_projection")}</h5>
             <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-400">Ganancias estimadas</p>
+              <p className="text-sm text-gray-400">{t("estimated_earnings")}</p>
               <p className="text-lg font-semibold text-[#4ebd0a]">+{calculateYearlyEarnings().toLocaleString()} CDT</p>
             </div>
             <div className="flex justify-between items-center mt-1">
@@ -350,14 +335,16 @@ export default function Profile() {
 
           {/* CDTs Ganados */}
           <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">{t("cdts_earned")}</h4>
             <p className="text-4xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
-            <p className="text-sm text-gray-400 mb-3">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
+            <p className="text-sm text-gray-400 mb-3">
+              ≈ ${calculateUsdValue(userStats.totalClaimed)} USD {t("usd_claimed")}
+            </p>
 
             <div className="border-t border-gray-800 my-3"></div>
 
             <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-400">Último claim</p>
+              <p className="text-sm text-gray-400">{t("last_claim")}</p>
               <p className="text-sm text-white">{formatLastClaimDate()}</p>
             </div>
             <div className="mt-3">
@@ -365,28 +352,26 @@ export default function Profile() {
                 href="/transactions"
                 className="w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
               >
-                Ver historial completo
+                {t("view_full_history")}
               </Link>
             </div>
           </div>
 
-          {/* Sección de referidos - mantener la existente */}
+          {/* Sección de referidos */}
           <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-5">Programa de Referidos</h4>
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-5">{t("referral_program")}</h4>
 
-            <p className="text-sm text-gray-300 mb-4">
-              Comparte tu código de referido con amigos y gana recompensas cuando se unan
-            </p>
+            <p className="text-sm text-gray-300 mb-4">{t("share_referral_code")}</p>
 
             {/* Tu código de referido */}
             <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
-              <p className="text-sm text-gray-400 mb-2">Tu código de referido</p>
+              <p className="text-sm text-gray-400 mb-2">{t("your_referral_code")}</p>
               <div className="flex items-center">
                 <input
                   type="text"
                   value={username}
                   readOnly
-                  className="flex-1 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm font-mono text-white"
+                  className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm font-mono text-white"
                 />
                 <button
                   onClick={copyReferralCode}
@@ -424,20 +409,20 @@ export default function Profile() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
+              <p className="text-xs text-gray-500 mt-2">{t("friends_must_use")}</p>
             </div>
 
             {/* Invitaciones Totales */}
             <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
               <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-400">Invitaciones Totales</p>
+                <p className="text-sm text-gray-400">{t("total_invitations")}</p>
                 <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
               </div>
             </div>
 
-            {/* Lista de referidos - mantener la existente */}
+            {/* Lista de referidos */}
             <div className="mb-5">
-              <p className="text-sm font-medium text-white mb-3">Tus referidos</p>
+              <p className="text-sm font-medium text-white mb-3">{t("your_referrals")}</p>
 
               {isLoadingReferrals ? (
                 <div className="flex justify-center py-4">
@@ -445,12 +430,12 @@ export default function Profile() {
                 </div>
               ) : referralsError ? (
                 <div className="bg-black/30 rounded-xl p-4 text-center">
-                  <p className="text-red-500 text-sm">{referralsError}</p>
+                  <p className="text-red-500 text-sm">{t("error_loading_referrals")}</p>
                 </div>
               ) : referrals.length === 0 ? (
                 <div className="bg-gray-900/30 rounded-xl p-4 text-center">
-                  <p className="text-gray-400 text-sm">Aún no tienes referidos</p>
-                  <p className="text-xs text-gray-500 mt-1">Comparte tu código para comenzar a invitar amigos</p>
+                  <p className="text-gray-400 text-sm">{t("no_referrals_yet")}</p>
+                  <p className="text-xs text-gray-500 mt-1">{t("share_to_invite")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -480,7 +465,9 @@ export default function Profile() {
                         </div>
                         <div>
                           <p className="text-white font-medium">@{referral.referred.username}</p>
-                          <p className="text-xs text-gray-400">Unido el {formatDate(referral.referred.created_at)}</p>
+                          <p className="text-xs text-gray-400">
+                            {t("joined_on")} {formatDate(referral.referred.created_at)}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center">
@@ -500,11 +487,9 @@ export default function Profile() {
             {/* Separador */}
             <div className="border-t border-gray-800 my-5"></div>
 
-            {/* Formulario para añadir un referido - mantener el existente */}
+            {/* Formulario para añadir un referido */}
             <div>
-              <p className="text-sm text-gray-300 mb-3">
-                ¿Te ha invitado un amigo? Introduce su código de referido aquí
-              </p>
+              <p className="text-sm text-gray-300 mb-3">{t("invited_by_friend")}</p>
 
               <form onSubmit={handleReferralSubmit}>
                 <div className="flex w-full">
@@ -512,7 +497,7 @@ export default function Profile() {
                     type="text"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
-                    placeholder="Código de referido"
+                    placeholder={t("referral_code")}
                     className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white"
                   />
                   <button
@@ -522,12 +507,12 @@ export default function Profile() {
                       isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
                     }`}
                   >
-                    {isSubmitting ? "Enviando..." : "Registrar"}
+                    {isSubmitting ? t("sending") : t("register")}
                   </button>
                 </div>
 
                 {referralError && <p className="text-sm text-red-500 mt-2">{referralError}</p>}
-                {referralSuccess && <p className="text-sm text-[#4ebd0a] mt-2">¡Referido registrado con éxito!</p>}
+                {referralSuccess && <p className="text-sm text-[#4ebd0a] mt-2">{t("referral_registered")}</p>}
               </form>
             </div>
           </div>
@@ -538,7 +523,7 @@ export default function Profile() {
               onClick={() => router.push("/dashboard")}
               className="px-6 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white"
             >
-              Volver al Dashboard
+              {t("back_to_dashboard")}
             </button>
           </div>
         </div>

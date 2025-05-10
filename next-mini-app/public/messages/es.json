@@ -124,5 +124,16 @@
   "human_verified": "Humano ✓",
   "total_balance": "Balance Total",
   "annual_projection": "Proyección anual (365 días)",
-  "estimated_earnings": "Ganancias estimadas"
+  "estimated_earnings": "Ganancias estimadas",
+  "last_claim": "Último claim",
+  "never": "Nunca",
+  "view_full_history": "Ver historial completo",
+  "please_enter_referral_code": "Por favor, introduce un código de referido",
+  "error_registering_referral": "Error al registrar el referido",
+  "error_processing_request": "Error al procesar la solicitud",
+  "invited_by_friend": "¿Te ha invitado un amigo? Introduce su código de referido aquí",
+  "referral_code": "Código de referido",
+  "sending": "Enviando...",
+  "register": "Registrar",
+  "referral_registered": "¡Referido registrado con éxito!"
 }

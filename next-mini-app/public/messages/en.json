@@ -124,5 +124,16 @@
   "human_verified": "Human ✓",
   "total_balance": "Total Balance",
   "annual_projection": "Annual projection (365 days)",
-  "estimated_earnings": "Estimated earnings"
+  "estimated_earnings": "Estimated earnings",
+  "last_claim": "Last claim",
+  "never": "Never",
+  "view_full_history": "View full history",
+  "please_enter_referral_code": "Please enter a referral code",
+  "error_registering_referral": "Error registering referral",
+  "error_processing_request": "Error processing request",
+  "invited_by_friend": "Were you invited by a friend? Enter their referral code here",
+  "referral_code": "Referral code",
+  "sending": "Sending...",
+  "register": "Register",
+  "referral_registered": "Referral registered successfully!"
 }
