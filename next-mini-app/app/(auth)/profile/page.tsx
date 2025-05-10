@@ -270,7 +270,7 @@ export default function Profile() {
     return 0
   }
 
-  // Formatear la fecha del último claim
+  // Función para formatear la fecha del último claim
   const formatLastClaimDate = () => {
     if (!lastClaimDate) return "Nunca"
 
@@ -295,71 +295,81 @@ export default function Profile() {
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="pt-0 pb-0 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Título de la página y nombre de usuario destacado */}
-          <div className="mb-6">
-            <div className="flex items-center justify-end">
-              <h2 className="text-3xl font-bold text-white">TRIBO WALLET</h2>
-            </div>
+        <div className="max-w-md mx-auto">
+          {/* Header con logo de TRIBO Wallet */}
+          <div className="flex flex-col items-center mb-6 mt-4">
+            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={80} height={80} className="mb-2" />
+            <h1 className="text-4xl font-bold text-white text-center">TRIBO WALLET</h1>
             {username && (
-              <div className="mt-4 text-center">
-                <p className="text-3xl font-bold">
+              <div className="flex flex-col items-center">
+                <p className="text-2xl mt-2 text-center">
                   <span className="text-white">@</span>
                   <span className="text-[#4ebd0a]">{username}</span>
                 </p>
+                <div className="mt-2 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
+                  <span className="text-[#4ebd0a] text-sm font-medium mr-1">Human/Humano</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#4ebd0a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6 9 17l-5-5"></path>
+                  </svg>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Estadísticas */}
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-                <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">Balance Total</h4>
-                <p className="text-3xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
-                <p className="text-sm text-gray-400">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
+          {/* Balance Total */}
+          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">Balance Total</h4>
+            <p className="text-4xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
+            <p className="text-sm text-gray-400 mb-4">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
 
-                <div className="mt-4 pt-4 border-t border-gray-800">
-                  <h5 className="text-sm font-medium text-white mb-2">Proyección anual (365 días)</h5>
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-400">Ganancias estimadas</p>
-                    <p className="text-lg font-semibold text-[#4ebd0a]">
-                      +{calculateYearlyEarnings().toLocaleString()} CDT
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <p className="text-sm text-gray-400">APY</p>
-                    <p className="text-lg font-semibold text-[#4ebd0a]">36.5%</p>
-                  </div>
-                </div>
-              </div>
+            <div className="border-t border-gray-800 my-4"></div>
 
-              <div className="bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-                <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
-                <p className="text-3xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
-                <p className="text-sm text-gray-400">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
-
-                <div className="mt-4 pt-4 border-t border-gray-800">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-400">Último claim</p>
-                    <p className="text-sm text-white">{formatLastClaimDate()}</p>
-                  </div>
-                  <div className="mt-4">
-                    <Link
-                      href="/transactions"
-                      className="w-full px-4 py-2 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
-                    >
-                      Ver historial completo
-                    </Link>
-                  </div>
-                </div>
-              </div>
+            <h5 className="text-base font-medium text-white mb-2">Proyección anual (365 días)</h5>
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-400">Ganancias estimadas</p>
+              <p className="text-lg font-semibold text-[#4ebd0a]">+{calculateYearlyEarnings().toLocaleString()} CDT</p>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-sm text-gray-400">APY</p>
+              <p className="text-lg font-semibold text-[#4ebd0a]">36.5%</p>
             </div>
           </div>
 
-          {/* Sección de referidos */}
+          {/* CDTs Ganados */}
           <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-            <h4 className="text-lg font-semibold text-[#4ebd0a] mb-5">Programa de Referidos</h4>
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
+            <p className="text-4xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
+            <p className="text-sm text-gray-400 mb-4">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
+
+            <div className="border-t border-gray-800 my-4"></div>
+
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-400">Último claim</p>
+              <p className="text-sm text-white">{formatLastClaimDate()}</p>
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/transactions"
+                className="w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
+              >
+                Ver historial completo
+              </Link>
+            </div>
+          </div>
+
+          {/* Sección de referidos - mantener la existente */}
+          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-5">Programa de Referidos</h4>
 
             <p className="text-sm text-gray-300 mb-4">
               Comparte tu código de referido con amigos y gana recompensas cuando se unan
@@ -422,7 +432,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Lista de referidos */}
+            {/* Lista de referidos - mantener la existente */}
             <div className="mb-5">
               <p className="text-sm font-medium text-white mb-3">Tus referidos</p>
 
@@ -487,7 +497,7 @@ export default function Profile() {
             {/* Separador */}
             <div className="border-t border-gray-800 my-5"></div>
 
-            {/* Formulario para añadir un referido */}
+            {/* Formulario para añadir un referido - mantener el existente */}
             <div>
               <p className="text-sm text-gray-300 mb-3">
                 ¿Te ha invitado un amigo? Introduce su código de referido aquí

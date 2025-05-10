@@ -630,16 +630,29 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Sección de usuario y saludo - Sin corona */}
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold text-white">
-            Tribo <span className="text-[#4ebd0a]">Vault</span>
-          </h2>
-          {username && (
-            <p className="text-white text-xl mt-1">
-              {t("hello")}, <span className="font-bold text-[#4ebd0a]">{username}</span>
-            </p>
-          )}
+        {/* Sección de usuario y saludo con detective verificador */}
+        <div className="mb-6 relative">
+          <div className="flex items-center">
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold text-white">
+                Tribo <span className="text-[#4ebd0a]">Vault</span>
+              </h2>
+              {username && (
+                <p className="text-white text-xl mt-1">
+                  {t("hello")}, <span className="font-bold text-[#4ebd0a]">{username}</span>
+                </p>
+              )}
+            </div>
+            <div className="w-24 h-24 relative">
+              <Image
+                src="/detective-verificador.png"
+                alt="Detective Verificador"
+                width={96}
+                height={96}
+                className="absolute bottom-0 right-0"
+              />
+            </div>
+          </div>
         </div>
 
         {/* NUEVA SECCIÓN: CDTs Ganados */}
