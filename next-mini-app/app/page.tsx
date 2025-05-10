@@ -1,17 +1,19 @@
 "use client"
 
+import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { useWorldAuth } from "next-world-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useCallback } from "react"
 import { useTranslation } from "../src/components/TranslationProvider"
 import { LanguageSelector } from "../src/components/LanguageSelector"
+import VaultDial from "../src/components/VaultDial"
 
 export default function Home() {
   const { t } = useTranslation()
   const { isLoading, isAuthenticated, session, signInWallet } = useWorldAuth()
-
   const router = useRouter()
+
+  const [showVault, setShowVault] = useState(true)
   const [username, setUsername] = useState("")
   const [isSavingUsername, setIsSavingUsername] = useState(false)
   const [showUsernameForm, setShowUsernameForm] = useState(false)
@@ -214,8 +216,13 @@ export default function Home() {
     )
   }
 
+  // Función para manejar el desbloqueo de la caja fuerte
+  const handleVaultUnlock = () => {
+    setShowVault(false)
+  }
+
   return (
-    <div className="home-container">
+    <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">
       {/* Header simplificado para la página de inicio */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -228,124 +235,134 @@ export default function Home() {
       </div>
 
       {/* Contenido principal centrado verticalmente */}
-      <main className="home-main">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-16 pb-20">
         {isLoading ? (
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]"></div>
           </div>
         ) : (
           <>
-            {/* Sección de mascota y autenticación */}
-            {(!isAuthenticated || !showUsernameForm) && (
-              <div className="w-full flex flex-col items-center justify-center">
-                {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
-                <div className="detectriber-container flex justify-center mb-8 w-full">
-                  <div className="speech-bubble">
-                    <p className="text-center text-sm break-words">
-                      {showVerificationMessage ? t("verify_first") : t("detectriber_message")}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`relative cursor-pointer transition-transform duration-300 ${
-                      isMascotHovered ? "scale-105" : ""
-                    }`}
-                    onMouseEnter={() => setIsMascotHovered(true)}
-                    onMouseLeave={() => setIsMascotHovered(false)}
-                    onClick={handleMascotClick}
-                  >
-                    <Image
-                      src="/DETECTRIBER.png"
-                      alt="Detectriber"
-                      width={320}
-                      height={320}
-                      className={`${isMascotHovered ? "animate-bounce" : "animate-pulse"}`}
-                    />
-                  </div>
-                </div>
-
-                {/* Botón de conectar wallet */}
-                <button
-                  onClick={signInWallet}
-                  className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
-                  disabled={session?.isAuthenticatedWallet}
-                >
-                  {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
-                </button>
-
-                {/* Botón para continuar al dashboard si está autenticado */}
-                {isAuthenticated && session?.isAuthenticatedWallet && (
-                  <button
-                    onClick={handleContinueToDashboard}
-                    className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors mt-4 text-lg shadow-lg shadow-[#4ebd0a]/20"
-                  >
-                    {t("go_dashboard")}
-                  </button>
-                )}
+            {/* Mostrar el dial de la caja fuerte o el contenido normal */}
+            {showVault ? (
+              <div className="flex flex-col items-center">
+                <VaultDial onUnlockAction={handleVaultUnlock} />
+                <p className="text-center text-gray-400 mt-8">Gira el dial para desbloquear TRIBO Vault</p>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Sección de mascota y autenticación */}
+                {(!isAuthenticated || !showUsernameForm) && (
+                  <div className="w-full flex flex-col items-center justify-center">
+                    {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
+                    <div className="detectriber-container flex justify-center mb-8 w-full">
+                      <div className="speech-bubble">
+                        <p className="text-center text-sm break-words">
+                          {showVerificationMessage ? t("verify_first") : t("detectriber_message")}
+                        </p>
+                      </div>
 
-            {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
-            {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
-              <div className="w-full max-w-md flex flex-col items-center">
-                {/* Imagen decorativa arriba del formulario */}
-                <div className="mb-6">
-                  <Image
-                    src="/Jefe Tribo Discord.png"
-                    alt="Jefe Tribo"
-                    width={120}
-                    height={120}
-                    className="animate-pulse"
-                  />
-                </div>
-
-                <div className="w-full bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8 mb-8 relative overflow-hidden">
-                  <h2 className="text-2xl font-semibold mb-6 text-white text-center">{t("welcome_tribo")}</h2>
-                  <p className="text-gray-300 mb-6 text-center">{t("choose_name")}</p>
-
-                  <div className="mb-6">
-                    <label htmlFor="username" className="block text-sm font-medium text-[#4ebd0a] mb-2">
-                      {t("triber_name")}
-                    </label>
-                    <input
-                      type="text"
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder={t("enter_name")}
-                      className="w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-[#4ebd0a] focus:border-[#4ebd0a] bg-black text-white"
-                    />
-                  </div>
-
-                  {usernameError && (
-                    <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
-                      <p className="text-sm text-[#ff1744]">{usernameError}</p>
+                      <div
+                        className={`relative cursor-pointer transition-transform duration-300 ${
+                          isMascotHovered ? "scale-105" : ""
+                        }`}
+                        onMouseEnter={() => setIsMascotHovered(true)}
+                        onMouseLeave={() => setIsMascotHovered(false)}
+                        onClick={handleMascotClick}
+                      >
+                        <Image
+                          src="/DETECTRIBER.png"
+                          alt="Detectriber"
+                          width={320}
+                          height={320}
+                          className={`${isMascotHovered ? "animate-bounce" : "animate-pulse"}`}
+                        />
+                      </div>
                     </div>
-                  )}
 
-                  <button
-                    onClick={handleSaveUsername}
-                    disabled={isSavingUsername || !username}
-                    className={`w-full px-6 py-3 rounded-full ${
-                      isSavingUsername || !username
-                        ? "bg-gray-700 cursor-not-allowed"
-                        : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
-                    } font-medium transition-colors shadow-lg`}
-                  >
-                    {isSavingUsername ? t("saving") : t("continue_dashboard")}
-                  </button>
-                </div>
-              </div>
+                    {/* Botón de conectar wallet */}
+                    <button
+                      onClick={signInWallet}
+                      className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
+                      disabled={session?.isAuthenticatedWallet}
+                    >
+                      {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
+                    </button>
+
+                    {/* Botón para continuar al dashboard si está autenticado */}
+                    {isAuthenticated && session?.isAuthenticatedWallet && (
+                      <button
+                        onClick={handleContinueToDashboard}
+                        className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors mt-4 text-lg shadow-lg shadow-[#4ebd0a]/20"
+                      >
+                        {t("go_dashboard")}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
+                {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
+                  <div className="w-full max-w-md flex flex-col items-center">
+                    {/* Imagen decorativa arriba del formulario */}
+                    <div className="mb-6">
+                      <Image
+                        src="/Jefe Tribo Discord.png"
+                        alt="Jefe Tribo"
+                        width={120}
+                        height={120}
+                        className="animate-pulse"
+                      />
+                    </div>
+
+                    <div className="w-full bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8 mb-8 relative overflow-hidden">
+                      <h2 className="text-2xl font-semibold mb-6 text-white text-center">{t("welcome_tribo")}</h2>
+                      <p className="text-gray-300 mb-6 text-center">{t("choose_name")}</p>
+
+                      <div className="mb-6">
+                        <label htmlFor="username" className="block text-sm font-medium text-[#4ebd0a] mb-2">
+                          {t("triber_name")}
+                        </label>
+                        <input
+                          type="text"
+                          id="username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder={t("enter_name")}
+                          className="w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-[#4ebd0a] focus:border-[#4ebd0a] bg-black text-white"
+                        />
+                      </div>
+
+                      {usernameError && (
+                        <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
+                          <p className="text-sm text-[#ff1744]">{usernameError}</p>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleSaveUsername}
+                        disabled={isSavingUsername || !username}
+                        className={`w-full px-6 py-3 rounded-full ${
+                          isSavingUsername || !username
+                            ? "bg-gray-700 cursor-not-allowed"
+                            : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+                        } font-medium transition-colors shadow-lg`}
+                      >
+                        {isSavingUsername ? t("saving") : t("continue_dashboard")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Confeti cuando se guarda el username */}
+                {showConfetti && <Confetti />}
+              </>
             )}
-
-            {/* Confeti cuando se guarda el username */}
-            {showConfetti && <Confetti />}
           </>
         )}
       </main>
 
       {/* Barra inferior fija con contador de usuarios */}
-      <div className="home-footer">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md border-t border-gray-800 py-3 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center">
           <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
             <div className="h-8 w-8 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-2">
@@ -378,6 +395,80 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        html,
+        body {
+          width: 100vw;
+          height: 100vh;
+          overscroll-behavior: none;
+          overflow: hidden;
+        }
+        
+        .detectriber-container {
+          margin-top: 2rem;
+          position: relative;
+          padding-top: 3rem; /* Espacio para el bocadillo */
+        }
+        
+        .speech-bubble {
+          position: absolute;
+          top: -2.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: rgba(0, 0, 0, 0.8);
+          border: 1px solid #4ebd0a;
+          border-radius: 9999px;
+          padding: 0.5rem 1rem;
+          z-index: 10;
+          max-width: 90%;
+          margin: 0 auto;
+          white-space: normal;
+        }
+        
+        .speech-bubble:after {
+          content: '';
+          position: absolute;
+          bottom: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 8px solid transparent;
+          border-right: 8px solid transparent;
+          border-top: 8px solid #4ebd0a;
+        }
+        
+        .confetti-container {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 100;
+        }
+        
+        .confetti {
+          position: absolute;
+          top: -10px;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          animation: confetti-fall 3s ease-in-out forwards;
+        }
+        
+        @keyframes confetti-fall {
+          0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   )
 }
