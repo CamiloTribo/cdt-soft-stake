@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 import { useWorldAuth } from "next-world-auth/react"
 import Header from "@/src/components/Header"
+import Image from "next/image"
 
 type RankingType = "holders" | "stakers" | "referrals"
 
@@ -78,7 +79,11 @@ export default function Rankings() {
     switch (activeRanking) {
       case "holders":
       case "stakers":
-        return "CDT"
+        return (
+          <span className="flex items-center">
+            <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="mr-1" />
+          </span>
+        )
       case "referrals":
         return t("friends")
       default:
@@ -86,8 +91,21 @@ export default function Rankings() {
     }
   }
 
+  // Función para formatear números grandes
+  const formatLargeNumber = (num: number): string => {
+    if (num >= 1_000_000_000) {
+      return (num / 1_000_000_000).toFixed(1) + "B"
+    } else if (num >= 1_000_000) {
+      return (num / 1_000_000).toFixed(1) + "M"
+    } else if (num >= 1_000) {
+      return (num / 1_000).toFixed(1) + "K"
+    } else {
+      return num.toString()
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-black text-white pb-20">
+    <main className="min-h-screen bg-black text-white pb-20 font-['Helvetica Neue']">
       <Header />
 
       <div className="max-w-md mx-auto px-4 pt-4">
@@ -148,9 +166,13 @@ export default function Rankings() {
                   <div className="h-20 w-20 bg-gray-800 rounded-t-lg flex items-center justify-center">
                     <div className="text-center">
                       <p className="text-sm font-medium truncate max-w-16">@{rankings[1].username}</p>
-                      <p className="text-xs text-[#4ebd0a]">
-                        {rankings[1].value.toLocaleString()} {getRankingUnit()}
-                      </p>
+                      <div className="flex items-center justify-center text-xs text-[#4ebd0a]">
+                        {formatLargeNumber(rankings[1].value)}
+                        {activeRanking !== "referrals" && (
+                          <Image src="/TOKEN CDT.png" alt="CDT" width={14} height={14} className="ml-1" />
+                        )}
+                        {activeRanking === "referrals" && <span className="ml-1">{getRankingUnit()}</span>}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -164,9 +186,13 @@ export default function Rankings() {
                   <div className="h-24 w-24 bg-[#4ebd0a]/20 rounded-t-lg flex items-center justify-center border-t-2 border-l-2 border-r-2 border-[#4ebd0a]">
                     <div className="text-center">
                       <p className="text-sm font-medium truncate max-w-20">@{rankings[0].username}</p>
-                      <p className="text-xs text-[#4ebd0a] font-bold">
-                        {rankings[0].value.toLocaleString()} {getRankingUnit()}
-                      </p>
+                      <div className="flex items-center justify-center text-xs text-[#4ebd0a] font-bold">
+                        {formatLargeNumber(rankings[0].value)}
+                        {activeRanking !== "referrals" && (
+                          <Image src="/TOKEN CDT.png" alt="CDT" width={14} height={14} className="ml-1" />
+                        )}
+                        {activeRanking === "referrals" && <span className="ml-1">{getRankingUnit()}</span>}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -180,9 +206,13 @@ export default function Rankings() {
                   <div className="h-16 w-20 bg-gray-800 rounded-t-lg flex items-center justify-center">
                     <div className="text-center">
                       <p className="text-sm font-medium truncate max-w-16">@{rankings[2].username}</p>
-                      <p className="text-xs text-[#4ebd0a]">
-                        {rankings[2].value.toLocaleString()} {getRankingUnit()}
-                      </p>
+                      <div className="flex items-center justify-center text-xs text-[#4ebd0a]">
+                        {formatLargeNumber(rankings[2].value)}
+                        {activeRanking !== "referrals" && (
+                          <Image src="/TOKEN CDT.png" alt="CDT" width={14} height={14} className="ml-1" />
+                        )}
+                        {activeRanking === "referrals" && <span className="ml-1">{getRankingUnit()}</span>}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -205,10 +235,13 @@ export default function Rankings() {
                         @{user.username}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-mono font-bold text-[#4ebd0a]">
-                        {user.value.toLocaleString()} {getRankingUnit()}
-                      </p>
+                    <div className="text-right flex items-center justify-end">
+                      <p className="font-mono font-bold text-[#4ebd0a]">{formatLargeNumber(user.value)}</p>
+                      {activeRanking !== "referrals" ? (
+                        <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                      ) : (
+                        <span className="ml-1 text-[#4ebd0a]">{getRankingUnit()}</span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -226,10 +259,15 @@ export default function Rankings() {
                   <div className="flex-1 ml-4">
                     <p className="font-medium text-white">@{rankings.find((user) => user.isCurrentUser)?.username}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex items-center justify-end">
                     <p className="font-mono font-bold text-[#4ebd0a]">
-                      {rankings.find((user) => user.isCurrentUser)?.value.toLocaleString()} {getRankingUnit()}
+                      {formatLargeNumber(rankings.find((user) => user.isCurrentUser)?.value || 0)}
                     </p>
+                    {activeRanking !== "referrals" ? (
+                      <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                    ) : (
+                      <span className="ml-1 text-[#4ebd0a]">{getRankingUnit()}</span>
+                    )}
                   </div>
                 </div>
               </div>

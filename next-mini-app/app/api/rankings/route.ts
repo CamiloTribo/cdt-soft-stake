@@ -17,15 +17,13 @@ export async function GET(request: Request) {
 
     // Obtener rankings según el tipo
     if (type === "holders") {
-      // Para holders, hacemos una consulta más simple
+      // Para holders, necesitamos unir con la tabla users para obtener el username
       const { data, error } = await supabase
         .from("staking_info")
         .select(`
           user_id,
           staked_amount,
-          users (
-            username
-          )
+          users (id, username)
         `)
         .order("staked_amount", { ascending: false })
         .limit(100)
@@ -36,8 +34,16 @@ export async function GET(request: Request) {
       }
 
       rankings = data.map((item, index) => {
-        // Accedemos al primer elemento del array users si existe
-        const username = Array.isArray(item.users) && item.users.length > 0 ? item.users[0].username : "Unknown"
+        // Intentamos obtener el username de diferentes formas posibles
+        let username = "Unknown"
+
+        if (item.users) {
+          if (Array.isArray(item.users) && item.users.length > 0 && item.users[0].username) {
+            username = item.users[0].username
+          } else if (typeof item.users === "object" && item.users && "username" in item.users && item.users.username) {
+            username = String(item.users.username)
+          }
+        }
 
         return {
           id: item.user_id,
