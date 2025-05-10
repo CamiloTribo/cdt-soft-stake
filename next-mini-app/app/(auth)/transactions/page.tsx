@@ -245,16 +245,6 @@ export default function Transactions() {
                         <span className="font-mono text-xl font-semibold text-white">{tx.amount.toLocaleString()}</span>
                         <span className="ml-1 text-[#4ebd0a]">{tx.token_type}</span>
                       </div>
-                      {tx.tx_hash && (
-                        <a
-                          href={`https://explorer.worldcoin.org/tx/${tx.tx_hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-gray-400 hover:text-[#4ebd0a] transition-colors"
-                        >
-                          Ver en Explorer
-                        </a>
-                      )}
                     </div>
                   </div>
                 ))}
