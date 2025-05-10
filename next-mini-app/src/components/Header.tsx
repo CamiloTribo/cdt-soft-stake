@@ -5,10 +5,33 @@ import { useWorldAuth } from "next-world-auth/react"
 import { LanguageSelector } from "./LanguageSelector"
 import { useTranslation } from "./TranslationProvider"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 
 export default function Header() {
   const { signOut, session } = useWorldAuth()
   const { t } = useTranslation()
+  const [username, setUsername] = useState<string | null>(null)
+
+  // Obtener el username personalizado del usuario
+  useEffect(() => {
+    const fetchUsername = async () => {
+      if (session?.user?.walletAddress) {
+        try {
+          const response = await fetch(`/api/username?wallet_address=${session.user.walletAddress}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.username) {
+              setUsername(data.username)
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching username:", error)
+        }
+      }
+    }
+
+    fetchUsername()
+  }, [session])
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800">
@@ -26,9 +49,9 @@ export default function Header() {
         </div>
         <div className="flex items-center gap-3">
           <LanguageSelector />
-          {session?.user?.username && (
+          {username && (
             <span className="text-sm bg-gray-800 px-3 py-1 rounded-full text-white truncate max-w-[150px]">
-              @{session.user.username}
+              @{username}
             </span>
           )}
           {session && (

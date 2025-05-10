@@ -298,14 +298,15 @@ export default function Profile() {
         <div className="max-w-4xl mx-auto">
           {/* Título de la página y nombre de usuario destacado */}
           <div className="mb-6">
-            <div className="flex items-center">
-              <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={40} height={40} className="mr-3" />
+            <div className="flex items-center justify-end">
               <h2 className="text-3xl font-bold text-white">TRIBO WALLET</h2>
             </div>
             {username && (
-              <div className="mt-3 bg-gray-900/50 p-3 rounded-full border border-gray-800">
-                <p className="text-gray-400 text-sm">Bienvenido</p>
-                <p className="text-2xl font-bold text-[#4ebd0a]">@{username}</p>
+              <div className="mt-4 text-center">
+                <p className="text-3xl font-bold">
+                  <span className="text-white">@</span>
+                  <span className="text-[#4ebd0a]">{username}</span>
+                </p>
               </div>
             )}
           </div>
