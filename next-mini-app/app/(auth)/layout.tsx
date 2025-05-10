@@ -46,7 +46,7 @@ export default function AuthLayout({
       <Header />
 
       {/* Contenido principal con padding para el header y navbar */}
-      <div className="pt-16 pb-20 px-4">{children}</div>
+      <div className="pt-16 pb-24 px-4">{children}</div>
 
       {/* Navbar */}
       <Navbar />

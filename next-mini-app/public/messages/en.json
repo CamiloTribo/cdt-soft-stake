@@ -64,7 +64,6 @@
   "benefit3": "Secure authentication with World Wallet",
   "benefit4": "Claim your rewards whenever you want",
   "connected": "Connected with World Wallet!",
-  "wallet": "Wallet",
   "go_dashboard": "Go to Dashboard",
   "connect_wallet": "Connect your World Wallet to start earning rewards",
   "connect": "Connect World Wallet",
@@ -86,6 +85,7 @@
   "dashboard": "Dashboard",
   "transactions": "Transactions",
   "profile": "Profile",
+  "wallet": "Wallet",
 
   "swap_cdt": "Swap CDT",
 
@@ -96,5 +96,20 @@
   "verify_human_explanation": "TRIBO Vault is exclusively for humans. This verification helps us maintain a secure platform and prevent bots.",
 
   "detectriber_message": "I'm DETECTRIBER and I want to verify you're not a 🤖",
-  "verify_first": "Verify you're human first! 👇"
+  "verify_first": "Verify you're human first! 👇",
+
+  "referral_program": "Referral Program",
+  "invite": "Invite",
+  "friends": "Friends",
+  "total_invitations": "Total Invitations",
+  "share_referral_code": "Share your referral code with friends and earn rewards when they join",
+  "your_referral_code": "Your referral code",
+  "friends_must_use": "Your friends must use this code when registering",
+  "send_invitation": "Send Invitation",
+  "your_referrals": "Your Referrals",
+  "no_referrals_yet": "You don't have any referrals yet",
+  "share_to_invite": "Share your code to start inviting friends",
+  "joined_on": "Joined on",
+  "error_loading_referrals": "Error loading referrals",
+  "no_referrals_found": "No referrals found"
 }

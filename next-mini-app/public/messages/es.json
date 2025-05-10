@@ -64,7 +64,6 @@
   "benefit3": "Autenticación segura con World Wallet",
   "benefit4": "Reclama tus recompensas cuando quieras",
   "connected": "¡Conectado con World Wallet!",
-  "wallet": "Wallet",
   "go_dashboard": "Ir al Dashboard",
   "connect_wallet": "Conecta tu World Wallet para comenzar a ganar recompensas",
   "connect": "Conectar World Wallet",
@@ -86,6 +85,7 @@
   "dashboard": "Dashboard",
   "transactions": "Transacciones",
   "profile": "Perfil",
+  "wallet": "Wallet",
 
   "swap_cdt": "Intercambiar CDT",
 
@@ -96,5 +96,20 @@
   "verify_human_explanation": "TRIBO Vault es exclusivamente para humanos. Esta verificación nos ayuda a mantener una plataforma segura y prevenir bots.",
 
   "detectriber_message": "Soy DETECTRIBER y quiero verificar que no seas un 🤖",
-  "verify_first": "¡Verifica que eres humano primero! 👇"
+  "verify_first": "¡Verifica que eres humano primero! 👇",
+
+  "referral_program": "Programa de Referidos",
+  "invite": "Invitar",
+  "friends": "Amigos",
+  "total_invitations": "Invitaciones Totales",
+  "share_referral_code": "Comparte tu código de referido con amigos y gana recompensas cuando se unan",
+  "your_referral_code": "Tu código de referido",
+  "friends_must_use": "Tus amigos deben usar este código al registrarse",
+  "send_invitation": "Enviar Invitación",
+  "your_referrals": "Tus referidos",
+  "no_referrals_yet": "Aún no tienes referidos",
+  "share_to_invite": "Comparte tu código para comenzar a invitar amigos",
+  "joined_on": "Unido el",
+  "error_loading_referrals": "Error al cargar referidos",
+  "no_referrals_found": "No se encontraron referidos"
 }

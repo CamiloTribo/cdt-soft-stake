@@ -4,16 +4,28 @@ import Image from "next/image"
 import { useWorldAuth } from "next-world-auth/react"
 import { LanguageSelector } from "./LanguageSelector"
 import { useTranslation } from "./TranslationProvider"
+import Link from "next/link"
 
 export default function Header() {
   const { signOut, session } = useWorldAuth()
   const { t } = useTranslation()
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800">
       <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
-          <Image src="/LOGO TRIBO Vault- sin fondo.png" alt="Tribo Logo" width={28} height={28} />
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src="/LOGO TRIBO Vault- sin fondo.png"
+              alt="Tribo Logo"
+              width={28}
+              height={28}
+              className="mr-2 transition-transform hover:scale-110"
+            />
+            <span className="text-lg font-bold">
+              <span className="text-white">Tribo</span> <span className="text-[#4ebd0a]">Vault</span>
+            </span>
+          </Link>
         </div>
         <div className="flex items-center gap-3">
           <LanguageSelector />
@@ -25,7 +37,7 @@ export default function Header() {
           {session && (
             <button
               onClick={signOut}
-              className="p-1.5 rounded-full bg-black/50 border border-gray-700 hover:bg-gray-900"
+              className="p-1.5 rounded-full bg-black/50 border border-gray-700 hover:bg-gray-900 transition-colors"
               title={t("disconnect")}
             >
               <svg

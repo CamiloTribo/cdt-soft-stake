@@ -294,43 +294,7 @@ export default function Profile() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center">
-            <Image src="/LOGO TRIBO Vault- sin fondo.png" alt="Tribo Logo" width={28} height={28} className="mr-2" />
-            <h1 className="text-xl font-bold">TRIBO Vault</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {username && (
-              <span className="text-sm bg-gray-800 px-3 py-1 rounded-full text-white truncate max-w-[150px]">
-                @{username}
-              </span>
-            )}
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="p-1.5 rounded-full bg-black/50 border border-gray-700 hover:bg-gray-900"
-              title="Volver al Dashboard"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m15 18-6-6 6-6"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-16 pb-20 px-4">
+      <div className="pt-0 pb-0 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Título de la página y nombre de usuario destacado */}
           <div className="mb-6">
@@ -571,11 +535,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="py-6 text-center text-sm text-gray-500">
-        <p>La mejor forma de stakear tus CDT</p>
-      </footer>
     </main>
   )
 }
