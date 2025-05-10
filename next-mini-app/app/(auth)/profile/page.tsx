@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useWorldAuth } from "next-world-auth/react"
 import Image from "next/image"
 import Link from "next/link"
+import { useTranslation } from "../../../src/components/TranslationProvider"
 
 type UserStats = {
   totalStaked: number
@@ -38,6 +39,7 @@ function formatBalance(balance: number): string {
 }
 
 export default function Profile() {
+  const { locale } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
   const [username, setUsername] = useState("")
   const [userStats, setUserStats] = useState<UserStats>({
@@ -298,8 +300,7 @@ export default function Profile() {
         <div className="max-w-md mx-auto">
           {/* Header con logo de TRIBO Wallet */}
           <div className="flex flex-col items-center mb-6 mt-4">
-            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={80} height={80} className="mb-2" />
-            <h1 className="text-4xl font-bold text-white text-center">TRIBO WALLET</h1>
+            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={120} height={120} className="mb-2" />
             {username && (
               <div className="flex flex-col items-center">
                 <p className="text-2xl mt-2 text-center">
@@ -307,7 +308,9 @@ export default function Profile() {
                   <span className="text-[#4ebd0a]">{username}</span>
                 </p>
                 <div className="mt-2 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
-                  <span className="text-[#4ebd0a] text-sm font-medium mr-1">Human/Humano</span>
+                  <span className="text-[#4ebd0a] text-sm font-medium mr-1">
+                    {locale === "en" ? "Human" : "Humano"}
+                  </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"

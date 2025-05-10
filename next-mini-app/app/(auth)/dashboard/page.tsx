@@ -643,13 +643,14 @@ export default function Dashboard() {
                 </p>
               )}
             </div>
-            <div className="w-24 h-24 relative">
+            {/* Ajustado para estar centrado verticalmente y a la derecha */}
+            <div className="flex items-center justify-end">
               <Image
                 src="/detective-verificador.png"
                 alt="Detective Verificador"
-                width={96}
-                height={96}
-                className="absolute bottom-0 right-0"
+                width={80}
+                height={80}
+                className="object-contain"
               />
             </div>
           </div>
@@ -700,8 +701,8 @@ export default function Dashboard() {
         <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={32} height={32} className="mr-3" />
-              <h2 className="text-xl font-semibold text-[#4ebd0a]">{t("tribo_wallet")}</h2>
+              {/* Logo más grande sin texto */}
+              <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={60} height={60} className="mr-3" />
             </div>
             {/* Botón para ir a la página de perfil ampliado - DESTACADO Y VISIBLE */}
             <Link
