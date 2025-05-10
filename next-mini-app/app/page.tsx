@@ -9,7 +9,6 @@ import { LanguageSelector } from "../src/components/LanguageSelector"
 
 export default function Home() {
   const { t } = useTranslation()
-  // Eliminamos signInWorldID de la desestructuración ya que no lo usamos
   const { isLoading, isAuthenticated, session, signInWallet } = useWorldAuth()
 
   const router = useRouter()
@@ -193,7 +192,7 @@ export default function Home() {
   }, [session?.isAuthenticatedWorldID])
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="home-container">
       {/* Header simplificado para la página de inicio */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -205,128 +204,69 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="container max-w-4xl mx-auto px-4 py-12 main-content flex flex-col items-center">
-        {/* Main Content */}
+      {/* Contenido principal centrado verticalmente */}
+      <main className="home-main">
         {isLoading ? (
-          <div className="flex items-center justify-center mt-4">
+          <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]"></div>
           </div>
         ) : (
-          <div className="w-full">
-            {/* UN SOLO CONTADOR: Humanos verificados (pero realmente muestra el total) */}
-            <div className="bg-black rounded-xl shadow-lg p-4 border border-gray-800 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#4ebd0a"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="m16 11 2 2 4-4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm text-[#4ebd0a]">Humanos verificados</p>
-                    <p className="text-2xl font-bold text-white">
-                      {isLoadingUsers ? (
-                        <span className="inline-block w-12 h-6 bg-gray-700 animate-pulse rounded"></span>
-                      ) : (
-                        totalUsers.toLocaleString()
-                      )}
+          <>
+            {/* Sección de mascota y autenticación */}
+            {(!isAuthenticated || !showUsernameForm) && (
+              <div className="w-full max-w-md flex flex-col items-center">
+                {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
+                <div className="detectriber-container flex justify-center mb-8 w-full">
+                  <div className="speech-bubble">
+                    <p className="text-center text-sm break-words">
+                      {showVerificationMessage ? t("verify_first") : t("detectriber_message")}
                     </p>
                   </div>
-                </div>
-                <div className="h-10 w-10 flex items-center justify-center bg-[#1E88E5]/20 rounded-full">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#1E88E5"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+
+                  <div
+                    className={`relative cursor-pointer transition-transform duration-300 ${
+                      isMascotHovered ? "scale-110" : ""
+                    }`}
+                    onMouseEnter={() => setIsMascotHovered(true)}
+                    onMouseLeave={() => setIsMascotHovered(false)}
+                    onClick={handleMascotClick}
                   >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
-            {(!isAuthenticated || !showUsernameForm) && (
-              <div className="detectriber-container flex justify-center mb-8 w-full">
-                <div className="speech-bubble">
-                  <p className="text-center text-sm break-words">
-                    {showVerificationMessage ? t("verify_first") : t("detectriber_message")}
-                  </p>
+                    <Image
+                      src="/DETECTRIBER.png"
+                      alt="Detectriber"
+                      width={240}
+                      height={240}
+                      className={`${isMascotHovered ? "animate-bounce" : "animate-pulse"}`}
+                    />
+                  </div>
                 </div>
 
-                <div
-                  className={`relative cursor-pointer transition-transform duration-300 ${
-                    isMascotHovered ? "scale-110" : ""
-                  }`}
-                  onMouseEnter={() => setIsMascotHovered(true)}
-                  onMouseLeave={() => setIsMascotHovered(false)}
-                  onClick={handleMascotClick}
+                {/* Botón de conectar wallet */}
+                <button
+                  onClick={signInWallet}
+                  className="w-full max-w-xs px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg"
+                  disabled={session?.isAuthenticatedWallet}
                 >
-                  <Image
-                    src="/DETECTRIBER.png"
-                    alt="Detectriber"
-                    width={200}
-                    height={200}
-                    className={`${isMascotHovered ? "animate-bounce" : "animate-pulse"}`}
-                  />
-                </div>
-              </div>
-            )}
+                  {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
+                </button>
 
-            {/* Sección de verificación y conexión */}
-            {(!isAuthenticated || !showUsernameForm) && (
-              <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 mb-8">
-                <h2 className="text-2xl font-semibold mb-4 text-center text-white">{t("verify_as_human")}</h2>
-                <p className="text-center text-sm text-gray-400 mb-6">{t("verify_human_explanation")}</p>
-
-                {/* Botones de verificación y conexión */}
-                <div className="flex flex-col gap-4">
-                  {/* Botón de conectar wallet */}
+                {/* Botón para continuar al dashboard si está autenticado */}
+                {isAuthenticated && session?.isAuthenticatedWallet && (
                   <button
-                    onClick={signInWallet}
-                    className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors"
-                    disabled={session?.isAuthenticatedWallet}
+                    onClick={handleContinueToDashboard}
+                    className="w-full max-w-xs px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors mt-4 text-lg"
                   >
-                    {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
+                    {t("go_dashboard")}
                   </button>
-
-                  {/* Botón para continuar al dashboard si está autenticado */}
-                  {isAuthenticated && session?.isAuthenticatedWallet && (
-                    <button
-                      onClick={handleContinueToDashboard}
-                      className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors mt-4"
-                    >
-                      {t("go_dashboard")}
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             )}
 
             {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
             {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
-              <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-semibold mb-6 text-white">{t("welcome_tribo")}</h2>
-                <p className="text-gray-300 mb-6">{t("choose_name")}</p>
+              <div className="w-full max-w-md bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8">
+                <h2 className="text-2xl font-semibold mb-6 text-white text-center">{t("welcome_tribo")}</h2>
+                <p className="text-gray-300 mb-6 text-center">{t("choose_name")}</p>
 
                 <div className="mb-6">
                   <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
@@ -351,7 +291,7 @@ export default function Home() {
                 <button
                   onClick={handleSaveUsername}
                   disabled={isSavingUsername || !username}
-                  className={`w-full px-6 py-3 rounded-md ${
+                  className={`w-full px-6 py-3 rounded-full ${
                     isSavingUsername || !username
                       ? "bg-gray-700 cursor-not-allowed"
                       : "bg-[#ff1744] hover:bg-[#ff2954] text-white"
@@ -361,54 +301,60 @@ export default function Home() {
                 </button>
               </div>
             )}
-          </div>
+          </>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="py-6 text-center text-sm text-gray-500">
-        <p>{t("footer_home")}</p>
-      </footer>
-      <style jsx global>{`
-  .main-content {
-    padding-top: calc(4rem + 16px); /* Espacio para el header más un margen adicional */
-  }
-  
-  .detectriber-container {
-    margin-top: 2rem;
-    position: relative;
-    padding-top: 3rem; /* Espacio para el bocadillo */
-  }
-  
-  .speech-bubble {
-    position: absolute;
-    top: -2.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    border: 1px solid #4ebd0a;
-    border-radius: 9999px;
-    padding: 0.5rem 1rem;
-    z-index: 10;
-    max-width: 90%;
-    margin: 0 auto;
-    white-space: normal;
-  }
-  
-  .speech-bubble:after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #4ebd0a;
-  }
-`}</style>
+      {/* Barra inferior fija con contador de usuarios */}
+      <div className="home-footer">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="h-8 w-8 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#4ebd0a"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="m16 11 2 2 4-4" />
+              </svg>
+            </div>
+            <span className="text-gray-400 text-sm">
+              Humanos verificados:{" "}
+              <span className="text-[#4ebd0a] font-medium">
+                {isLoadingUsers ? (
+                  <span className="inline-block w-8 h-4 bg-gray-700 animate-pulse rounded"></span>
+                ) : (
+                  totalUsers.toLocaleString()
+                )}
+              </span>
+            </span>
+          </div>
+          <div className="h-8 w-8 flex items-center justify-center bg-[#1E88E5]/20 rounded-full">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#1E88E5"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
-
