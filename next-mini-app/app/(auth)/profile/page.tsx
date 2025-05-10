@@ -299,17 +299,17 @@ export default function Profile() {
       <div className="pt-0 pb-0 px-4">
         <div className="max-w-md mx-auto">
           {/* Header con logo de TRIBO Wallet */}
-          <div className="flex flex-col items-center mb-6 mt-4">
-            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={120} height={120} className="mb-2" />
+          <div className="flex flex-col items-center mb-4 mt-2">
+            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={100} height={100} className="mb-1" />
             {username && (
               <div className="flex flex-col items-center">
-                <p className="text-2xl mt-2 text-center">
+                <p className="text-2xl text-center">
                   <span className="text-white">@</span>
                   <span className="text-[#4ebd0a]">{username}</span>
                 </p>
-                <div className="mt-2 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
+                <div className="mt-1 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
                   <span className="text-[#4ebd0a] text-sm font-medium mr-1">
-                    {locale === "en" ? "Human ✓" : "Humano ✓"}
+                    {locale === "en" ? "Human" : "Humano"}
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -330,12 +330,12 @@ export default function Profile() {
           </div>
 
           {/* Balance Total */}
-          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
             <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">Balance Total</h4>
             <p className="text-4xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
-            <p className="text-sm text-gray-400 mb-4">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
+            <p className="text-sm text-gray-400 mb-3">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
 
-            <div className="border-t border-gray-800 my-4"></div>
+            <div className="border-t border-gray-800 my-3"></div>
 
             <h5 className="text-base font-medium text-white mb-2">Proyección anual (365 días)</h5>
             <div className="flex justify-between items-center">
@@ -349,18 +349,18 @@ export default function Profile() {
           </div>
 
           {/* CDTs Ganados */}
-          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
             <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
             <p className="text-4xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
-            <p className="text-sm text-gray-400 mb-4">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
+            <p className="text-sm text-gray-400 mb-3">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
 
-            <div className="border-t border-gray-800 my-4"></div>
+            <div className="border-t border-gray-800 my-3"></div>
 
             <div className="flex justify-between items-center">
               <p className="text-sm text-gray-400">Último claim</p>
               <p className="text-sm text-white">{formatLastClaimDate()}</p>
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
               <Link
                 href="/transactions"
                 className="w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
@@ -507,18 +507,18 @@ export default function Profile() {
               </p>
 
               <form onSubmit={handleReferralSubmit}>
-                <div className="flex">
+                <div className="flex w-full">
                   <input
                     type="text"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     placeholder="Código de referido"
-                    className="flex-1 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white"
+                    className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white"
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`px-4 py-2 rounded-r-full font-medium ${
+                    className={`whitespace-nowrap px-4 py-2 rounded-r-full font-medium ${
                       isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
                     }`}
                   >
@@ -527,7 +527,6 @@ export default function Profile() {
                 </div>
 
                 {referralError && <p className="text-sm text-red-500 mt-2">{referralError}</p>}
-
                 {referralSuccess && <p className="text-sm text-[#4ebd0a] mt-2">¡Referido registrado con éxito!</p>}
               </form>
             </div>
