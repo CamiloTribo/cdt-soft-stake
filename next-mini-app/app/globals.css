@@ -27,7 +27,12 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Inter", Arial, Helvetica, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Aseguramos que todos los elementos usen Helvetica Neue */
+* {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 /* Animaciones */
