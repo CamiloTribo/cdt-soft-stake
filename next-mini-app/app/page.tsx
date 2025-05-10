@@ -362,7 +362,7 @@ export default function Home() {
       </main>
 
       {/* Barra inferior fija con contador de usuarios */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md border-t border-gray-800 py-3 px-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-3 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center">
           <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
             <div className="h-8 w-8 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-2">
