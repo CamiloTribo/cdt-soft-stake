@@ -9,6 +9,9 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 import Link from "next/link"
 
+// Corregir la ruta de importación para que apunte a src/components
+import CdtRain from "../../../src/components/CdtRain"
+
 // Función para generar el enlace a UNO con parámetros específicos para swap
 function getUnoDeeplinkUrl() {
   const UNO_APP_ID = "app_a4f7f3e62c1de0b9490a5260cb390b56"
@@ -158,6 +161,9 @@ export default function Dashboard() {
   const [claimError, setClaimError] = useState<string | null>(null)
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
+
+  // Añadir un nuevo estado para controlar la animación
+  const [showCdtRain, setShowCdtRain] = useState(false)
 
   const { session, pay } = useWorldAuth()
 
@@ -408,6 +414,7 @@ export default function Dashboard() {
     }
   }, [fetchStakingData, fetchTokenPrice])
 
+  // Modificar la función handleClaimRewards para activar la animación
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) return
@@ -432,6 +439,14 @@ export default function Dashboard() {
 
       if (response.ok && data.success) {
         setClaimSuccess(data.message || t("rewards_claimed"))
+
+        // Activar la lluvia de CDT cuando el claim es exitoso
+        setShowCdtRain(true)
+
+        // Desactivar después de 5 segundos
+        setTimeout(() => {
+          setShowCdtRain(false)
+        }, 5000)
 
         // Recargar datos después de reclamar
         fetchStakingData()
@@ -1074,6 +1089,9 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* Añadir el componente CdtRain condicionalmente */}
+        {showCdtRain && <CdtRain count={50} duration={5} />}
       </div>
     </div>
   )
