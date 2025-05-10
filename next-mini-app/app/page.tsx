@@ -62,10 +62,9 @@ export default function Home() {
   useEffect(() => {
     // Solo ejecutar si el usuario está autenticado
     if (isAuthenticated && session?.user?.walletAddress) {
-      // Determinar el nivel de verificación
-      // Cambiamos la forma de determinar el nivel de verificación
-      // En lugar de usar session.credential?.type que no existe
-      const verificationLevel = session.isAuthenticatedWorldID ? "human" : "wallet"
+      // CAMBIO IMPORTANTE: Ahora siempre asignamos "human" como nivel de verificación
+      // cuando el usuario se autentica con wallet
+      const verificationLevel = "human"
 
       console.log("Actualizando nivel de verificación:", verificationLevel)
 
@@ -97,7 +96,8 @@ export default function Home() {
 
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
-    if (isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID) {
+    // CAMBIO: Ahora solo verificamos si está autenticado con wallet
+    if (isAuthenticated && session?.isAuthenticatedWallet) {
       router.push("/dashboard")
     } else {
       setShowVerificationMessage(true)
@@ -180,7 +180,8 @@ export default function Home() {
   }, [getUserIdentifier, router])
 
   useEffect(() => {
-    if (isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID) {
+    // CAMBIO: Ahora solo verificamos si está autenticado con wallet
+    if (isAuthenticated && session?.isAuthenticatedWallet) {
       handleContinueToDashboard()
     }
   }, [isAuthenticated, session, handleContinueToDashboard])
@@ -298,15 +299,7 @@ export default function Home() {
 
                 {/* Botones de verificación y conexión */}
                 <div className="flex flex-col gap-4">
-                  {/* Botón de verificación humana - Usando la implementación exacta de gip */}
-                  <button
-                    onClick={() => signInWorldID({ state: "exampleState" })}
-                    className="w-full px-6 py-3 bg-[#ff1744] hover:bg-[#ff2954] text-white font-medium rounded-md transition-colors"
-                    disabled={session?.isAuthenticatedWorldID}
-                    data-testid="verify-human-button"
-                  >
-                    {session?.isAuthenticatedWorldID ? "✓ Verificado como humano" : t("verify_as_human")}
-                  </button>
+                  {/* CAMBIO: Eliminado el botón de verificación humana */}
 
                   {/* Botón de conectar wallet */}
                   <button
@@ -314,11 +307,11 @@ export default function Home() {
                     className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors"
                     disabled={session?.isAuthenticatedWallet}
                   >
-                    {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : t("connect")}
+                    {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
                   </button>
 
                   {/* Botón para continuar al dashboard si está autenticado */}
-                  {isAuthenticated && session?.isAuthenticatedWallet && session?.isAuthenticatedWorldID && (
+                  {isAuthenticated && session?.isAuthenticatedWallet && (
                     <button
                       onClick={handleContinueToDashboard}
                       className="w-full px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-md transition-colors mt-4"
@@ -369,8 +362,6 @@ export default function Home() {
                 </button>
               </div>
             )}
-
-            {/* Resto del contenido... */}
           </div>
         )}
       </main>
