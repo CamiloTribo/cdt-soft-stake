@@ -9,7 +9,8 @@ import { LanguageSelector } from "../src/components/LanguageSelector"
 
 export default function Home() {
   const { t } = useTranslation()
-  const { isLoading, isAuthenticated, session, signInWallet, signInWorldID } = useWorldAuth()
+  // Eliminamos signInWorldID de la desestructuración ya que no lo usamos
+  const { isLoading, isAuthenticated, session, signInWallet } = useWorldAuth()
 
   const router = useRouter()
   const [username, setUsername] = useState("")
@@ -299,8 +300,6 @@ export default function Home() {
 
                 {/* Botones de verificación y conexión */}
                 <div className="flex flex-col gap-4">
-                  {/* CAMBIO: Eliminado el botón de verificación humana */}
-
                   {/* Botón de conectar wallet */}
                   <button
                     onClick={signInWallet}
