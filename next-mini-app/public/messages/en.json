@@ -100,7 +100,7 @@
 
   "referral_program": "Referral Program",
   "invite": "Invite",
-  "friends": "Friends",
+  "friends": "friends",
   "total_invitations": "Total Invitations",
   "share_referral_code": "Share your referral code with friends and earn rewards when they join",
   "your_referral_code": "Your referral code",
@@ -135,5 +135,19 @@
   "referral_code": "Referral code",
   "sending": "Sending...",
   "register": "Register",
-  "referral_registered": "Referral registered successfully!"
+  "referral_registered": "Referral registered successfully!",
+
+  "rankings": "Rankings",
+  "holders": "Top Holders",
+  "stakers": "Top Stakers",
+  "claimed": "Claimed",
+  "referrals": "Referrals",
+  "top_holders": "Top Holders",
+  "top_stakers": "Top Stakers",
+  "staking_ranking": "Staking Ranking",
+  "claimed_ranking": "Claimed CDT Ranking",
+  "referrals_ranking": "Referrals Ranking",
+  "your_position": "Your position",
+  "no_rankings_available": "No ranking data available",
+  "error_loading_rankings": "Error loading rankings"
 }

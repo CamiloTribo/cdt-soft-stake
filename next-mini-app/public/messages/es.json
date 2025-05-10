@@ -64,6 +64,7 @@
   "benefit3": "Autenticación segura con World Wallet",
   "benefit4": "Reclama tus recompensas cuando quieras",
   "connected": "¡Conectado con World Wallet!",
+
   "go_dashboard": "Ir al Dashboard",
   "connect_wallet": "Conecta tu World Wallet para comenzar a ganar recompensas",
   "connect": "Conectar World Wallet",
@@ -100,7 +101,6 @@
 
   "referral_program": "Programa de Referidos",
   "invite": "Invitar",
-  "friends": "Amigos",
   "total_invitations": "Invitaciones Totales",
   "share_referral_code": "Comparte tu código de referido con amigos y gana recompensas cuando se unan",
   "your_referral_code": "Tu código de referido",
@@ -135,5 +135,17 @@
   "referral_code": "Código de referido",
   "sending": "Enviando...",
   "register": "Registrar",
-  "referral_registered": "¡Referido registrado con éxito!"
+  "referral_registered": "¡Referido registrado con éxito!",
+
+  "rankings": "Rankings",
+  "holders": "Top Holders",
+  "stakers": "Top Stakers",
+  "referrals": "Referidos",
+  "top_holders": "Top Holders",
+  "top_stakers": "Top Stakers",
+  "referrals_ranking": "Ranking de Referidos",
+  "friends": "amigos",
+  "your_position": "Tu posición",
+  "no_rankings_available": "No hay datos de ranking disponibles",
+  "error_loading_rankings": "Error al cargar los rankings"
 }

@@ -56,6 +56,33 @@ export default function Navbar() {
             </div>
           </Link>
 
+          {/* Rankings */}
+          <Link href="/rankings" className="group flex flex-col items-center py-2" aria-label="Rankings">
+            <div
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
+                pathname.includes("/rankings")
+                  ? "bg-[#4ebd0a] shadow-lg shadow-[#4ebd0a]/20"
+                  : "bg-gray-800 group-hover:bg-gray-700"
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={pathname.includes("/rankings") ? "#000" : "#fff"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform group-hover:scale-110"
+              >
+                <path d="M18 21v-8M12 21V9M6 21v-4"></path>
+                <path d="M18 3v4M12 3v2M6 3v8"></path>
+              </svg>
+            </div>
+          </Link>
+
           {/* Profile/Wallet */}
           <Link href="/profile" className="group flex flex-col items-center py-2" aria-label="TRIBO Wallet">
             <div
