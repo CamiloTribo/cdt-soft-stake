@@ -1,31 +1,64 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useWorldAuth } from "next-world-auth/react"
 import Image from "next/image"
+import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
-import { LanguageSelector } from "../../../src/components/LanguageSelector"
 
-type Transaction = {
-  id: string
-  type: string
-  amount: number
-  token_type: string
-  tx_hash: string | null
-  status: string
-  created_at: string
-  description: string | null
+type UserStats = {
+  totalStaked: number
+  totalClaimed: number
+  referralCount: number
 }
 
-export default function Transactions() {
-  const { t } = useTranslation()
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+type Referral = {
+  id: string
+  created_at: string
+  referred: {
+    id: string
+    username: string
+    address: string
+    created_at: string
+    staked_amount: number
+  }
+}
+
+// Función para formatear números grandes (K, M, B)
+function formatBalance(balance: number): string {
+  if (balance >= 1000000) {
+    return (balance / 1000000).toFixed(1) + "M"
+  } else if (balance >= 1000) {
+    return (balance / 1000).toFixed(1) + "K"
+  } else {
+    return balance.toFixed(1)
+  }
+}
+
+export default function Profile() {
+  const { locale } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const limit = 10
+  const [username, setUsername] = useState("")
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalStaked: 0,
+    totalClaimed: 0,
+    referralCount: 0,
+  })
+  const [isCopied, setIsCopied] = useState(false)
+  const [cdtPrice, setCdtPrice] = useState<number | null>(null)
+  const [lastClaimDate, setLastClaimDate] = useState<string | null>(null)
+  const [referralCode, setReferralCode] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [referralSuccess, setReferralSuccess] = useState(false)
+  const [referralError, setReferralError] = useState("")
+
+  // Estados para la lista de referidos
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [isLoadingReferrals, setIsLoadingReferrals] = useState(false)
+  const [referralsError, setReferralsError] = useState<string | null>(null)
 
   const { isAuthenticated, session } = useWorldAuth()
   const router = useRouter()
@@ -36,34 +69,123 @@ export default function Transactions() {
     return session.user.walletAddress
   }, [session])
 
-  // Función para obtener el historial de transacciones
-  const fetchTransactions = useCallback(async () => {
+  // Función para obtener datos del usuario
+  const fetchUserData = useCallback(async () => {
     try {
       setIsLoading(true)
-      setError(null)
 
       const identifier = getUserIdentifier()
       if (!identifier) {
-        throw new Error(t("error_loading"))
+        console.error("No se pudo obtener identificador de usuario")
+        return
       }
 
-      const offset = (page - 1) * limit
-      const response = await fetch(`/api/transactions?wallet_address=${identifier}&limit=${limit}&offset=${offset}`)
+      // Obtener el username y datos del usuario
+      try {
+        const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        })
 
-      if (!response.ok) {
-        throw new Error(t("error_loading"))
+        if (usernameResponse.ok) {
+          const usernameData = await usernameResponse.json()
+          if (usernameData.username) {
+            setUsername(usernameData.username)
+
+            // Actualizar total_claimed y referral_count desde la API de username
+            setUserStats((prev) => ({
+              ...prev,
+              totalClaimed: usernameData.total_claimed || 0,
+              referralCount: usernameData.referral_count || 0,
+            }))
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching username:", error)
       }
 
-      const data = await response.json()
-      setTransactions(data.transactions)
-      setTotalPages(Math.ceil(data.pagination.total / limit))
-    } catch (err) {
-      console.error("Error fetching transactions:", err)
-      setError(err instanceof Error ? err.message : t("error_loading"))
+      // Obtener datos de staking
+      try {
+        const stakingResponse = await fetch(`/api/staking?wallet_address=${identifier}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        })
+
+        if (stakingResponse.ok) {
+          const stakingData = await stakingResponse.json()
+
+          setUserStats((prev) => ({
+            ...prev,
+            totalStaked: stakingData.staked_amount || 0,
+          }))
+
+          // Obtener la fecha del último claim
+          if (stakingData.last_claim_timestamp) {
+            setLastClaimDate(stakingData.last_claim_timestamp)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching staking data:", error)
+      }
+
+      // Obtener el precio del token CDT
+      try {
+        const priceResponse = await fetch("/api/token-price")
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json()
+          if (priceData.success) {
+            setCdtPrice(priceData.price)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching token price:", error)
+      }
+
+      // Obtener la lista de referidos
+      fetchReferrals(identifier)
+    } catch (error) {
+      console.error("Error fetching user data:", error)
     } finally {
       setIsLoading(false)
     }
-  }, [getUserIdentifier, page, limit, t])
+  }, [getUserIdentifier])
+
+  // Función para obtener la lista de referidos
+  const fetchReferrals = async (walletAddress: string) => {
+    if (!walletAddress) return
+
+    try {
+      setIsLoadingReferrals(true)
+      setReferralsError(null)
+
+      const response = await fetch(`/api/referral?wallet_address=${walletAddress}`)
+
+      if (!response.ok) {
+        throw new Error("Error al cargar referidos")
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.referrals) {
+        setReferrals(data.referrals)
+      } else {
+        setReferrals([])
+      }
+    } catch (err) {
+      console.error("Error fetching referrals:", err)
+      setReferralsError(err instanceof Error ? err.message : "Error al cargar referidos")
+    } finally {
+      setIsLoadingReferrals(false)
+    }
+  }
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -71,65 +193,97 @@ export default function Transactions() {
       return
     }
 
-    fetchTransactions()
-  }, [isAuthenticated, router, fetchTransactions])
+    fetchUserData()
+  }, [isAuthenticated, router, fetchUserData])
+
+  // Función para copiar el código de referido
+  const copyReferralCode = () => {
+    navigator.clipboard.writeText(username)
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
+  }
+
+  // Función para registrar un referido
+  const handleReferralSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!referralCode.trim()) {
+      setReferralError("Por favor, introduce un código de referido")
+      return
+    }
+
+    setIsSubmitting(true)
+    setReferralError("")
+    setReferralSuccess(false)
+
+    try {
+      const identifier = getUserIdentifier()
+      if (!identifier) {
+        throw new Error("No se pudo obtener identificador de usuario")
+      }
+
+      const response = await fetch("/api/referral", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: identifier,
+          referral_code: referralCode,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setReferralSuccess(true)
+        setReferralCode("")
+        // Actualizar datos para reflejar el nuevo referido
+        fetchUserData()
+      } else {
+        setReferralError(data.error || "Error al registrar el referido")
+      }
+    } catch (error) {
+      console.error("Error registering referral:", error)
+      setReferralError("Error al procesar la solicitud")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Calcular el valor estimado en USD
+  const calculateUsdValue = (amount: number) => {
+    if (cdtPrice && amount) {
+      return (cdtPrice * amount).toFixed(2)
+    }
+    return "0.00"
+  }
+
+  // Calcular las ganancias anuales estimadas
+  const calculateYearlyEarnings = () => {
+    // 0.1% diario durante 365 días con interés compuesto (36.5% anual)
+    if (userStats.totalStaked) {
+      let amount = userStats.totalStaked
+      for (let i = 0; i < 365; i++) {
+        amount += amount * 0.001 // 0.1% diario
+      }
+      return Math.round(amount - userStats.totalStaked)
+    }
+    return 0
+  }
+
+  // Función para formatear la fecha del último claim
+  const formatLastClaimDate = () => {
+    if (!lastClaimDate) return "Nunca"
+
+    const date = new Date(lastClaimDate)
+    return date.toLocaleDateString()
+  }
 
   // Función para formatear la fecha
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString()
-  }
-
-  // Función para obtener el color según el estado
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "success":
-        return "text-[#4ebd0a]"
-      case "pending":
-        return "text-yellow-500"
-      case "failed":
-        return "text-[#ff1744]"
-      default:
-        return "text-gray-400"
-    }
-  }
-
-  // Función para obtener el icono según el tipo
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "claim":
-        return "/icons-transactions/Entrega CDT.png"
-      case "support":
-        return "/icons-transactions/Apoyo WLD.png"
-      default:
-        return null
-    }
-  }
-
-  // Función para obtener la descripción según el tipo
-  const getTypeDescription = (type: string) => {
-    switch (type) {
-      case "claim":
-        return "Stake"
-      case "support":
-        return "Apoyo"
-      default:
-        return type
-    }
-  }
-
-  // Función para traducir el estado
-  const getStatusTranslation = (status: string) => {
-    switch (status) {
-      case "success":
-        return t("completed")
-      case "pending":
-        return t("pending")
-      case "failed":
-        return t("failed")
-      default:
-        return status
-    }
+    return date.toLocaleDateString()
   }
 
   if (isLoading) {
@@ -141,126 +295,253 @@ export default function Transactions() {
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8 bg-black text-white">
-      <div className="max-w-4xl mx-auto">
-        {/* Header con selector de idioma */}
-        <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800 mb-8">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div className="flex items-center">
-              <Image src="/LOGO TRIBO Vault- sin fondo.png" alt="Tribo Logo" width={28} height={28} />
-            </div>
-            <div className="flex items-center gap-3">
-              <LanguageSelector />
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-16">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-white">{t("transaction_history")}</h1>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 text-sm bg-black border border-gray-700 rounded-md hover:bg-gray-900 transition-colors"
-            >
-              {t("back_to_dashboard")}
-            </button>
-          </div>
-
-          {error && (
-            <div className="mb-6 p-4 bg-black border border-[#ff1744] rounded-md">
-              <p className="text-[#ff1744]">{error}</p>
-            </div>
-          )}
-
-          {transactions.length === 0 ? (
-            <div className="bg-black rounded-md shadow-lg p-6 border border-gray-800 text-center">
-              <p className="text-gray-400">{t("no_transactions")}</p>
-            </div>
-          ) : (
-            <>
-              <div className="bg-black rounded-md shadow-lg border border-gray-800 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-800">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">{t("type")}</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">{t("amount")}</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">{t("status")}</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">{t("date")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.map((tx) => (
-                        <tr key={tx.id} className="border-b border-gray-800 hover:bg-gray-900">
-                          <td className="px-4 py-4">
-                            <div className="flex items-center">
-                              {getTypeIcon(tx.type) ? (
-                                <div className="w-8 h-8 flex items-center justify-center mr-3">
-                                  <Image
-                                    src={getTypeIcon(tx.type) || ""}
-                                    alt={getTypeDescription(tx.type)}
-                                    width={32}
-                                    height={32}
-                                    className="max-w-full max-h-full"
-                                  />
-                                </div>
-                              ) : (
-                                <span className="mr-3 text-xl">📝</span>
-                              )}
-                              <span className="text-base">{getTypeDescription(tx.type)}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <span className="font-mono text-base">{tx.amount.toLocaleString()}</span>{" "}
-                            <span className="text-base">{tx.token_type}</span>
-                          </td>
-                          <td className="px-4 py-4">
-                            <span className={`${getStatusColor(tx.status)} text-base`}>
-                              {getStatusTranslation(tx.status)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-base text-gray-400">{formatDate(tx.created_at)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+    <main className="min-h-screen bg-black text-white">
+      <div className="pt-0 pb-0 px-4">
+        <div className="max-w-md mx-auto">
+          {/* Header con logo de TRIBO Wallet */}
+          <div className="flex flex-col items-center mb-6 mt-4">
+            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={120} height={120} className="mb-2" />
+            {username && (
+              <div className="flex flex-col items-center">
+                <p className="text-2xl mt-2 text-center">
+                  <span className="text-white">@</span>
+                  <span className="text-[#4ebd0a]">{username}</span>
+                </p>
+                <div className="mt-2 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
+                  <span className="text-[#4ebd0a] text-sm font-medium mr-1">
+                    {locale === "en" ? "Human ✓" : "Humano ✓"}
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#4ebd0a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6 9 17l-5-5"></path>
+                  </svg>
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <div className="flex justify-center mt-6">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setPage(Math.max(1, page - 1))}
-                      disabled={page === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        page === 1
-                          ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                          : "bg-gray-800 text-white hover:bg-gray-700"
-                      }`}
+          {/* Balance Total */}
+          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">Balance Total</h4>
+            <p className="text-4xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
+            <p className="text-sm text-gray-400 mb-4">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
+
+            <div className="border-t border-gray-800 my-4"></div>
+
+            <h5 className="text-base font-medium text-white mb-2">Proyección anual (365 días)</h5>
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-400">Ganancias estimadas</p>
+              <p className="text-lg font-semibold text-[#4ebd0a]">+{calculateYearlyEarnings().toLocaleString()} CDT</p>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-sm text-gray-400">APY</p>
+              <p className="text-lg font-semibold text-[#4ebd0a]">36.5%</p>
+            </div>
+          </div>
+
+          {/* CDTs Ganados */}
+          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
+            <p className="text-4xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
+            <p className="text-sm text-gray-400 mb-4">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
+
+            <div className="border-t border-gray-800 my-4"></div>
+
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-400">Último claim</p>
+              <p className="text-sm text-white">{formatLastClaimDate()}</p>
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/transactions"
+                className="w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
+              >
+                Ver historial completo
+              </Link>
+            </div>
+          </div>
+
+          {/* Sección de referidos - mantener la existente */}
+          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-5">Programa de Referidos</h4>
+
+            <p className="text-sm text-gray-300 mb-4">
+              Comparte tu código de referido con amigos y gana recompensas cuando se unan
+            </p>
+
+            {/* Tu código de referido */}
+            <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
+              <p className="text-sm text-gray-400 mb-2">Tu código de referido</p>
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  value={username}
+                  readOnly
+                  className="flex-1 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm font-mono text-white"
+                />
+                <button
+                  onClick={copyReferralCode}
+                  className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-full"
+                >
+                  {isCopied ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      {t("previous")}
-                    </button>
-                    <span className="px-3 py-1 bg-gray-800 rounded-md">
-                      {page} {t("of")} {totalPages}
-                    </span>
-                    <button
-                      onClick={() => setPage(Math.min(totalPages, page + 1))}
-                      disabled={page === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        page === totalPages
-                          ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                          : "bg-gray-800 text-white hover:bg-gray-700"
-                      }`}
+                      <path d="M20 6 9 17l-5-5"></path>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      {t("next")}
-                    </button>
-                  </div>
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Tus amigos deben usar este código al registrarse</p>
+            </div>
+
+            {/* Invitaciones Totales */}
+            <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-400">Invitaciones Totales</p>
+                <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
+              </div>
+            </div>
+
+            {/* Lista de referidos - mantener la existente */}
+            <div className="mb-5">
+              <p className="text-sm font-medium text-white mb-3">Tus referidos</p>
+
+              {isLoadingReferrals ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"></div>
+                </div>
+              ) : referralsError ? (
+                <div className="bg-black/30 rounded-xl p-4 text-center">
+                  <p className="text-red-500 text-sm">{referralsError}</p>
+                </div>
+              ) : referrals.length === 0 ? (
+                <div className="bg-gray-900/30 rounded-xl p-4 text-center">
+                  <p className="text-gray-400 text-sm">Aún no tienes referidos</p>
+                  <p className="text-xs text-gray-500 mt-1">Comparte tu código para comenzar a invitar amigos</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {referrals.map((referral) => (
+                    <div
+                      key={referral.id}
+                      className="bg-black/30 rounded-xl p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
+                    >
+                      <div className="flex items-center">
+                        <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#4ebd0a"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <line x1="19" y1="8" x2="19" y2="14"></line>
+                            <line x1="16" y1="11" x2="22" y2="11"></line>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">@{referral.referred.username}</p>
+                          <p className="text-xs text-gray-400">Unido el {formatDate(referral.referred.created_at)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="bg-[#4ebd0a]/10 rounded-full px-3 py-1 flex items-center">
+                          <Image src="/TOKEN CDT.png" alt="CDT Token" width={16} height={16} className="mr-1" />
+                          <span className="text-[#4ebd0a] text-sm font-medium">
+                            {formatBalance(referral.referred.staked_amount || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-            </>
-          )}
+            </div>
+
+            {/* Separador */}
+            <div className="border-t border-gray-800 my-5"></div>
+
+            {/* Formulario para añadir un referido - mantener el existente */}
+            <div>
+              <p className="text-sm text-gray-300 mb-3">
+                ¿Te ha invitado un amigo? Introduce su código de referido aquí
+              </p>
+
+              <form onSubmit={handleReferralSubmit}>
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    placeholder="Código de referido"
+                    className="flex-1 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`px-4 py-2 rounded-r-full font-medium ${
+                      isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
+                    }`}
+                  >
+                    {isSubmitting ? "Enviando..." : "Registrar"}
+                  </button>
+                </div>
+
+                {referralError && <p className="text-sm text-red-500 mt-2">{referralError}</p>}
+
+                {referralSuccess && <p className="text-sm text-[#4ebd0a] mt-2">¡Referido registrado con éxito!</p>}
+              </form>
+            </div>
+          </div>
+
+          {/* Botón para volver al dashboard */}
+          <div className="mb-6 text-center">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-6 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white"
+            >
+              Volver al Dashboard
+            </button>
+          </div>
         </div>
       </div>
     </main>

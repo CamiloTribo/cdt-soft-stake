@@ -10,7 +10,7 @@
   "current_price": "Current CDT price",
   "update_balance": "Update Balance",
   "updating": "Updating...",
-  "balance_updated": "Balance updated successfully",
+  "balance_updated": "Balance successfully updated",
   "error_updating": "Error updating balance",
   "next_claim": "Next Claim",
   "no_claims_yet": "You haven't claimed rewards yet",
@@ -111,5 +111,18 @@
   "share_to_invite": "Share your code to start inviting friends",
   "joined_on": "Joined on",
   "error_loading_referrals": "Error loading referrals",
-  "no_referrals_found": "No referrals found"
+  "no_referrals_found": "No referrals found",
+
+  "turn_to_unlock": "Turn to unlock",
+  "verified_humans": "Verified humans",
+  "sign_in": "Sign In",
+  "entering_vault": "Entering your vault...",
+  "cdts_earned": "CDTs Earned",
+  "usd_claimed": "USD claimed",
+  "view_full_profile": "View full profile",
+  "support": "Support",
+  "human_verified": "Human ✓",
+  "total_balance": "Total Balance",
+  "annual_projection": "Annual projection (365 days)",
+  "estimated_earnings": "Estimated earnings"
 }

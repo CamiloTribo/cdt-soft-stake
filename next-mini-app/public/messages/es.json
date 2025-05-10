@@ -111,5 +111,18 @@
   "share_to_invite": "Comparte tu código para comenzar a invitar amigos",
   "joined_on": "Unido el",
   "error_loading_referrals": "Error al cargar referidos",
-  "no_referrals_found": "No se encontraron referidos"
+  "no_referrals_found": "No se encontraron referidos",
+
+  "turn_to_unlock": "Gira para desbloquear",
+  "verified_humans": "Humanos verificados",
+  "sign_in": "Iniciar Sesión",
+  "entering_vault": "Entrando en tu caja fuerte...",
+  "cdts_earned": "CDTs Ganados",
+  "usd_claimed": "USD reclamados",
+  "view_full_profile": "Ver perfil completo",
+  "support": "Apoyo",
+  "human_verified": "Humano ✓",
+  "total_balance": "Balance Total",
+  "annual_projection": "Proyección anual (365 días)",
+  "estimated_earnings": "Ganancias estimadas"
 }

@@ -656,11 +656,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* NUEVA SECCIÓN: CDTs Ganados */}
+        {/* NUEVA SECCIÓN: CDTs Ganados - ACTUALIZADA */}
         <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-          <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
+          <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">{t("cdts_earned")}</h4>
           <p className="text-4xl font-bold text-white mb-1">{totalClaimed.toLocaleString()} CDT</p>
-          <p className="text-sm text-[#ff1744]">≈ ${calculateUsdValue(totalClaimed)} USD reclamados</p>
+          <p className="text-sm text-[#4ebd0a]">
+            ≈ ${calculateUsdValue(totalClaimed)} {t("usd_claimed")}
+          </p>
         </div>
 
         {/* Botón Buy CDT - Primero según la captura */}
@@ -704,7 +706,7 @@ export default function Dashboard() {
               {/* Logo más grande sin texto */}
               <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={60} height={60} className="mr-3" />
             </div>
-            {/* Botón para ir a la página de perfil ampliado - DESTACADO Y VISIBLE */}
+            {/* Botón para ir a la página de perfil ampliado - DESTACADO Y VISIBLE - ACTUALIZADO */}
             <Link
               href="/profile"
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
@@ -732,7 +734,7 @@ export default function Dashboard() {
                 <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
                 <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
               </svg>
-              <span>Ver perfil completo</span>
+              <span>{t("view_full_profile")}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -789,7 +791,7 @@ export default function Dashboard() {
             )}
           </button>
 
-          {/* Mensaje de éxito para actualización de balance */}
+          {/* Mensaje de éxito para actualización de balance - ACTUALIZADO */}
           {updateSuccess && !updateError && !isUpdating && (
             <div className="mt-4 p-3 bg-black/70 border border-[#4ebd0a] rounded-full animate-pulse">
               <p className="text-sm font-medium text-[#4ebd0a] flex items-center">
@@ -802,7 +804,7 @@ export default function Dashboard() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                {updateSuccess}
+                {t("balance_updated")}
               </p>
             </div>
           )}

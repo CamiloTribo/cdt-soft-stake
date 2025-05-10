@@ -246,7 +246,7 @@ export default function Home() {
             {showVault ? (
               <div className="flex flex-col items-center">
                 <VaultDial onUnlockAction={handleVaultUnlock} />
-                <p className="text-center text-gray-400 mt-8">Gira el dial para desbloquear TRIBO Vault</p>
+                <p className="text-center text-gray-400 mt-8">{t("turn_to_unlock")}</p>
               </div>
             ) : (
               <>
@@ -279,22 +279,22 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Botón de conectar wallet */}
+                    {/* Botón de conectar wallet - ACTUALIZADO */}
                     <button
                       onClick={signInWallet}
                       className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
                       disabled={session?.isAuthenticatedWallet}
                     >
-                      {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
+                      {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : t("sign_in")}
                     </button>
 
-                    {/* Botón para continuar al dashboard si está autenticado */}
+                    {/* Botón para continuar al dashboard si está autenticado - ACTUALIZADO */}
                     {isAuthenticated && session?.isAuthenticatedWallet && (
                       <button
                         onClick={handleContinueToDashboard}
                         className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors mt-4 text-lg shadow-lg shadow-[#4ebd0a]/20"
                       >
-                        {t("go_dashboard")}
+                        {t("entering_vault")}
                       </button>
                     )}
                   </div>
@@ -361,7 +361,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Barra inferior fija con contador de usuarios */}
+      {/* Barra inferior fija con contador de usuarios - ACTUALIZADO */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-3 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center">
           <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
@@ -383,7 +383,7 @@ export default function Home() {
               </svg>
             </div>
             <span className="text-gray-300 text-sm">
-              Humanos verificados:{" "}
+              {t("verified_humans")}:{" "}
               <span className="text-[#4ebd0a] font-medium">
                 {isLoadingUsers ? (
                   <span className="inline-block w-8 h-4 bg-gray-700 animate-pulse rounded"></span>

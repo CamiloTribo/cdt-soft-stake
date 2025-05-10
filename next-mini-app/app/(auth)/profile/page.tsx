@@ -309,7 +309,7 @@ export default function Profile() {
                 </p>
                 <div className="mt-2 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
                   <span className="text-[#4ebd0a] text-sm font-medium mr-1">
-                    {locale === "en" ? "Human" : "Humano"}
+                    {locale === "en" ? "Human ✓" : "Humano ✓"}
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
