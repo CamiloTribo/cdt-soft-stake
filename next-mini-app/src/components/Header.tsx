@@ -20,11 +20,8 @@ export default function Header() {
               alt="Tribo Logo"
               width={28}
               height={28}
-              className="mr-2 transition-transform hover:scale-110"
+              className="transition-transform hover:scale-110"
             />
-            <span className="text-lg font-bold">
-              <span className="text-white">Tribo</span> <span className="text-[#4ebd0a]">Vault</span>
-            </span>
           </Link>
         </div>
         <div className="flex items-center gap-3">

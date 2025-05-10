@@ -303,7 +303,7 @@ export default function Profile() {
               <h2 className="text-3xl font-bold text-white">TRIBO WALLET</h2>
             </div>
             {username && (
-              <div className="mt-3 bg-gray-900/50 p-3 rounded-lg border border-gray-800">
+              <div className="mt-3 bg-gray-900/50 p-3 rounded-full border border-gray-800">
                 <p className="text-gray-400 text-sm">Bienvenido</p>
                 <p className="text-2xl font-bold text-[#4ebd0a]">@{username}</p>
               </div>
@@ -313,7 +313,7 @@ export default function Profile() {
           {/* Estadísticas */}
           <div className="mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+              <div className="bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
                 <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">Balance Total</h4>
                 <p className="text-3xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
                 <p className="text-sm text-gray-400">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
@@ -333,7 +333,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="bg-black rounded-xl shadow-lg p-6 border border-gray-800">
+              <div className="bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
                 <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">CDTs Ganados</h4>
                 <p className="text-3xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
                 <p className="text-sm text-gray-400">≈ ${calculateUsdValue(userStats.totalClaimed)} USD reclamados</p>
@@ -346,7 +346,7 @@ export default function Profile() {
                   <div className="mt-4">
                     <Link
                       href="/transactions"
-                      className="w-full px-4 py-2 bg-black border border-gray-700 rounded-md hover:bg-gray-900 text-white text-center block"
+                      className="w-full px-4 py-2 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
                     >
                       Ver historial completo
                     </Link>
@@ -357,31 +357,26 @@ export default function Profile() {
           </div>
 
           {/* Sección de referidos */}
-          <div className="mb-6 bg-black rounded-xl shadow-lg p-6 border border-gray-800">
-            <h4 className="text-lg font-semibold text-[#4ebd0a] mb-3">Programa de Referidos</h4>
-
-            {/* Tabs para la sección de referidos - Eliminada la pestaña "Amigos" */}
-            <div className="flex border-b border-gray-800 mb-5">
-              <button className="px-4 py-2 border-b-2 border-[#4ebd0a] text-[#4ebd0a] font-medium">Invitar</button>
-            </div>
+          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+            <h4 className="text-lg font-semibold text-[#4ebd0a] mb-5">Programa de Referidos</h4>
 
             <p className="text-sm text-gray-300 mb-4">
               Comparte tu código de referido con amigos y gana recompensas cuando se unan
             </p>
 
             {/* Tu código de referido */}
-            <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
+            <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
               <p className="text-sm text-gray-400 mb-2">Tu código de referido</p>
               <div className="flex items-center">
                 <input
                   type="text"
                   value={username}
                   readOnly
-                  className="flex-1 bg-black border border-gray-700 rounded-l-md px-3 py-2 text-sm font-mono text-white"
+                  className="flex-1 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm font-mono text-white"
                 />
                 <button
                   onClick={copyReferralCode}
-                  className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-md"
+                  className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-full"
                 >
                   {isCopied ? (
                     <svg
@@ -419,7 +414,7 @@ export default function Profile() {
             </div>
 
             {/* Invitaciones Totales */}
-            <div className="bg-gray-900/50 p-4 rounded-lg mb-4">
+            <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-400">Invitaciones Totales</p>
                 <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
@@ -435,11 +430,11 @@ export default function Profile() {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"></div>
                 </div>
               ) : referralsError ? (
-                <div className="bg-black/30 rounded-lg p-4 text-center">
+                <div className="bg-black/30 rounded-xl p-4 text-center">
                   <p className="text-red-500 text-sm">{referralsError}</p>
                 </div>
               ) : referrals.length === 0 ? (
-                <div className="bg-gray-900/30 rounded-lg p-4 text-center">
+                <div className="bg-gray-900/30 rounded-xl p-4 text-center">
                   <p className="text-gray-400 text-sm">Aún no tienes referidos</p>
                   <p className="text-xs text-gray-500 mt-1">Comparte tu código para comenzar a invitar amigos</p>
                 </div>
@@ -448,7 +443,7 @@ export default function Profile() {
                   {referrals.map((referral) => (
                     <div
                       key={referral.id}
-                      className="bg-black/30 rounded-lg p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
+                      className="bg-black/30 rounded-xl p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
                     >
                       <div className="flex items-center">
                         <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3">
@@ -504,12 +499,12 @@ export default function Profile() {
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     placeholder="Código de referido"
-                    className="flex-1 bg-black border border-gray-700 rounded-l-md px-3 py-2 text-sm text-white"
+                    className="flex-1 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white"
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`px-4 py-2 rounded-r-md font-medium ${
+                    className={`px-4 py-2 rounded-r-full font-medium ${
                       isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
                     }`}
                   >
@@ -528,7 +523,7 @@ export default function Profile() {
           <div className="mb-6 text-center">
             <button
               onClick={() => router.push("/dashboard")}
-              className="px-6 py-3 bg-black border border-gray-700 rounded-md hover:bg-gray-900 text-white"
+              className="px-6 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white"
             >
               Volver al Dashboard
             </button>
