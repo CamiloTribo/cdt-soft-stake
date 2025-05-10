@@ -20,6 +20,7 @@ export default function Home() {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false)
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -138,10 +139,13 @@ export default function Home() {
       if (response.ok && data.success) {
         console.log("Username guardado correctamente, redirigiendo a dashboard")
 
+        // Mostrar confeti
+        setShowConfetti(true)
+
         // Añadir un pequeño retraso antes de redirigir
         setTimeout(() => {
           router.push("/dashboard")
-        }, 500)
+        }, 2000)
       } else {
         console.error("Error al guardar username:", data.error)
         setUsernameError(data.error || t("error_username"))
@@ -191,6 +195,25 @@ export default function Home() {
     console.log("Estado del botón - disabled:", session?.isAuthenticatedWorldID)
   }, [session?.isAuthenticatedWorldID])
 
+  // Componente de confeti
+  const Confetti = () => {
+    return (
+      <div className="confetti-container">
+        {Array.from({ length: 100 }).map((_, i) => (
+          <div
+            key={i}
+            className="confetti"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              backgroundColor: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="home-container">
       {/* Header simplificado para la página de inicio */}
@@ -214,7 +237,7 @@ export default function Home() {
           <>
             {/* Sección de mascota y autenticación */}
             {(!isAuthenticated || !showUsernameForm) && (
-              <div className="w-full max-w-md flex flex-col items-center">
+              <div className="w-full flex flex-col items-center justify-center">
                 {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
                 <div className="detectriber-container flex justify-center mb-8 w-full">
                   <div className="speech-bubble">
@@ -225,7 +248,7 @@ export default function Home() {
 
                   <div
                     className={`relative cursor-pointer transition-transform duration-300 ${
-                      isMascotHovered ? "scale-110" : ""
+                      isMascotHovered ? "scale-105" : ""
                     }`}
                     onMouseEnter={() => setIsMascotHovered(true)}
                     onMouseLeave={() => setIsMascotHovered(false)}
@@ -234,8 +257,8 @@ export default function Home() {
                     <Image
                       src="/DETECTRIBER.png"
                       alt="Detectriber"
-                      width={240}
-                      height={240}
+                      width={320}
+                      height={320}
                       className={`${isMascotHovered ? "animate-bounce" : "animate-pulse"}`}
                     />
                   </div>
@@ -244,7 +267,7 @@ export default function Home() {
                 {/* Botón de conectar wallet */}
                 <button
                   onClick={signInWallet}
-                  className="w-full max-w-xs px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg"
+                  className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
                   disabled={session?.isAuthenticatedWallet}
                 >
                   {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : "Conectar World Wallet"}
@@ -254,7 +277,7 @@ export default function Home() {
                 {isAuthenticated && session?.isAuthenticatedWallet && (
                   <button
                     onClick={handleContinueToDashboard}
-                    className="w-full max-w-xs px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors mt-4 text-lg"
+                    className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors mt-4 text-lg shadow-lg shadow-[#4ebd0a]/20"
                   >
                     {t("go_dashboard")}
                   </button>
@@ -264,51 +287,67 @@ export default function Home() {
 
             {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
             {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
-              <div className="w-full max-w-md bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8">
-                <h2 className="text-2xl font-semibold mb-6 text-white text-center">{t("welcome_tribo")}</h2>
-                <p className="text-gray-300 mb-6 text-center">{t("choose_name")}</p>
-
+              <div className="w-full max-w-md flex flex-col items-center">
+                {/* Imagen decorativa arriba del formulario */}
                 <div className="mb-6">
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                    {t("triber_name")}
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder={t("enter_name")}
-                    className="w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-[#4ebd0a] focus:border-[#4ebd0a] bg-black text-white"
+                  <Image
+                    src="/Jefe Tribo Discord.png"
+                    alt="Jefe Tribo"
+                    width={120}
+                    height={120}
+                    className="animate-pulse"
                   />
                 </div>
 
-                {usernameError && (
-                  <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
-                    <p className="text-sm text-[#ff1744]">{usernameError}</p>
-                  </div>
-                )}
+                <div className="w-full bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8 mb-8 relative overflow-hidden">
+                  <h2 className="text-2xl font-semibold mb-6 text-white text-center">{t("welcome_tribo")}</h2>
+                  <p className="text-gray-300 mb-6 text-center">{t("choose_name")}</p>
 
-                <button
-                  onClick={handleSaveUsername}
-                  disabled={isSavingUsername || !username}
-                  className={`w-full px-6 py-3 rounded-full ${
-                    isSavingUsername || !username
-                      ? "bg-gray-700 cursor-not-allowed"
-                      : "bg-[#ff1744] hover:bg-[#ff2954] text-white"
-                  } font-medium transition-colors`}
-                >
-                  {isSavingUsername ? t("saving") : t("continue_dashboard")}
-                </button>
+                  <div className="mb-6">
+                    <label htmlFor="username" className="block text-sm font-medium text-[#4ebd0a] mb-2">
+                      {t("triber_name")}
+                    </label>
+                    <input
+                      type="text"
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder={t("enter_name")}
+                      className="w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-[#4ebd0a] focus:border-[#4ebd0a] bg-black text-white"
+                    />
+                  </div>
+
+                  {usernameError && (
+                    <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
+                      <p className="text-sm text-[#ff1744]">{usernameError}</p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleSaveUsername}
+                    disabled={isSavingUsername || !username}
+                    className={`w-full px-6 py-3 rounded-full ${
+                      isSavingUsername || !username
+                        ? "bg-gray-700 cursor-not-allowed"
+                        : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+                    } font-medium transition-colors shadow-lg`}
+                  >
+                    {isSavingUsername ? t("saving") : t("continue_dashboard")}
+                  </button>
+                </div>
               </div>
             )}
+
+            {/* Confeti cuando se guarda el username */}
+            {showConfetti && <Confetti />}
           </>
         )}
       </main>
 
       {/* Barra inferior fija con contador de usuarios */}
       <div className="home-footer">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center">
+        <div className="max-w-4xl mx-auto flex items-center justify-center">
+          <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
             <div className="h-8 w-8 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -326,7 +365,7 @@ export default function Home() {
                 <path d="m16 11 2 2 4-4" />
               </svg>
             </div>
-            <span className="text-gray-400 text-sm">
+            <span className="text-gray-300 text-sm">
               Humanos verificados:{" "}
               <span className="text-[#4ebd0a] font-medium">
                 {isLoadingUsers ? (
@@ -336,22 +375,6 @@ export default function Home() {
                 )}
               </span>
             </span>
-          </div>
-          <div className="h-8 w-8 flex items-center justify-center bg-[#1E88E5]/20 rounded-full">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#1E88E5"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
           </div>
         </div>
       </div>
