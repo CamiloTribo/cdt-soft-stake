@@ -60,37 +60,6 @@ export default function Rankings() {
     fetchRankings()
   }, [activeRanking, currentUserId, t])
 
-  // Función para obtener el título según el tipo de ranking
-  const getRankingTitle = () => {
-    switch (activeRanking) {
-      case "holders":
-        return t("top_holders")
-      case "stakers":
-        return t("top_stakers")
-      case "referrals":
-        return t("referrals_ranking")
-      default:
-        return ""
-    }
-  }
-
-  // Función para obtener la unidad según el tipo de ranking
-  const getRankingUnit = () => {
-    switch (activeRanking) {
-      case "holders":
-      case "stakers":
-        return (
-          <span className="flex items-center">
-            <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="mr-1" />
-          </span>
-        )
-      case "referrals":
-        return t("friends")
-      default:
-        return ""
-    }
-  }
-
   // Función para formatear números grandes
   const formatLargeNumber = (num: number): string => {
     if (num >= 1_000_000_000) {
@@ -100,7 +69,8 @@ export default function Rankings() {
     } else if (num >= 1_000) {
       return (num / 1_000).toFixed(1) + "K"
     } else {
-      return num.toString()
+      // Para números menores a 1000, mostrar solo el entero
+      return Math.floor(num).toString()
     }
   }
 
@@ -109,8 +79,6 @@ export default function Rankings() {
       <Header />
 
       <div className="max-w-md mx-auto px-4 pt-4">
-        <h1 className="text-2xl font-bold mb-4 text-center">{t("rankings")}</h1>
-
         {/* Tabs para cambiar entre rankings */}
         <div className="flex bg-gray-900 rounded-xl p-1 mb-6">
           <button
@@ -139,10 +107,7 @@ export default function Rankings() {
           </button>
         </div>
 
-        {/* Título del ranking actual */}
-        <h2 className="text-xl font-semibold text-[#4ebd0a] mb-4">{getRankingTitle()}</h2>
-
-        {/* Podio (Top 3) */}
+        {/* Podio (Top 3) - Diseño Horizontal */}
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4ebd0a]"></div>
@@ -157,66 +122,85 @@ export default function Rankings() {
           </div>
         ) : (
           <>
-            <div className="flex justify-center items-end mb-8">
-              {rankings.length > 1 && (
-                <div className="flex flex-col items-center mx-2">
-                  <div className="w-16 h-16 rounded-full bg-gray-800 mb-2 flex items-center justify-center overflow-hidden">
-                    <span className="text-xl font-bold">2</span>
-                  </div>
-                  <div className="h-20 w-20 bg-gray-800 rounded-t-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-sm font-medium truncate max-w-16">@{rankings[1].username}</p>
-                      <div className="flex items-center justify-center text-xs text-[#4ebd0a]">
-                        {formatLargeNumber(rankings[1].value)}
-                        {activeRanking !== "referrals" && (
-                          <Image src="/TOKEN CDT.png" alt="CDT" width={14} height={14} className="ml-1" />
-                        )}
-                        {activeRanking === "referrals" && <span className="ml-1">{getRankingUnit()}</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+            {/* Nuevo diseño horizontal para el Top 3 */}
+            <div className="mb-6">
+              {/* Primer lugar - Destacado */}
               {rankings.length > 0 && (
-                <div className="flex flex-col items-center mx-2 -mt-4">
-                  <div className="w-20 h-20 rounded-full bg-[#4ebd0a]/20 mb-2 flex items-center justify-center overflow-hidden border-2 border-[#4ebd0a]">
-                    <span className="text-2xl font-bold text-[#4ebd0a]">1</span>
-                  </div>
-                  <div className="h-24 w-24 bg-[#4ebd0a]/20 rounded-t-lg flex items-center justify-center border-t-2 border-l-2 border-r-2 border-[#4ebd0a]">
-                    <div className="text-center">
-                      <p className="text-sm font-medium truncate max-w-20">@{rankings[0].username}</p>
-                      <div className="flex items-center justify-center text-xs text-[#4ebd0a] font-bold">
-                        {formatLargeNumber(rankings[0].value)}
-                        {activeRanking !== "referrals" && (
-                          <Image src="/TOKEN CDT.png" alt="CDT" width={14} height={14} className="ml-1" />
+                <div className="bg-[#4ebd0a]/10 border border-[#4ebd0a] rounded-xl p-4 mb-4">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 rounded-full bg-[#4ebd0a]/20 flex items-center justify-center border-2 border-[#4ebd0a] mr-4">
+                      <span className="text-xl font-bold text-[#4ebd0a]">1</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-lg font-bold text-white">@{rankings[0].username}</p>
+                      <div className="flex items-center">
+                        <p className="text-[#4ebd0a] font-bold text-lg">{formatLargeNumber(rankings[0].value)}</p>
+                        {activeRanking !== "referrals" ? (
+                          <Image src="/TOKEN CDT.png" alt="CDT" width={18} height={18} className="ml-1" />
+                        ) : (
+                          <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                         )}
-                        {activeRanking === "referrals" && <span className="ml-1">{getRankingUnit()}</span>}
                       </div>
+                    </div>
+                    <div className="bg-[#4ebd0a] rounded-full w-10 h-10 flex items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="black"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20 6 9 17l-5-5"></path>
+                      </svg>
                     </div>
                   </div>
                 </div>
               )}
 
-              {rankings.length > 2 && (
-                <div className="flex flex-col items-center mx-2">
-                  <div className="w-16 h-16 rounded-full bg-gray-800 mb-2 flex items-center justify-center overflow-hidden">
-                    <span className="text-xl font-bold">3</span>
-                  </div>
-                  <div className="h-16 w-20 bg-gray-800 rounded-t-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-sm font-medium truncate max-w-16">@{rankings[2].username}</p>
-                      <div className="flex items-center justify-center text-xs text-[#4ebd0a]">
-                        {formatLargeNumber(rankings[2].value)}
-                        {activeRanking !== "referrals" && (
-                          <Image src="/TOKEN CDT.png" alt="CDT" width={14} height={14} className="ml-1" />
-                        )}
-                        {activeRanking === "referrals" && <span className="ml-1">{getRankingUnit()}</span>}
+              {/* Segundo y tercer lugar - En fila */}
+              <div className="grid grid-cols-2 gap-3">
+                {rankings.length > 1 && (
+                  <div className="bg-gray-900 rounded-xl p-3">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2">
+                        <span className="text-base font-bold">2</span>
                       </div>
+                      <p className="text-base font-medium text-white truncate">@{rankings[1].username}</p>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <p className="text-[#4ebd0a] font-bold">{formatLargeNumber(rankings[1].value)}</p>
+                      {activeRanking !== "referrals" ? (
+                        <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                      ) : (
+                        <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {rankings.length > 2 && (
+                  <div className="bg-gray-900 rounded-xl p-3">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2">
+                        <span className="text-base font-bold">3</span>
+                      </div>
+                      <p className="text-base font-medium text-white truncate">@{rankings[2].username}</p>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <p className="text-[#4ebd0a] font-bold">{formatLargeNumber(rankings[2].value)}</p>
+                      {activeRanking !== "referrals" ? (
+                        <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                      ) : (
+                        <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Lista de rankings */}
@@ -240,7 +224,7 @@ export default function Rankings() {
                       {activeRanking !== "referrals" ? (
                         <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
                       ) : (
-                        <span className="ml-1 text-[#4ebd0a]">{getRankingUnit()}</span>
+                        <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                       )}
                     </div>
                   </div>
@@ -266,7 +250,7 @@ export default function Rankings() {
                     {activeRanking !== "referrals" ? (
                       <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
                     ) : (
-                      <span className="ml-1 text-[#4ebd0a]">{getRankingUnit()}</span>
+                      <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                     )}
                   </div>
                 </div>

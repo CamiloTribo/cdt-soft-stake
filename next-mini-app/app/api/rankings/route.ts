@@ -73,9 +73,11 @@ export async function GET(request: Request) {
       }))
     } else if (type === "referrals") {
       // Para referrals, la información está en la tabla users
+      // Aseguramos que referral_count sea un número y no NULL
       const { data, error } = await supabase
         .from("users")
         .select("id, username, referral_count")
+        .not("referral_count", "is", null)
         .order("referral_count", { ascending: false })
         .limit(100)
 
@@ -84,12 +86,25 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Error al obtener rankings de referidos" }, { status: 500 })
       }
 
-      rankings = data.map((item, index) => ({
-        id: item.id,
-        username: item.username || "Unknown",
-        value: item.referral_count || 0,
-        position: index + 1,
-      }))
+      // Verificamos la estructura de los datos para depuración
+      console.log("Referrals data:", JSON.stringify(data.slice(0, 3)))
+
+      rankings = data.map((item, index) => {
+        // Aseguramos que referral_count sea un número
+        const referralCount =
+          typeof item.referral_count === "number"
+            ? item.referral_count
+            : item.referral_count
+              ? Number.parseInt(item.referral_count.toString())
+              : 0
+
+        return {
+          id: item.id,
+          username: item.username || "Unknown",
+          value: referralCount,
+          position: index + 1,
+        }
+      })
     }
 
     return NextResponse.json({ rankings })
