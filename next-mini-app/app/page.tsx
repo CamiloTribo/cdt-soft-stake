@@ -10,10 +10,13 @@ import VaultDial from "../src/components/VaultDial"
 
 export default function Home() {
   const { t } = useTranslation()
-  const { isLoading, isAuthenticated, session, signInWallet } = useWorldAuth()
+  const { isLoading, isAuthenticated, session, signInWallet, signInWorldID } = useWorldAuth()
   const router = useRouter()
 
+  // Estados principales
   const [showVault, setShowVault] = useState(true)
+  const [isWorldIDVerified, setIsWorldIDVerified] = useState(false)
+  const [isVerifyingWorldID, setIsVerifyingWorldID] = useState(false)
   const [username, setUsername] = useState("")
   const [isSavingUsername, setIsSavingUsername] = useState(false)
   const [showUsernameForm, setShowUsernameForm] = useState(false)
@@ -23,7 +26,6 @@ export default function Home() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [vaultUnlocked, setVaultUnlocked] = useState(false) // Nuevo estado para tracking del desbloqueo
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -54,13 +56,37 @@ export default function Home() {
     fetchUserCounts()
   }, [fetchUserCounts])
 
-  // Función para verificar si el usuario está autenticado - Simplificado para evitar redirecciones automáticas
+  // Verificar si el usuario ya está verificado con World ID
   useEffect(() => {
-    if (isAuthenticated && session?.isAuthenticatedWallet) {
-      console.log("Usuario autenticado:", session)
-      // No hacemos nada automáticamente para evitar ciclos
+    if (session?.isAuthenticatedWorldID) {
+      console.log("Usuario ya verificado con World ID")
+      setIsWorldIDVerified(true)
     }
-  }, [isAuthenticated, session])
+  }, [session?.isAuthenticatedWorldID])
+
+  // Función para iniciar verificación World ID
+  const handleWorldIDVerification = useCallback(async () => {
+    try {
+      setIsVerifyingWorldID(true)
+      console.log("Iniciando verificación World ID...")
+
+      await signInWorldID({})
+
+      console.log("Verificación World ID completada")
+      setIsWorldIDVerified(true)
+    } catch (error) {
+      console.error("Error en verificación World ID:", error)
+    } finally {
+      setIsVerifyingWorldID(false)
+    }
+  }, [signInWorldID])
+
+  // Iniciar verificación World ID automáticamente al cargar la página
+  useEffect(() => {
+    if (!isLoading && !isWorldIDVerified && !isVerifyingWorldID) {
+      handleWorldIDVerification()
+    }
+  }, [isLoading, isWorldIDVerified, isVerifyingWorldID, handleWorldIDVerification])
 
   // Nuevo efecto para actualizar el nivel de verificación
   useEffect(() => {
@@ -217,23 +243,23 @@ export default function Home() {
     )
   }
 
-  // Función para manejar el desbloqueo de la caja fuerte - MODIFICADA
+  // Función para manejar el desbloqueo de la caja fuerte
   const handleVaultUnlock = useCallback(() => {
     console.log("Vault unlocked - Mostrando pantalla de conexión de wallet")
     setShowVault(false)
-    setVaultUnlocked(true) // Marcar que la caja fuerte ha sido desbloqueada
   }, [])
 
   // Añadir logs para depuración
   useEffect(() => {
     console.log("Estado actual:", {
       showVault,
-      vaultUnlocked,
+      isWorldIDVerified,
+      isVerifyingWorldID,
       isAuthenticated,
       isAuthenticatedWallet: session?.isAuthenticatedWallet,
       isAuthenticatedWorldID: session?.isAuthenticatedWorldID,
     })
-  }, [showVault, vaultUnlocked, isAuthenticated, session])
+  }, [showVault, isWorldIDVerified, isVerifyingWorldID, isAuthenticated, session])
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">
@@ -256,13 +282,26 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Mostrar el dial de la caja fuerte o el contenido normal */}
-            {showVault ? (
+            {/* Mostrar indicador de verificación World ID */}
+            {isVerifyingWorldID && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
+                <div className="bg-black border border-[#4ebd0a] rounded-xl p-8 max-w-md text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 border-4 border-[#4ebd0a]/30 border-t-[#4ebd0a] rounded-full animate-spin mx-auto"></div>
+                  </div>
+                  <h2 className="text-xl font-bold mb-2">Verificando...</h2>
+                  <p className="text-gray-400">Por favor espera un momento</p>
+                </div>
+              </div>
+            )}
+
+            {/* Mostrar el dial de la caja fuerte solo si está verificado con World ID */}
+            {isWorldIDVerified && showVault ? (
               <div className="flex flex-col items-center">
                 <VaultDial onUnlockAction={handleVaultUnlock} />
                 <p className="text-center text-gray-400 mt-8">{t("turn_to_unlock")}</p>
               </div>
-            ) : (
+            ) : isWorldIDVerified && !showVault ? (
               <>
                 {/* Sección de mascota y autenticación */}
                 {(!isAuthenticated || !showUsernameForm) && (
@@ -370,7 +409,28 @@ export default function Home() {
                 {/* Confeti cuando se guarda el username */}
                 {showConfetti && <Confetti />}
               </>
-            )}
+            ) : !isWorldIDVerified && !isVerifyingWorldID ? (
+              // Mostrar mensaje si la verificación falló
+              <div className="text-center">
+                <div className="mb-6">
+                  <Image
+                    src="/detective-verificador.png"
+                    alt="Verificador"
+                    width={150}
+                    height={150}
+                    className="mx-auto"
+                  />
+                </div>
+                <h2 className="text-2xl font-bold mb-4">Verificación requerida</h2>
+                <p className="text-gray-400 mb-6">La verificación falló. Por favor, intenta nuevamente.</p>
+                <button
+                  onClick={handleWorldIDVerification}
+                  className="px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors"
+                >
+                  Intentar de nuevo
+                </button>
+              </div>
+            ) : null}
           </>
         )}
       </main>
