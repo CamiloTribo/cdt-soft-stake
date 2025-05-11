@@ -409,7 +409,7 @@ export default function Profile() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">{t("friends_must_use")}</p>
+              <p className="text-xs text-gray-500 mt-2">{t("friends_must_use_exact")}</p>
             </div>
 
             {/* Invitaciones Totales */}

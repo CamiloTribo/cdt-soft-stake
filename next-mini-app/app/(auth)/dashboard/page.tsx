@@ -12,6 +12,9 @@ import Link from "next/link"
 // Corregir la ruta de importación para que apunte a src/components
 import CdtRain from "../../../src/components/CdtRain"
 
+// Importar el banner al inicio del archivo, junto con los demás imports
+import InfoBanner from "../../../src/components/InfoBanner"
+
 // Función para generar el enlace a UNO con parámetros específicos para swap
 function getUnoDeeplinkUrl() {
   const UNO_APP_ID = "app_a4f7f3e62c1de0b9490a5260cb390b56"
@@ -617,6 +620,9 @@ export default function Dashboard() {
         }
       `}</style>
       <div className="dashboard-content">
+        {/* Banner informativo sobre cambios en usernames */}
+        <InfoBanner expirationDays={2} />
+
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
           <div className="mb-6 bg-black border-l-4 border-[#4ebd0a] p-4 rounded-xl shadow-lg animate-fadeIn">
