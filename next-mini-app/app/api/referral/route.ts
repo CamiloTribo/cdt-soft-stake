@@ -87,4 +87,104 @@ export async function POST(request: Request) {
   }
 }
 
-// El resto del código GET se mantiene igual...
+// Implementar la función GET para obtener referidos
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url)
+    const walletAddress = url.searchParams.get("wallet_address")
+
+    if (!walletAddress) {
+      return NextResponse.json({ error: "Wallet address is required" }, { status: 400 })
+    }
+
+    // Buscar al usuario por su dirección de wallet
+    const user = await getUserByAddress(walletAddress)
+
+    if (!user) {
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
+    }
+
+    // Primero, obtener los IDs de los usuarios referidos
+    const { data: referralsData, error: referralsError } = await supabase
+      .from("referrals")
+      .select("id, created_at, referred_id")
+      .eq("referrer_id", user.id)
+
+    if (referralsError) {
+      console.error("Error fetching referrals:", referralsError)
+      return NextResponse.json({ success: false, error: "Error loading referrals" }, { status: 500 })
+    }
+
+    // Procesar cada referido por separado para evitar problemas con los tipos
+    const processedReferrals = await Promise.all(
+      referralsData.map(async (referral) => {
+        try {
+          // Obtener datos del usuario referido
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("id, username, address, created_at")
+            .eq("id", referral.referred_id)
+            .single()
+
+          if (userError || !userData) {
+            console.error(`Error fetching user data for referral ${referral.id}:`, userError)
+            return {
+              ...referral,
+              referred: {
+                id: referral.referred_id,
+                username: "Unknown",
+                address: "",
+                created_at: referral.created_at,
+                staked_amount: 0,
+              },
+            }
+          }
+
+          // Obtener información de staking del referido
+          const { data: stakingData, error: stakingError } = await supabase
+            .from("staking_info")
+            .select("staked_amount")
+            .eq("user_id", userData.id)
+            .maybeSingle()
+
+          if (stakingError) {
+            console.error(`Error fetching staking data for user ${userData.id}:`, stakingError)
+          }
+
+          // Construir el objeto de respuesta
+          return {
+            id: referral.id,
+            created_at: referral.created_at,
+            referred: {
+              id: userData.id,
+              username: userData.username || "Unknown",
+              address: userData.address || "",
+              created_at: userData.created_at,
+              staked_amount: stakingData?.staked_amount || 0,
+            },
+          }
+        } catch (err) {
+          console.error(`Error processing referral ${referral.id}:`, err)
+          return {
+            ...referral,
+            referred: {
+              id: referral.referred_id,
+              username: "Error",
+              address: "",
+              created_at: referral.created_at,
+              staked_amount: 0,
+            },
+          }
+        }
+      }),
+    )
+
+    return NextResponse.json({
+      success: true,
+      referrals: processedReferrals,
+    })
+  } catch (error) {
+    console.error("Error in referrals API:", error)
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+  }
+}
