@@ -23,6 +23,7 @@ export default function Home() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [vaultUnlocked, setVaultUnlocked] = useState(false) // Nuevo estado para tracking del desbloqueo
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -216,10 +217,23 @@ export default function Home() {
     )
   }
 
-  // Función para manejar el desbloqueo de la caja fuerte
-  const handleVaultUnlock = () => {
+  // Función para manejar el desbloqueo de la caja fuerte - MODIFICADA
+  const handleVaultUnlock = useCallback(() => {
+    console.log("Vault unlocked - Mostrando pantalla de conexión de wallet")
     setShowVault(false)
-  }
+    setVaultUnlocked(true) // Marcar que la caja fuerte ha sido desbloqueada
+  }, [])
+
+  // Añadir logs para depuración
+  useEffect(() => {
+    console.log("Estado actual:", {
+      showVault,
+      vaultUnlocked,
+      isAuthenticated,
+      isAuthenticatedWallet: session?.isAuthenticatedWallet,
+      isAuthenticatedWorldID: session?.isAuthenticatedWorldID,
+    })
+  }, [showVault, vaultUnlocked, isAuthenticated, session])
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">

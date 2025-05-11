@@ -20,6 +20,8 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [showHint, setShowHint] = useState(true)
+  const [isVerifying, setIsVerifying] = useState(false) // Nuevo estado para tracking de verificación
+  const [hasCalledAction, setHasCalledAction] = useState(false) // Nuevo estado para evitar llamadas múltiples
   const dialRef = useRef<HTMLDivElement>(null)
   const centerX = useRef(0)
   const centerY = useRef(0)
@@ -65,8 +67,22 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     }, 2000)
   }, [])
 
+  // Función para continuar al siguiente paso - CORREGIDA
+  const continueToNextStep = useCallback(() => {
+    if (hasCalledAction) return // Evitar llamadas múltiples
+
+    console.log("Continuando al siguiente paso...")
+    setHasCalledAction(true)
+
+    // Llamar a la función de desbloqueo proporcionada por el padre
+    onUnlockAction()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasCalledAction]) // Desactivamos la regla para evitar incluir onUnlockAction
+
   // Función de desbloqueo - MODIFICADA
   const unlock = useCallback(() => {
+    if (isUnlocked || isVerifying) return // Evitar múltiples desbloqueos
+
     setIsUnlocked(true)
 
     // Reproducir sonido
@@ -81,27 +97,31 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     setTimeout(() => {
       try {
         console.log("Solicitando verificación World ID...")
+        setIsVerifying(true)
 
         // Usar signInWorldID con el argumento state requerido
-        // Pasamos un objeto vacío como state
         signInWorldID({})
           .then((result: unknown) => {
             console.log("Resultado de verificación World ID:", result)
-            // Continuar con la acción de desbloqueo después de la verificación
-            onUnlockAction()
+            // Continuar al siguiente paso después de la verificación
+            continueToNextStep()
           })
           .catch((error: Error) => {
             console.error("Error en verificación World ID:", error)
-            // Aún así continuamos con la acción de desbloqueo
-            onUnlockAction()
+            // Aún así continuamos al siguiente paso
+            continueToNextStep()
+          })
+          .finally(() => {
+            setIsVerifying(false)
           })
       } catch (error) {
         console.error("Error al solicitar verificación:", error)
-        // Si hay un error, continuamos con la acción de desbloqueo
-        onUnlockAction()
+        setIsVerifying(false)
+        // Si hay un error, continuamos al siguiente paso
+        continueToNextStep()
       }
     }, 1500) // Delay para que primero se vea la animación
-  }, [onUnlockAction, showCDTEffect, signInWorldID])
+  }, [isUnlocked, isVerifying, showCDTEffect, signInWorldID, continueToNextStep])
 
   // Inicializar el sonido
   useEffect(() => {
@@ -140,7 +160,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
 
   // Manejar el inicio del arrastre
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isUnlocked) return
+    if (isUnlocked || isVerifying) return
     setIsDragging(true)
     setShowHint(false)
     const angle = calculateAngle(e.clientX, e.clientY)
@@ -149,7 +169,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
 
   // Manejar eventos táctiles
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (isUnlocked) return
+    if (isUnlocked || isVerifying) return
     setIsDragging(true)
     setShowHint(false)
     const touch = e.touches[0]
@@ -160,7 +180,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
   // Configurar los event listeners para el arrastre
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || isUnlocked) return
+      if (!isDragging || isUnlocked || isVerifying) return
       const angle = calculateAngle(e.clientX, e.clientY)
       setRotation(angle)
 
@@ -171,7 +191,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isDragging || isUnlocked) return
+      if (!isDragging || isUnlocked || isVerifying) return
       e.preventDefault() // Prevenir scroll
       const touch = e.touches[0]
       const angle = calculateAngle(touch.clientX, touch.clientY)
@@ -198,7 +218,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
       window.removeEventListener("touchmove", handleTouchMove)
       window.removeEventListener("touchend", handleMouseUp)
     }
-  }, [isDragging, isUnlocked, calculateAngle, unlock])
+  }, [isDragging, isUnlocked, isVerifying, calculateAngle, unlock])
 
   return (
     <div className="vault-dial-container">
@@ -223,6 +243,14 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
 
       {/* Efecto de desbloqueo */}
       {isUnlocked && <div className="unlock-effect"></div>}
+
+      {/* Indicador de verificación */}
+      {isVerifying && (
+        <div className="verification-indicator">
+          <div className="spinner"></div>
+          <p>Verificando...</p>
+        </div>
+      )}
 
       <style jsx>{`
         .vault-dial-container {
@@ -291,6 +319,40 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
           right: -20px;
           transform: translateY(-50%) rotate(45deg);
           animation: arrowFade 1.5s ease-in-out infinite 0.75s;
+        }
+        
+        .verification-indicator {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          background: rgba(0, 0, 0, 0.7);
+          border-radius: 50%;
+          z-index: 10;
+        }
+        
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: #4ebd0a;
+          animation: spin 1s ease-in-out infinite;
+          margin-bottom: 10px;
+        }
+        
+        .verification-indicator p {
+          color: white;
+          font-size: 14px;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
         
         @keyframes hintRotation {
