@@ -508,7 +508,7 @@ export default function Dashboard() {
 
       // Usar el método pay de World Auth
       const result = (await pay({
-        amount: 0.023,
+        amount: 0.23,
         token: Tokens.WLD,
         recipient: "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })) as { success?: boolean; txHash?: string; transactionHash?: string }
@@ -550,7 +550,7 @@ export default function Dashboard() {
               body: JSON.stringify({
                 wallet_address: identifier,
                 type: "support",
-                amount: 0.023,
+                amount: 0.23,
                 token_type: "WLD",
                 tx_hash: transactionHash,
                 status: "success", // Asegurarnos de que esto sea "success"
@@ -1071,7 +1071,7 @@ export default function Dashboard() {
                 isSendingCDT ? "bg-gray-700 cursor-not-allowed" : "bg-[#ff1744] hover:bg-[#ff2954]"
               } text-white font-medium transition-colors`}
             >
-              {isSendingCDT ? t("processing") : t("support_with")}
+              {isSendingCDT ? t("processing") : t("support_with").replace("0.023", "0.23")}
             </button>
 
             {txHash && !txError && isSendingCDT === false && (
