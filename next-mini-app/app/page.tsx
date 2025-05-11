@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Image from "next/image"
 import { useWorldAuth } from "next-world-auth/react"
 import { useRouter } from "next/navigation"
@@ -13,10 +13,7 @@ export default function Home() {
   const { isLoading, isAuthenticated, session, signInWallet, signInWorldID } = useWorldAuth()
   const router = useRouter()
 
-  // Estados principales
-  const [showVault, setShowVault] = useState(true)
-  const [isWorldIDVerified, setIsWorldIDVerified] = useState(false)
-  const [isVerifyingWorldID, setIsVerifyingWorldID] = useState(false)
+  const [showVault, setShowVault] = useState(false)
   const [username, setUsername] = useState("")
   const [isSavingUsername, setIsSavingUsername] = useState(false)
   const [showUsernameForm, setShowUsernameForm] = useState(false)
@@ -26,6 +23,9 @@ export default function Home() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+
+  // Referencia para controlar si ya se inició la verificación
+  const worldIDInitiated = useRef(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -56,37 +56,30 @@ export default function Home() {
     fetchUserCounts()
   }, [fetchUserCounts])
 
-  // Verificar si el usuario ya está verificado con World ID
+  // NUEVO: Iniciar verificación de World ID automáticamente
   useEffect(() => {
-    if (session?.isAuthenticatedWorldID) {
-      console.log("Usuario ya verificado con World ID")
-      setIsWorldIDVerified(true)
+    // Solo iniciar si no está cargando, no está autenticado y no se ha iniciado antes
+    if (!isLoading && !isAuthenticated && !worldIDInitiated.current) {
+      console.log("Iniciando verificación de World ID automáticamente")
+      worldIDInitiated.current = true
+
+      // Pequeño retraso para asegurar que todo esté cargado
+      const timer = setTimeout(() => {
+        signInWorldID({ state: "verification" })
+      }, 500)
+
+      return () => clearTimeout(timer)
     }
-  }, [session?.isAuthenticatedWorldID])
+  }, [isLoading, isAuthenticated, signInWorldID])
 
-  // Función para iniciar verificación World ID
-  const handleWorldIDVerification = useCallback(async () => {
-    try {
-      setIsVerifyingWorldID(true)
-      console.log("Iniciando verificación World ID...")
-
-      await signInWorldID({})
-
-      console.log("Verificación World ID completada")
-      setIsWorldIDVerified(true)
-    } catch (error) {
-      console.error("Error en verificación World ID:", error)
-    } finally {
-      setIsVerifyingWorldID(false)
-    }
-  }, [signInWorldID])
-
-  // Iniciar verificación World ID automáticamente al cargar la página
+  // Efecto para mostrar el dial después de la verificación
   useEffect(() => {
-    if (!isLoading && !isWorldIDVerified && !isVerifyingWorldID) {
-      handleWorldIDVerification()
+    // Si el usuario está autenticado con World ID, mostrar el dial
+    if (isAuthenticated && session?.isAuthenticatedWorldID) {
+      console.log("Usuario verificado con World ID, mostrando dial")
+      setShowVault(true)
     }
-  }, [isLoading, isWorldIDVerified, isVerifyingWorldID, handleWorldIDVerification])
+  }, [isAuthenticated, session])
 
   // Nuevo efecto para actualizar el nivel de verificación
   useEffect(() => {
@@ -219,47 +212,10 @@ export default function Home() {
     }
   }, [isAuthenticated, session, handleContinueToDashboard])
 
-  // Efecto para registrar el estado del botón en la consola
-  useEffect(() => {
-    console.log("Estado del botón - disabled:", session?.isAuthenticatedWorldID)
-  }, [session?.isAuthenticatedWorldID])
-
-  // Componente de confeti
-  const Confetti = () => {
-    return (
-      <div className="confetti-container">
-        {Array.from({ length: 100 }).map((_, i) => (
-          <div
-            key={i}
-            className="confetti"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              backgroundColor: `hsl(${Math.random() * 360}, 100%, 50%)`,
-            }}
-          />
-        ))}
-      </div>
-    )
-  }
-
   // Función para manejar el desbloqueo de la caja fuerte
-  const handleVaultUnlock = useCallback(() => {
-    console.log("Vault unlocked - Mostrando pantalla de conexión de wallet")
+  const handleVaultUnlock = () => {
     setShowVault(false)
-  }, [])
-
-  // Añadir logs para depuración
-  useEffect(() => {
-    console.log("Estado actual:", {
-      showVault,
-      isWorldIDVerified,
-      isVerifyingWorldID,
-      isAuthenticated,
-      isAuthenticatedWallet: session?.isAuthenticatedWallet,
-      isAuthenticatedWorldID: session?.isAuthenticatedWorldID,
-    })
-  }, [showVault, isWorldIDVerified, isVerifyingWorldID, isAuthenticated, session])
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">
@@ -282,26 +238,13 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Mostrar indicador de verificación World ID */}
-            {isVerifyingWorldID && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
-                <div className="bg-black border border-[#4ebd0a] rounded-xl p-8 max-w-md text-center">
-                  <div className="mb-4">
-                    <div className="w-16 h-16 border-4 border-[#4ebd0a]/30 border-t-[#4ebd0a] rounded-full animate-spin mx-auto"></div>
-                  </div>
-                  <h2 className="text-xl font-bold mb-2">Verificando...</h2>
-                  <p className="text-gray-400">Por favor espera un momento</p>
-                </div>
-              </div>
-            )}
-
-            {/* Mostrar el dial de la caja fuerte solo si está verificado con World ID */}
-            {isWorldIDVerified && showVault ? (
+            {/* Mostrar el dial de la caja fuerte después de la verificación */}
+            {showVault ? (
               <div className="flex flex-col items-center">
                 <VaultDial onUnlockAction={handleVaultUnlock} />
                 <p className="text-center text-gray-400 mt-8">{t("turn_to_unlock")}</p>
               </div>
-            ) : isWorldIDVerified && !showVault ? (
+            ) : (
               <>
                 {/* Sección de mascota y autenticación */}
                 {(!isAuthenticated || !showUsernameForm) && (
@@ -409,28 +352,7 @@ export default function Home() {
                 {/* Confeti cuando se guarda el username */}
                 {showConfetti && <Confetti />}
               </>
-            ) : !isWorldIDVerified && !isVerifyingWorldID ? (
-              // Mostrar mensaje si la verificación falló
-              <div className="text-center">
-                <div className="mb-6">
-                  <Image
-                    src="/detective-verificador.png"
-                    alt="Verificador"
-                    width={150}
-                    height={150}
-                    className="mx-auto"
-                  />
-                </div>
-                <h2 className="text-2xl font-bold mb-4">Verificación requerida</h2>
-                <p className="text-gray-400 mb-6">La verificación falló. Por favor, intenta nuevamente.</p>
-                <button
-                  onClick={handleWorldIDVerification}
-                  className="px-6 py-3 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors"
-                >
-                  Intentar de nuevo
-                </button>
-              </div>
-            ) : null}
+            )}
           </>
         )}
       </main>
@@ -543,6 +465,25 @@ export default function Home() {
           }
         }
       `}</style>
+    </div>
+  )
+}
+
+// Componente de confeti
+function Confetti() {
+  return (
+    <div className="confetti-container">
+      {Array.from({ length: 100 }).map((_, i) => (
+        <div
+          key={i}
+          className="confetti"
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 3}s`,
+            backgroundColor: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          }}
+        />
+      ))}
     </div>
   )
 }

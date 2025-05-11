@@ -59,7 +59,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     }, 2000)
   }, [])
 
-  // Función de desbloqueo - SIMPLIFICADA
+  // Función de desbloqueo
   const unlock = useCallback(() => {
     setIsUnlocked(true)
 
@@ -71,10 +71,10 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     // Efecto de CDT saliendo del centro
     showCDTEffect()
 
-    // Llamar a la función de desbloqueo después de un breve delay
+    // Llamar al callback después de la animación
     setTimeout(() => {
       onUnlockAction()
-    }, 1500) // Delay para que primero se vea la animación
+    }, 2000)
   }, [onUnlockAction, showCDTEffect])
 
   // Inicializar el sonido
