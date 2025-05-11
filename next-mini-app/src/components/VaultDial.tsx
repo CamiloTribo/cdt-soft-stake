@@ -5,11 +5,17 @@ import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 
+// Importar correctamente useWorldAuth
+import { useWorldAuth } from "next-world-auth/react"
+
 interface VaultDialProps {
   onUnlockAction: () => void
 }
 
 export default function VaultDial({ onUnlockAction }: VaultDialProps) {
+  // Obtener el método correcto del hook useWorldAuth
+  const { signInWorldID } = useWorldAuth()
+
   const [rotation, setRotation] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isUnlocked, setIsUnlocked] = useState(false)
@@ -59,7 +65,7 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     }, 2000)
   }, [])
 
-  // Función de desbloqueo
+  // Función de desbloqueo - MODIFICADA
   const unlock = useCallback(() => {
     setIsUnlocked(true)
 
@@ -71,11 +77,31 @@ export default function VaultDial({ onUnlockAction }: VaultDialProps) {
     // Efecto de CDT saliendo del centro
     showCDTEffect()
 
-    // Llamar al callback después de la animación
+    // Solicitar verificación World ID después de un breve delay
     setTimeout(() => {
-      onUnlockAction()
-    }, 2000)
-  }, [onUnlockAction, showCDTEffect])
+      try {
+        console.log("Solicitando verificación World ID...")
+
+        // Usar signInWorldID con el argumento state requerido
+        // Pasamos un objeto vacío como state
+        signInWorldID({})
+          .then((result: unknown) => {
+            console.log("Resultado de verificación World ID:", result)
+            // Continuar con la acción de desbloqueo después de la verificación
+            onUnlockAction()
+          })
+          .catch((error: Error) => {
+            console.error("Error en verificación World ID:", error)
+            // Aún así continuamos con la acción de desbloqueo
+            onUnlockAction()
+          })
+      } catch (error) {
+        console.error("Error al solicitar verificación:", error)
+        // Si hay un error, continuamos con la acción de desbloqueo
+        onUnlockAction()
+      }
+    }, 1500) // Delay para que primero se vea la animación
+  }, [onUnlockAction, showCDTEffect, signInWorldID])
 
   // Inicializar el sonido
   useEffect(() => {
