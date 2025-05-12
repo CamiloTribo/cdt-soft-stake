@@ -23,9 +23,43 @@ export default function Rankings() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { session } = useWorldAuth()
+  const [timeRemaining, setTimeRemaining] = useState<string>("")
 
   // Obtener el ID del usuario actual
   const currentUserId = session?.user?.walletAddress || ""
+
+  // Calcular tiempo restante hasta el 18/05/25 a las 23:59 UTC
+  useEffect(() => {
+    const calculateTimeRemaining = () => {
+      const now = new Date()
+      const target = new Date("2025-05-18T23:59:00Z")
+
+      // Calcular diferencia en milisegundos
+      const diff = target.getTime() - now.getTime()
+
+      if (diff <= 0) {
+        return "Contest ended"
+      }
+
+      // Convertir a días, horas, minutos, segundos
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      return `${days}d ${hours}h ${minutes}m ${seconds}s`
+    }
+
+    // Actualizar cada segundo
+    const timer = setInterval(() => {
+      setTimeRemaining(calculateTimeRemaining())
+    }, 1000)
+
+    // Inicializar
+    setTimeRemaining(calculateTimeRemaining())
+
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const fetchRankings = async () => {
@@ -109,6 +143,38 @@ export default function Rankings() {
           </button>
         </div>
 
+        {/* Banner de premio para referidos */}
+        {activeRanking === "referrals" && (
+          <div className="bg-gradient-to-r from-[#4ebd0a]/30 to-[#4ebd0a]/10 rounded-xl p-4 mb-6 border border-[#4ebd0a]/50">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-[#4ebd0a] font-bold text-lg">🏆 {t("referral_contest")}</h3>
+              <div className="bg-black/30 rounded-full px-3 py-1 text-sm">
+                <span className="text-[#4ebd0a] font-mono">{timeRemaining}</span>
+              </div>
+            </div>
+            <p className="text-white text-sm mb-2">{t("referral_contest_description")}</p>
+            <div className="flex flex-col gap-1 mt-3 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-300">{t("referral_contest_ends")}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                <div className="bg-black/30 rounded p-1 text-center">
+                  <span className="text-[#4ebd0a]">1st: 5,000 CDT</span>
+                </div>
+                <div className="bg-black/30 rounded p-1 text-center">
+                  <span className="text-[#4ebd0a]">2nd: 3,000 CDT</span>
+                </div>
+                <div className="bg-black/30 rounded p-1 text-center">
+                  <span className="text-[#4ebd0a]">3rd: 1,000 CDT</span>
+                </div>
+              </div>
+              <div className="bg-black/30 rounded p-1 text-center mt-1">
+                <span className="text-[#4ebd0a]">4th-13th: 100 CDT each</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Podio (Top 3) - Diseño Horizontal */}
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
@@ -162,6 +228,11 @@ export default function Rankings() {
                       </svg>
                     </div>
                   </div>
+                  {activeRanking === "referrals" && (
+                    <div className="mt-2 bg-black/20 rounded px-2 py-1 text-xs text-center">
+                      <span className="text-[#4ebd0a] font-semibold">{t("referral_prize")}: 5,000 CDT</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -185,6 +256,11 @@ export default function Rankings() {
                         <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                       )}
                     </div>
+                    {activeRanking === "referrals" && (
+                      <div className="mt-2 bg-black/20 rounded px-2 py-1 text-xs text-center">
+                        <span className="text-[#4ebd0a]">{t("referral_prize")}: 3,000 CDT</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -206,6 +282,11 @@ export default function Rankings() {
                         <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                       )}
                     </div>
+                    {activeRanking === "referrals" && (
+                      <div className="mt-2 bg-black/20 rounded px-2 py-1 text-xs text-center">
+                        <span className="text-[#4ebd0a]">{t("referral_prize")}: 1,000 CDT</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -238,6 +319,20 @@ export default function Rankings() {
                         <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                       )}
                     </div>
+                    {activeRanking === "referrals" && user.position <= 13 && (
+                      <div className="ml-2 bg-black/30 rounded px-2 py-1 text-xs flex-shrink-0">
+                        <span className="text-[#4ebd0a]">
+                          {user.position <= 3
+                            ? user.position === 1
+                              ? "5,000"
+                              : user.position === 2
+                                ? "3,000"
+                                : "1,000"
+                            : "100"}{" "}
+                          CDT
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -249,7 +344,7 @@ export default function Rankings() {
                 <p className="text-sm text-gray-300 mb-1">{t("your_position")}</p>
                 <div className="flex items-center">
                   <div className="w-8 text-center font-bold text-[#4ebd0a] flex-shrink-0">
-                    {rankings.find((user) => user.isCurrentUser)?.position}
+                    {rankings.find((user) => user.isCurrentUser)?.position || 0}
                   </div>
                   <div className="flex-1 ml-4 min-w-0">
                     <p
@@ -269,6 +364,22 @@ export default function Rankings() {
                       <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                     )}
                   </div>
+                  {activeRanking === "referrals" &&
+                    rankings.find((user) => user.isCurrentUser)?.position &&
+                    (rankings.find((user) => user.isCurrentUser)?.position || 0) <= 13 && (
+                      <div className="ml-2 bg-black/30 rounded px-2 py-1 text-xs flex-shrink-0">
+                        <span className="text-[#4ebd0a]">
+                          {(rankings.find((user) => user.isCurrentUser)?.position || 0) === 1
+                            ? "5,000"
+                            : (rankings.find((user) => user.isCurrentUser)?.position || 0) === 2
+                              ? "3,000"
+                              : (rankings.find((user) => user.isCurrentUser)?.position || 0) === 3
+                                ? "1,000"
+                                : "100"}{" "}
+                          CDT
+                        </span>
+                      </div>
+                    )}
                 </div>
               </div>
             )}

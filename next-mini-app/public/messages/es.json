@@ -152,5 +152,17 @@
   "no_rankings_available": "No hay datos de ranking disponibles",
   "error_loading_rankings": "Error al cargar los rankings",
   "join_telegram": "Únete a nuestro canal de Telegram",
-  "follow_twitter": "Síguenos en Twitter"
+  "follow_twitter": "Síguenos en Twitter",
+
+  "referral_contest": "Concurso de Referidos",
+  "referral_contest_description": "¡Los mejores referidores compartirán un premio de 10,000 CDT!",
+  "referral_contest_ends": "Finaliza el 18 de mayo de 2025 a las 23:59 UTC",
+  "referral_prize": "Premio",
+  "time_remaining": "Tiempo restante",
+  "days": "d",
+  "hours": "h",
+  "minutes": "m",
+  "seconds": "s",
+  "join_referral_contest": "¡Únete a nuestro concurso de referidos y gana hasta 5,000 CDT!",
+  "weekly_rewards": "RECOMPENSAS SEMANALES: 10,000 CDT"
 }

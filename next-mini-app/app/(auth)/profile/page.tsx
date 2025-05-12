@@ -419,6 +419,14 @@ export default function Profile() {
                 <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
               </div>
             </div>
+            <div className="mt-3">
+              <Link
+                href="/rankings?tab=referrals"
+                className="w-full px-4 py-3 bg-[#4ebd0a] text-black rounded-full hover:bg-[#3fa008] text-center block font-medium transition-colors"
+              >
+                🏆 {t("join_referral_contest")}
+              </Link>
+            </div>
 
             {/* Lista de referidos */}
             <div className="mb-5">
