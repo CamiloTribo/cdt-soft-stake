@@ -194,4 +194,22 @@ body {
   animation: pulse-green 2s infinite;
 }
 
+/* Animación para los tokens CDT en el botón */
+@keyframes cdtTokenFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(120%) rotate(360deg);
+    opacity: 0;
+  }
+}
+
 /* Estos estilos no afectan al resto de la aplicación */
