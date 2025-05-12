@@ -165,5 +165,8 @@
   "minutes": "m",
   "seconds": "s",
   "join_referral_contest": "Join our referral contest and win up to 5,000 CDT!",
-  "weekly_rewards": "WEEKLY REWARDS: 10,000 CDT"
+  "weekly_rewards": "WEEKLY REWARDS: 10,000 CDT",
+
+  "daily_giveaway": "🎁 WIN 1000 $CDT DAILY 🎁",
+  "join_daily_giveaway": "Join our daily CDT giveaways"
 }

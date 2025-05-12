@@ -12,8 +12,8 @@ import Link from "next/link"
 // Corregir la ruta de importación para que apunte a src/components
 import CdtRain from "../../../src/components/CdtRain"
 
-// Importar el banner al inicio del archivo, junto con los demás imports
-import InfoBanner from "../../../src/components/InfoBanner"
+// Quitamos la importación del InfoBanner
+// import InfoBanner from "../../../src/components/InfoBanner"
 
 // Función para generar el enlace a UNO con parámetros específicos para swap
 function getUnoDeeplinkUrl() {
@@ -158,6 +158,7 @@ export default function Dashboard() {
   const [isSwapButtonHovered, setIsSwapButtonHovered] = useState(false)
   const [isProfileHovered, setIsProfileHovered] = useState(false)
   const [isReferralBannerHovered, setIsReferralBannerHovered] = useState(false)
+  const [isDailyGiveawayHovered, setIsDailyGiveawayHovered] = useState(false)
 
   // También necesitamos añadir los estados para el hover de los nuevos botones.
   const [isTelegramHovered, setIsTelegramHovered] = useState(false)
@@ -615,6 +616,9 @@ export default function Dashboard() {
   const cdtTokenUrl =
     "https://worldcoin.org/mini-app?app_id=app_15daccf5b7d4ec9b7dbba044a8fdeab5&path=app/token/0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
 
+  // URL del topic de sorteos en Telegram
+  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/10775"
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Aplicar Helvetica Neue a todo el dashboard */}
@@ -624,8 +628,8 @@ export default function Dashboard() {
         }
       `}</style>
       <div className="dashboard-content">
-        {/* Banner informativo sobre cambios en usernames */}
-        <InfoBanner expirationDays={2} />
+        {/* Quitamos el InfoBanner */}
+        {/* <InfoBanner expirationDays={2} /> */}
 
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
@@ -654,6 +658,43 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* NUEVO: Banner de sorteos diarios */}
+        <Link
+          href={telegramGiveawayUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`block mb-6 bg-gradient-to-r from-[#ff1744] to-[#ff2954] rounded-xl p-4 shadow-lg transition-all duration-300 ${
+            isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
+          }`}
+          onMouseEnter={() => setIsDailyGiveawayHovered(true)}
+          onMouseLeave={() => setIsDailyGiveawayHovered(false)}
+          onTouchStart={() => setIsDailyGiveawayHovered(true)}
+          onTouchEnd={() => setIsDailyGiveawayHovered(false)}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-black font-bold text-xl">{t("daily_giveaway")}</h3>
+              <p className="text-white text-sm mt-1">{t("join_daily_giveaway")}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isDailyGiveawayHovered ? "translate-x-1" : ""}`}
+              >
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </div>
+          </div>
+        </Link>
 
         {/* Banner de concurso de referidos */}
         <Link
@@ -989,7 +1030,7 @@ export default function Dashboard() {
         <div className="mb-6 flex items-center gap-4">
           <Image src="/Jefe Tribo Discord.png" alt="Discord" width={48} height={48} className="rounded-full" />
           <Link
-            href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/tribo"}
+            href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/BaYaaUsUuN"}
             target="_blank"
             rel="noopener noreferrer"
             className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${

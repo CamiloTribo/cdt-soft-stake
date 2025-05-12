@@ -153,3 +153,5 @@ export type TranslationKey =
   | "seconds"
   | "join_referral_contest"
   | "weekly_rewards"
+  | "daily_giveaway"
+  | "join_daily_giveaway"
