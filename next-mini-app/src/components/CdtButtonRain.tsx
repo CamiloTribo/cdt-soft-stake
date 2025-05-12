@@ -18,24 +18,42 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
       size: number
       delay: number
       duration: number
-      horizontalMovement: number
+      type: number
     }>
   >([])
 
   // Generar tokens cuando el componente se monta
   useEffect(() => {
-    // Aumentar significativamente la cantidad de tokens (de 12 a 40)
-    const newTokens = Array.from({ length: 40 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100, // Posición horizontal aleatoria (%)
-      y: -20 - Math.random() * 80, // Posiciones iniciales mucho más dispersas
-      size: 8 + Math.random() * 10, // Tamaño aleatorio entre 8px y 18px
-      delay: Math.random() * 2, // Retraso aleatorio reducido a máximo 2s para que aparezcan más rápido
-      duration: 1.5 + Math.random() * 2, // Duración más corta entre 1.5s y 3.5s (más rápido)
-      horizontalMovement: Math.random() * 40 - 20, // Movimiento horizontal aleatorio entre -20% y +20%
-    }))
-    setTokens(newTokens)
-  }, []) // Solo se ejecuta al montar el componente
+    // Crear una función para generar nuevos tokens
+    const generateTokens = () => {
+      // Aumentar significativamente la cantidad de tokens (80)
+      return Array.from({ length: 80 }, (_, i) => ({
+        id: i,
+        // Distribuir los tokens por todo el ancho del botón
+        x: Math.random() * 100,
+        // Posiciones iniciales muy dispersas, algunos empezando desde arriba y otros ya en medio
+        y: -20 - Math.random() * 100,
+        // Tamaños más pequeños para que no se vean lentos
+        size: 6 + Math.random() * 8,
+        // Retrasos muy cortos para que aparezcan casi inmediatamente
+        delay: Math.random() * 1,
+        // Duración muy corta para que caigan muy rápido
+        duration: 0.5 + Math.random() * 0.8,
+        // Diferentes tipos de animación
+        type: Math.floor(Math.random() * 5),
+      }))
+    }
+
+    // Generar tokens iniciales
+    setTokens(generateTokens())
+
+    // Regenerar tokens cada cierto tiempo para mantener el efecto constante
+    const interval = setInterval(() => {
+      setTokens(generateTokens())
+    }, 5000) // Regenerar cada 5 segundos
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${containerClassName}`}>
@@ -48,7 +66,7 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
             top: `${token.y}%`,
             width: `${token.size}px`,
             height: `${token.size}px`,
-            animation: `cdtTokenFall${token.id % 3} ${token.duration}s linear infinite`,
+            animation: `cdtTokenFall${token.type} ${token.duration}s linear infinite`,
             animationDelay: `${token.delay}s`,
           }}
         >
@@ -57,7 +75,7 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
             alt=""
             width={token.size}
             height={token.size}
-            className="w-full h-full object-contain opacity-80"
+            className="w-full h-full object-contain opacity-90"
           />
         </div>
       ))}
@@ -66,49 +84,59 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
         @keyframes cdtTokenFall0 {
           0% {
             transform: translateY(0) translateX(0) rotate(0deg);
-            opacity: 0;
-          }
-          10% {
-            opacity: 0.8;
-          }
-          90% {
-            opacity: 0.8;
+            opacity: 0.9;
           }
           100% {
-            transform: translateY(150%) translateX(15%) rotate(360deg);
-            opacity: 0;
+            transform: translateY(200%) translateX(20%) rotate(360deg);
+            opacity: 0.9;
           }
         }
         @keyframes cdtTokenFall1 {
           0% {
             transform: translateY(0) translateX(0) rotate(0deg);
-            opacity: 0;
-          }
-          10% {
-            opacity: 0.8;
-          }
-          90% {
-            opacity: 0.8;
+            opacity: 0.9;
           }
           100% {
-            transform: translateY(150%) translateX(-15%) rotate(360deg);
-            opacity: 0;
+            transform: translateY(200%) translateX(-20%) rotate(360deg);
+            opacity: 0.9;
           }
         }
         @keyframes cdtTokenFall2 {
           0% {
             transform: translateY(0) translateX(0) rotate(0deg);
-            opacity: 0;
-          }
-          10% {
-            opacity: 0.8;
-          }
-          90% {
-            opacity: 0.8;
+            opacity: 0.9;
           }
           100% {
-            transform: translateY(150%) translateX(0%) rotate(360deg);
-            opacity: 0;
+            transform: translateY(200%) translateX(0%) rotate(360deg);
+            opacity: 0.9;
+          }
+        }
+        @keyframes cdtTokenFall3 {
+          0% {
+            transform: translateY(0) translateX(-5%) rotate(0deg);
+            opacity: 0.9;
+          }
+          50% {
+            transform: translateY(100%) translateX(10%) rotate(180deg);
+            opacity: 0.9;
+          }
+          100% {
+            transform: translateY(200%) translateX(-5%) rotate(360deg);
+            opacity: 0.9;
+          }
+        }
+        @keyframes cdtTokenFall4 {
+          0% {
+            transform: translateY(0) translateX(5%) rotate(0deg);
+            opacity: 0.9;
+          }
+          50% {
+            transform: translateY(100%) translateX(-10%) rotate(180deg);
+            opacity: 0.9;
+          }
+          100% {
+            transform: translateY(200%) translateX(5%) rotate(360deg);
+            opacity: 0.9;
           }
         }
       `}</style>
