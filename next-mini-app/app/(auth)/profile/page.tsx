@@ -444,8 +444,8 @@ export default function Profile() {
                       key={referral.id}
                       className="bg-black/30 rounded-xl p-3 flex items-center justify-between border border-gray-800 hover:border-gray-700 transition-colors"
                     >
-                      <div className="flex items-center">
-                        <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3">
+                      <div className="flex items-center min-w-0 flex-1 mr-2">
+                        <div className="bg-[#4ebd0a]/20 rounded-full p-2 mr-3 flex-shrink-0">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="20"
@@ -463,14 +463,16 @@ export default function Profile() {
                             <line x1="16" y1="11" x2="22" y2="11"></line>
                           </svg>
                         </div>
-                        <div>
-                          <p className="text-white font-medium">@{referral.referred.username}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-medium truncate" title={`@${referral.referred.username}`}>
+                            @{referral.referred.username}
+                          </p>
                           <p className="text-xs text-gray-400">
                             {t("joined_on")} {formatDate(referral.referred.created_at)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-shrink-0">
                         <div className="bg-[#4ebd0a]/10 rounded-full px-3 py-1 flex items-center">
                           <Image src="/TOKEN CDT.png" alt="CDT Token" width={16} height={16} className="mr-1" />
                           <span className="text-[#4ebd0a] text-sm font-medium">

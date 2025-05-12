@@ -48,7 +48,9 @@ export default function Rankings() {
           isCurrentUser: user.id === currentUserId,
         }))
 
-        setRankings(rankingsWithCurrentUser)
+        // Limitar a 25 elementos
+        const limitedRankings = rankingsWithCurrentUser.slice(0, 25)
+        setRankings(limitedRankings)
       } catch (err) {
         console.error("Error fetching rankings:", err)
         setError(t("error_loading_rankings"))
@@ -128,11 +130,13 @@ export default function Rankings() {
               {rankings.length > 0 && (
                 <div className="bg-[#4ebd0a]/10 border border-[#4ebd0a] rounded-xl p-4 mb-4">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-[#4ebd0a]/20 flex items-center justify-center border-2 border-[#4ebd0a] mr-4">
+                    <div className="w-12 h-12 rounded-full bg-[#4ebd0a]/20 flex items-center justify-center border-2 border-[#4ebd0a] mr-4 flex-shrink-0">
                       <span className="text-xl font-bold text-[#4ebd0a]">1</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-lg font-bold text-white">@{rankings[0].username}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-lg font-bold text-white truncate" title={`@${rankings[0].username}`}>
+                        @{rankings[0].username}
+                      </p>
                       <div className="flex items-center">
                         <p className="text-[#4ebd0a] font-bold text-lg">{formatLargeNumber(rankings[0].value)}</p>
                         {activeRanking !== "referrals" ? (
@@ -142,7 +146,7 @@ export default function Rankings() {
                         )}
                       </div>
                     </div>
-                    <div className="bg-[#4ebd0a] rounded-full w-10 h-10 flex items-center justify-center">
+                    <div className="bg-[#4ebd0a] rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -166,10 +170,12 @@ export default function Rankings() {
                 {rankings.length > 1 && (
                   <div className="bg-gray-900 rounded-xl p-3">
                     <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 flex-shrink-0">
                         <span className="text-base font-bold">2</span>
                       </div>
-                      <p className="text-base font-medium text-white truncate">@{rankings[1].username}</p>
+                      <p className="text-base font-medium text-white truncate" title={`@${rankings[1].username}`}>
+                        @{rankings[1].username}
+                      </p>
                     </div>
                     <div className="flex items-center justify-center">
                       <p className="text-[#4ebd0a] font-bold">{formatLargeNumber(rankings[1].value)}</p>
@@ -185,10 +191,12 @@ export default function Rankings() {
                 {rankings.length > 2 && (
                   <div className="bg-gray-900 rounded-xl p-3">
                     <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 flex-shrink-0">
                         <span className="text-base font-bold">3</span>
                       </div>
-                      <p className="text-base font-medium text-white truncate">@{rankings[2].username}</p>
+                      <p className="text-base font-medium text-white truncate" title={`@${rankings[2].username}`}>
+                        @{rankings[2].username}
+                      </p>
                     </div>
                     <div className="flex items-center justify-center">
                       <p className="text-[#4ebd0a] font-bold">{formatLargeNumber(rankings[2].value)}</p>
@@ -213,13 +221,16 @@ export default function Rankings() {
                       user.isCurrentUser ? "bg-[#4ebd0a]/10" : ""
                     }`}
                   >
-                    <div className="w-8 text-center font-bold text-gray-400">{user.position}</div>
-                    <div className="flex-1 ml-4">
-                      <p className={`font-medium ${user.isCurrentUser ? "text-[#4ebd0a]" : "text-white"}`}>
+                    <div className="w-8 text-center font-bold text-gray-400 flex-shrink-0">{user.position}</div>
+                    <div className="flex-1 ml-4 min-w-0">
+                      <p
+                        className={`font-medium truncate ${user.isCurrentUser ? "text-[#4ebd0a]" : "text-white"}`}
+                        title={`@${user.username}`}
+                      >
                         @{user.username}
                       </p>
                     </div>
-                    <div className="text-right flex items-center justify-end">
+                    <div className="text-right flex items-center justify-end flex-shrink-0">
                       <p className="font-mono font-bold text-[#4ebd0a]">{formatLargeNumber(user.value)}</p>
                       {activeRanking !== "referrals" ? (
                         <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
@@ -237,13 +248,18 @@ export default function Rankings() {
               <div className="mt-6 bg-[#4ebd0a]/20 rounded-xl p-4 border border-[#4ebd0a]">
                 <p className="text-sm text-gray-300 mb-1">{t("your_position")}</p>
                 <div className="flex items-center">
-                  <div className="w-8 text-center font-bold text-[#4ebd0a]">
+                  <div className="w-8 text-center font-bold text-[#4ebd0a] flex-shrink-0">
                     {rankings.find((user) => user.isCurrentUser)?.position}
                   </div>
-                  <div className="flex-1 ml-4">
-                    <p className="font-medium text-white">@{rankings.find((user) => user.isCurrentUser)?.username}</p>
+                  <div className="flex-1 ml-4 min-w-0">
+                    <p
+                      className="font-medium text-white truncate"
+                      title={`@${rankings.find((user) => user.isCurrentUser)?.username}`}
+                    >
+                      @{rankings.find((user) => user.isCurrentUser)?.username}
+                    </p>
                   </div>
-                  <div className="text-right flex items-center justify-end">
+                  <div className="text-right flex items-center justify-end flex-shrink-0">
                     <p className="font-mono font-bold text-[#4ebd0a]">
                       {formatLargeNumber(rankings.find((user) => user.isCurrentUser)?.value || 0)}
                     </p>

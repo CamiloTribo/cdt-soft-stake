@@ -26,7 +26,7 @@ export async function GET(request: Request) {
           users (id, username)
         `)
         .order("staked_amount", { ascending: false })
-        .limit(100)
+        .limit(25) // Limitado a 25 elementos
 
       if (error) {
         console.error("Error fetching holders rankings:", error)
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
         .from("users")
         .select("id, username, total_claimed")
         .order("total_claimed", { ascending: false })
-        .limit(100)
+        .limit(25) // Limitado a 25 elementos
 
       if (error) {
         console.error("Error fetching stakers rankings:", error)
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
         .select("id, username, referral_count")
         .not("referral_count", "is", null)
         .order("referral_count", { ascending: false })
-        .limit(100)
+        .limit(25) // Limitado a 25 elementos
 
       if (error) {
         console.error("Error fetching referral rankings:", error)
