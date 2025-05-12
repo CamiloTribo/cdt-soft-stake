@@ -156,7 +156,8 @@ export default function Dashboard() {
   const [isBuyButtonHovered, setIsBuyButtonHovered] = useState(false)
   const [isDiscordHovered, setIsDiscordHovered] = useState(false)
   const [isSwapButtonHovered, setIsSwapButtonHovered] = useState(false)
-  const [isTransactionsHovered, setIsTransactionsHovered] = useState(false)
+  // Estado para los botones con hover
+  //const [isTransactionsHovered, setIsTransactionsHovered] = useState(false)
   const [isProfileHovered, setIsProfileHovered] = useState(false)
 
   // Estados para mensajes de claim y update
@@ -952,53 +953,7 @@ export default function Dashboard() {
           <p className="text-center text-sm text-gray-400">{t("how_works_desc")}</p>
         </div>
 
-        {/* NUEVO: Link a historial de transacciones */}
-        <div className="mb-6">
-          <Link
-            href="/transactions"
-            className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-              isTransactionsHovered
-                ? "bg-[#ff1744] shadow-lg transform -translate-y-1"
-                : "bg-[#4ebd0a] hover:bg-[#3fa008]"
-            }`}
-            onMouseEnter={() => setIsTransactionsHovered(true)}
-            onMouseLeave={() => setIsTransactionsHovered(false)}
-            onTouchStart={() => setIsTransactionsHovered(true)}
-            onTouchEnd={() => setIsTransactionsHovered(false)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
-            <span className="whitespace-nowrap">{t("view_transactions")}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`transition-transform duration-300 ${isTransactionsHovered ? "translate-x-1" : ""}`}
-            >
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </Link>
-        </div>
-
-        {/* Botón de Discord - Corregido para que el texto no esté en dos líneas */}
+        {/* Botón de Discord */}
         <div className="mb-6 flex items-center gap-4">
           <Image src="/Jefe Tribo Discord.png" alt="Discord" width={48} height={48} className="rounded-full" />
           <Link
