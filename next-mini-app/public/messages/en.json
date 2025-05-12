@@ -3,6 +3,8 @@
   "welcome": "Welcome to Tribo Vault",
   "hello": "Hello",
   "buy_cdt": "BUY CDT",
+  "username_changes_title": "Referral System Update",
+  "username_changes_description": "We've made improvements to the referral system. If your username has changed, don't worry: your previous referrals remain intact and your new referral code is now your current username.",
   "tribo_wallet": "TRIBO Wallet",
   "tokens_staked": "Your currently staked CDT tokens",
   "estimated_value": "Estimated value",
@@ -105,6 +107,7 @@
   "share_referral_code": "Share your referral code with friends and earn rewards when they join",
   "your_referral_code": "Your referral code",
   "friends_must_use": "Your friends must use this code when registering",
+  "friends_must_use_exact": "Your friends must use exactly this username as a referral code",
   "send_invitation": "Send Invitation",
   "your_referrals": "Your Referrals",
   "no_referrals_yet": "You don't have any referrals yet",
@@ -148,5 +151,7 @@
   "claimed_ranking": "Claimed CDT Ranking",
   "your_position": "Your position",
   "no_rankings_available": "No ranking data available",
-  "error_loading_rankings": "Error loading rankings"
+  "error_loading_rankings": "Error loading rankings",
+  "join_telegram": "Join our Telegram channel",
+  "follow_twitter": "Follow us on Twitter"
 }

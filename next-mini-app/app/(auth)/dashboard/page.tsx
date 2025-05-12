@@ -170,6 +170,12 @@ export default function Dashboard() {
 
   const { session, pay } = useWorldAuth()
 
+  // También necesitamos añadir los estados para el hover de los nuevos botones.
+  const [isTelegramHovered, setIsTelegramHovered] = useState(false)
+  const [isTwitterHovered, setIsTwitterHovered] = useState(false)
+
+  //const { session, pay } = useWorldAuth()
+
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
     if (!session || !session.user || !session.user.walletAddress) return null
@@ -1021,6 +1027,105 @@ export default function Dashboard() {
               strokeLinecap="round"
               strokeLinejoin="round"
               className={`transition-transform duration-300 ${isDiscordHovered ? "translate-x-1" : ""}`}
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Link>
+        </div>
+
+        {/* Botón de Telegram */}
+        <div className="mb-6 flex items-center gap-4">
+          <div className="w-12 h-12 bg-[#0088cc] rounded-full flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m20 4-2 14-6-4-2 2v-4.5L18 6l-8 5-4-2Z" />
+            </svg>
+          </div>
+          <Link
+            href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/cryptodigitaltribe"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
+              isTelegramHovered
+                ? "bg-[#0088cc] shadow-lg transform -translate-y-1"
+                : "bg-[#0088cc]/80 hover:bg-[#0088cc]"
+            }`}
+            onMouseEnter={() => setIsTelegramHovered(true)}
+            onMouseLeave={() => setIsTelegramHovered(false)}
+            onTouchStart={() => setIsTelegramHovered(true)}
+            onTouchEnd={() => setIsTelegramHovered(false)}
+          >
+            <span className="whitespace-nowrap">{t("join_telegram")}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isTelegramHovered ? "translate-x-1" : ""}`}
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Link>
+        </div>
+
+        {/* Botón de Twitter/X */}
+        <div className="mb-6 flex items-center gap-4">
+          <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center border border-gray-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 4l11.733 16h4.267l-11.733 -16z"></path>
+              <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path>
+            </svg>
+          </div>
+          <Link
+            href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://x.com/TriboCDT"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
+              isTwitterHovered ? "bg-gray-900 shadow-lg transform -translate-y-1" : "bg-gray-800 hover:bg-gray-900"
+            }`}
+            onMouseEnter={() => setIsTwitterHovered(true)}
+            onMouseLeave={() => setIsTwitterHovered(false)}
+            onTouchStart={() => setIsTwitterHovered(true)}
+            onTouchEnd={() => setIsTwitterHovered(false)}
+          >
+            <span className="whitespace-nowrap">{t("follow_twitter")}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isTwitterHovered ? "translate-x-1" : ""}`}
             >
               <path d="M5 12h14"></path>
               <path d="m12 5 7 7-7 7"></path>

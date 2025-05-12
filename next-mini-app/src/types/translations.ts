@@ -23,6 +23,8 @@ export type TranslationKey =
   | "error_claiming"
   | "view_transactions"
   | "join_community"
+  | "join_telegram"
+  | "follow_twitter"
   | "support_project"
   | "support_help"
   | "support_with"
