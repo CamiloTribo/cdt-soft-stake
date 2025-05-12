@@ -1,37 +1,33 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useState } from "react"
 import Image from "next/image"
 
 interface CdtButtonRainProps {
-  isActive: boolean
   containerClassName?: string
+  // Ya no necesitamos isActive porque siempre estarán activos
 }
 
-const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ isActive, containerClassName = "" }) => {
-  const [tokens, setTokens] = useState<Array<{ id: number; x: number; y: number; size: number; delay: number; duration: number }>>([])
+const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }) => {
+  const [tokens, setTokens] = useState<
+    Array<{ id: number; x: number; y: number; size: number; delay: number; duration: number }>
+  >([])
 
-  // Generar tokens cuando el componente se monta o cuando isActive cambia
+  // Generar tokens cuando el componente se monta
   useEffect(() => {
-    if (isActive) {
-      // Generar 8 tokens con posiciones aleatorias
-      const newTokens = Array.from({ length: 8 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100, // Posición horizontal aleatoria (%)
-        y: -20 - Math.random() * 10, // Posición inicial por encima del contenedor
-        size: 12 + Math.random() * 8, // Tamaño aleatorio entre 12px y 20px
-        delay: Math.random() * 2, // Retraso aleatorio hasta 2s
-        duration: 3 + Math.random() * 2, // Duración aleatoria entre 3s y 5s
-      }))
-      setTokens(newTokens)
-    } else {
-      setTokens([])
-    }
-  }, [isActive])
-
-  if (!isActive || tokens.length === 0) {
-    return null
-  }
+    // Generar 12 tokens con posiciones aleatorias (más tokens para mejor efecto)
+    const newTokens = Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100, // Posición horizontal aleatoria (%)
+      y: -20 - Math.random() * 50, // Posiciones iniciales más dispersas
+      size: 10 + Math.random() * 8, // Tamaño aleatorio entre 10px y 18px
+      delay: Math.random() * 5, // Retraso aleatorio hasta 5s para que no empiecen todos a la vez
+      duration: 4 + Math.random() * 3, // Duración aleatoria entre 4s y 7s (más lento)
+    }))
+    setTokens(newTokens)
+  }, []) // Solo se ejecuta al montar el componente
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${containerClassName}`}>

@@ -11,9 +11,11 @@ import Link from "next/link"
 
 // Corregir la ruta de importación para que apunte a src/components
 import CdtRain from "../../../src/components/CdtRain"
-
-// Quitamos la importación del InfoBanner
-// import InfoBanner from "../../../src/components/InfoBanner"
+// Cambiar la línea de importación del CdtButtonRain
+// De:
+// import CdtButtonRain from "../../../src/components/CdtButtoRain"
+// A:
+import CdtButtonRain from "../../../src/components/CdtButtonRain"
 
 // Función para generar el enlace a UNO con parámetros específicos para swap
 function getUnoDeeplinkUrl() {
@@ -174,6 +176,8 @@ export default function Dashboard() {
   const [showCdtRain, setShowCdtRain] = useState(false)
 
   const { session, pay } = useWorldAuth()
+  const translationValues = useTranslation() // Use a different name to avoid shadowing
+  const { t: translation } = translationValues
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -210,7 +214,7 @@ export default function Dashboard() {
 
       if (diffMs <= 0) {
         // Usar la clave "rewards_ready" para cuando las recompensas están listas
-        return t("rewards_ready")
+        return translation("rewards_ready")
       }
 
       const diffHrs = Math.floor(diffMs / (1000 * 60 * 60))
@@ -219,7 +223,7 @@ export default function Dashboard() {
 
       return `${diffHrs.toString().padStart(2, "0")}:${diffMins.toString().padStart(2, "0")}:${diffSecs.toString().padStart(2, "0")}`
     },
-    [t],
+    [translation],
   )
 
   // Función para formatear fecha
@@ -536,8 +540,8 @@ export default function Dashboard() {
 
       // SOLUCIÓN: Si tenemos un hash de transacción, SIEMPRE consideramos que fue exitosa
       // independientemente del campo success
+      // La transacción tiene un hash o success=true, lo que significa que se completó en la blockchain
       if (hasHash || hasSuccess) {
-        // La transacción tiene un hash o success=true, lo que significa que se completó en la blockchain
         setTxHash(t("thanks_support"))
 
         // Registrar la transacción en la base de datos
@@ -628,9 +632,6 @@ export default function Dashboard() {
         }
       `}</style>
       <div className="dashboard-content">
-        {/* Quitamos el InfoBanner */}
-        {/* <InfoBanner expirationDays={2} /> */}
-
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
           <div className="mb-6 bg-black border-l-4 border-[#4ebd0a] p-4 rounded-xl shadow-lg animate-fadeIn">
@@ -659,12 +660,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* NUEVO: Banner de sorteos diarios */}
+        {/* NUEVO: Banner de sorteos diarios con animación de lluvia de tokens CDT */}
         <Link
           href={telegramGiveawayUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={`block mb-6 bg-gradient-to-r from-[#ff1744] to-[#ff2954] rounded-xl p-4 shadow-lg transition-all duration-300 ${
+          className={`block mb-6 bg-gradient-to-r from-[#ff1744] to-[#ff2954] rounded-xl p-4 shadow-lg transition-all duration-300 relative overflow-hidden ${
             isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
           }`}
           onMouseEnter={() => setIsDailyGiveawayHovered(true)}
@@ -672,7 +673,10 @@ export default function Dashboard() {
           onTouchStart={() => setIsDailyGiveawayHovered(true)}
           onTouchEnd={() => setIsDailyGiveawayHovered(false)}
         >
-          <div className="flex items-center justify-between">
+          {/* Componente de lluvia de tokens CDT - ahora siempre activo */}
+          <CdtButtonRain containerClassName="rounded-xl" />
+
+          <div className="flex items-center justify-between relative z-10">
             <div>
               <h3 className="text-black font-bold text-xl">{t("daily_giveaway")}</h3>
               <p className="text-white text-sm mt-1">{t("join_daily_giveaway")}</p>
