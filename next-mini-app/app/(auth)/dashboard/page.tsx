@@ -11,10 +11,6 @@ import Link from "next/link"
 
 // Corregir la ruta de importación para que apunte a src/components
 import CdtRain from "../../../src/components/CdtRain"
-// Cambiar la línea de importación del CdtButtonRain
-// De:
-// import CdtButtonRain from "../../../src/components/CdtButtoRain"
-// A:
 import CdtButtonRain from "../../../src/components/CdtButtonRain"
 
 // Función para generar el enlace a UNO con parámetros específicos para swap
@@ -460,6 +456,11 @@ export default function Dashboard() {
           setShowCdtRain(false)
         }, 5000)
 
+        // Actualizar el total_claimed si la API devuelve la cantidad reclamada
+        if (data.amount) {
+          setTotalClaimed((prevTotal) => prevTotal + data.amount)
+        }
+
         // Recargar datos después de reclamar
         fetchStakingData()
       } else {
@@ -624,14 +625,36 @@ export default function Dashboard() {
   const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/10775"
 
   return (
-    <div className="max-w-4xl mx-auto">
+    // FIX 1: Añadir clase overflow-hidden para evitar scroll horizontal y mantener contenido fijo
+    <div className="max-w-4xl mx-auto relative overflow-hidden">
       {/* Aplicar Helvetica Neue a todo el dashboard */}
       <style jsx global>{`
         .dashboard-content * {
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
+        
+        /* FIX 1: Asegurar que el contenido no cause scroll horizontal */
+        body {
+          overflow-x: hidden;
+          width: 100%;
+          position: relative;
+        }
+        
+        /* FIX 1: Asegurar que los elementos animados no causen problemas de layout */
+        .cdt-rain-container {
+          pointer-events: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1000;
+          overflow: hidden;
+        }
       `}</style>
-      <div className="dashboard-content">
+
+      {/* FIX 1: Contenedor con posición relativa y overflow hidden para mantener todo en su lugar */}
+      <div className="dashboard-content relative">
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
           <div className="mb-6 bg-black border-l-4 border-[#4ebd0a] p-4 rounded-xl shadow-lg animate-fadeIn">
@@ -1233,8 +1256,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Añadir el componente CdtRain condicionalmente */}
-        {showCdtRain && <CdtRain count={50} duration={5} />}
+        {/* FIX 2: Mejorar la implementación de CdtRain para que funcione correctamente */}
+        {showCdtRain && (
+          <div className="cdt-rain-container">
+            <CdtRain count={50} duration={5} />
+          </div>
+        )}
       </div>
     </div>
   )

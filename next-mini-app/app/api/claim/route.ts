@@ -58,25 +58,35 @@ export async function POST(request: Request) {
       // Continuamos aunque falle el registro de la transacción
     }
 
-    // Actualizar el total_claimed del usuario
-    const { error: updateError } = await supabase
+    // MEJORA: Actualizar el total_claimed del usuario de manera más eficiente
+    // Obtenemos el total_claimed actual para asegurarnos de tener el valor más reciente
+    const { data: userData, error: userError } = await supabase
       .from("users")
-      .update({
-        total_claimed: supabase.rpc("increment_total_claimed", {
-          user_id: user.id,
-          amount: claimResult.amount,
-        }),
-      })
+      .select("total_claimed")
       .eq("id", user.id)
+      .single()
 
-    if (updateError) {
-      console.error("Error updating total_claimed:", updateError)
-      // Continuamos aunque falle la actualización
+    if (userError) {
+      console.error("Error getting current total_claimed:", userError)
+    } else {
+      // Calculamos el nuevo total_claimed
+      const currentTotal = userData.total_claimed || 0
+      const newTotal = currentTotal + claimResult.amount
+
+      // Actualizamos directamente con el nuevo valor
+      const { error: updateError } = await supabase.from("users").update({ total_claimed: newTotal }).eq("id", user.id)
+
+      if (updateError) {
+        console.error("Error updating total_claimed:", updateError)
+      } else {
+        console.log(`Total claimed updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: "¡Recompensas reclamadas correctamente!",
+      amount: claimResult.amount, // Añadimos la cantidad reclamada en la respuesta
     })
   } catch (error) {
     console.error("Error in claim API:", error)

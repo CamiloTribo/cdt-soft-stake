@@ -8,6 +8,7 @@ interface CdtRainProps {
 }
 
 const CdtRain: React.FC<CdtRainProps> = ({ count, duration }) => {
+  // Estilo para el contenedor de la lluvia
   const cdtRainStyle = {
     position: "fixed",
     top: 0,
@@ -19,13 +20,16 @@ const CdtRain: React.FC<CdtRainProps> = ({ count, duration }) => {
     zIndex: 1000,
   } as React.CSSProperties
 
+  // Función para crear tokens con más variedad y mejor animación
   const cdtTokenStyle = (index: number): React.CSSProperties => {
     // Usar el índice para crear variación en el tamaño
-    const size = 25 + (index % 3) * 5 // Tamaños entre 25px y 35px
+    const size = 25 + (index % 5) * 5 // Tamaños entre 25px y 45px
 
+    // Posición inicial más distribuida
     const randomX = Math.random() * 100
-    const randomOffset = Math.random() * 10 - 5
-    const animationDelay = (Math.random() * duration) % duration
+    const randomDelay = Math.random() * (duration / 2)
+    const randomDuration = duration * 0.8 + Math.random() * duration * 0.4
+    const randomRotation = Math.random() * 360
 
     return {
       position: "absolute",
@@ -36,36 +40,70 @@ const CdtRain: React.FC<CdtRainProps> = ({ count, duration }) => {
       backgroundImage: "url(/TOKEN CDT.png)",
       backgroundSize: "contain",
       backgroundRepeat: "no-repeat",
-      animation: `cdtFall ${duration}s linear infinite`,
-      animationDelay: `${animationDelay}s`,
-      transform: `translateX(${randomOffset}px)`,
+      animation: `cdtFall${index % 3} ${randomDuration}s ease-in-out forwards`,
+      animationDelay: `${randomDelay}s`,
+      transform: `rotate(${randomRotation}deg)`,
     } as React.CSSProperties
   }
 
-  const keyframesStyle = `
-    @keyframes cdtFall {
-      0% {
-        transform: translateY(0) translateX(${Math.random() * 20 - 10}px);
-        opacity: 0;
-      }
-      10% {
-        opacity: 1;
-      }
-      80% {
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(110vh) translateX(${Math.random() * 20 - 10}px);
-        opacity: 0;
-      }
-    }
-  `
-
   return (
     <div style={cdtRainStyle}>
-      <style>{keyframesStyle}</style>
-      {Array.from({ length: count }).map((_, index) => (
-        <div key={index} style={cdtTokenStyle(index)} />
+      <style>
+        {`
+          @keyframes cdtFall0 {
+            0% {
+              transform: translateY(0) translateX(0) rotate(0deg);
+              opacity: 0;
+            }
+            10% {
+              opacity: 1;
+            }
+            80% {
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(100vh) translateX(0) rotate(360deg);
+              opacity: 0;
+            }
+          }
+
+          @keyframes cdtFall1 {
+            0% {
+              transform: translateY(0) translateX(0) rotate(0deg);
+              opacity: 0;
+            }
+            15% {
+              opacity: 1;
+            }
+            75% {
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(100vh) translateX(0) rotate(-360deg);
+              opacity: 0;
+            }
+          }
+
+          @keyframes cdtFall2 {
+            0% {
+              transform: translateY(0) translateX(0) rotate(0deg);
+              opacity: 0;
+            }
+            5% {
+              opacity: 1;
+            }
+            90% {
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(100vh) translateX(0) rotate(360deg);
+              opacity: 0;
+            }
+          }
+        `}
+      </style>
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} style={cdtTokenStyle(index)}></div>
       ))}
     </div>
   )
