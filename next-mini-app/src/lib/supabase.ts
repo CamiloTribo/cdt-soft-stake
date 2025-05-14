@@ -11,6 +11,7 @@ export type User = {
   address: string
   username: string | null
   verification_level?: "wallet" | "human" | "orb" // Añadido campo de nivel de verificación
+  country?: string | null // Añadido campo de país
   created_at: string
 }
 
@@ -105,3 +106,5 @@ export async function updateVerificationLevel(userId: string, verificationLevel:
     return false
   }
 }
+
+export { createClient }

@@ -8,6 +8,8 @@ import { useWorldAuth } from "next-world-auth/react"
 import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
+import { CountrySelector } from "../../../src/components/CountrySelector"
+import { CountryFlag } from "../../../src/components/CountryFlag"
 
 type UserStats = {
   totalStaked: number
@@ -54,6 +56,12 @@ export default function Profile() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [referralSuccess, setReferralSuccess] = useState(false)
   const [referralError, setReferralError] = useState("")
+
+  // Nuevo estado para el país
+  const [country, setCountry] = useState("")
+  const [isUpdatingCountry, setIsUpdatingCountry] = useState(false)
+  const [countryUpdateSuccess, setCountryUpdateSuccess] = useState(false)
+  const [countryUpdateError, setCountryUpdateError] = useState("")
 
   // Estados para la lista de referidos
   const [referrals, setReferrals] = useState<Referral[]>([])
@@ -102,6 +110,11 @@ export default function Profile() {
               totalClaimed: usernameData.total_claimed || 0,
               referralCount: usernameData.referral_count || 0,
             }))
+
+            // Actualizar el país si existe
+            if (usernameData.country) {
+              setCountry(usernameData.country)
+            }
           }
         }
       } catch (error) {
@@ -251,6 +264,43 @@ export default function Profile() {
     }
   }
 
+  // Nueva función para actualizar el país del usuario
+  const handleUpdateCountry = async () => {
+    const identifier = getUserIdentifier()
+    if (!identifier || !country) return
+
+    setIsUpdatingCountry(true)
+    setCountryUpdateError("")
+    setCountryUpdateSuccess(false)
+
+    try {
+      const response = await fetch("/api/update-country", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: identifier,
+          country,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setCountryUpdateSuccess(true)
+        setTimeout(() => setCountryUpdateSuccess(false), 3000)
+      } else {
+        setCountryUpdateError(data.error || t("error_updating_country"))
+      }
+    } catch (error) {
+      console.error("Error updating country:", error)
+      setCountryUpdateError(t("error_processing_request"))
+    } finally {
+      setIsUpdatingCountry(false)
+    }
+  }
+
   // Calcular el valor estimado en USD
   const calculateUsdValue = (amount: number) => {
     if (cdtPrice && amount) {
@@ -303,15 +353,44 @@ export default function Profile() {
             <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={100} height={100} className="mb-1" />
             {username && (
               <div className="flex flex-col items-center">
-                <p className="text-2xl text-center">
-                  <span className="text-white">@</span>
-                  <span className="text-[#4ebd0a]">{username}</span>
-                </p>
+                <div className="flex items-center">
+                  {country && <CountryFlag countryCode={country} className="mr-2" />}
+                  <p className="text-2xl text-center">
+                    <span className="text-white">@</span>
+                    <span className="text-[#4ebd0a]">{username}</span>
+                  </p>
+                </div>
                 <div className="mt-1 bg-[#4ebd0a]/20 px-3 py-1 rounded-full flex items-center">
                   <span className="text-[#4ebd0a] text-sm font-medium">{locale === "en" ? "Human ✓" : "Humano ✓"}</span>
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Nuevo: Selector de país */}
+          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-3">{t("select_your_country")}</h4>
+            <p className="text-sm text-gray-300 mb-4">{t("country_selection_description")}</p>
+
+            <div className="mb-4">
+              <CountrySelector value={country} onChangeAction={setCountry} className="w-full" />
+            </div>
+
+            <button
+              onClick={handleUpdateCountry}
+              disabled={isUpdatingCountry || !country}
+              className={`w-full px-4 py-2 rounded-full ${
+                isUpdatingCountry || !country
+                  ? "bg-gray-700 cursor-not-allowed"
+                  : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+              } font-medium transition-colors`}
+            >
+              {isUpdatingCountry ? t("updating") : t("update_country")}
+            </button>
+
+            {countryUpdateSuccess && <p className="text-sm text-[#4ebd0a] mt-2 text-center">{t("country_updated")}</p>}
+
+            {countryUpdateError && <p className="text-sm text-red-500 mt-2 text-center">{countryUpdateError}</p>}
           </div>
 
           {/* Balance Total */}

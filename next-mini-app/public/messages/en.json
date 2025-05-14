@@ -168,5 +168,13 @@
   "weekly_rewards": "WEEKLY REWARDS: 10,000 CDT",
 
   "daily_giveaway": "🎁 WIN 1000 $CDT DAILY 🎁",
-  "join_daily_giveaway": "Join our daily CDT giveaways"
+  "join_daily_giveaway": "Join our daily CDT giveaways",
+
+  "select_your_country": "Select your country",
+  "country_selection_description": "Select your country to personalize your experience and connect with other users from your region.",
+  "update_country": "Update country",
+  "country_updated": "Country updated successfully!",
+  "error_updating_country": "Error updating country",
+  "countries_using_app": "Countries using the app",
+  "country_optional": "Selecting a country is optional, but it helps us improve your experience"
 }

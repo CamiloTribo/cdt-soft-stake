@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { useTranslation } from "../src/components/TranslationProvider"
 import { LanguageSelector } from "../src/components/LanguageSelector"
 import VaultDial from "../src/components/VaultDial"
+import { CountrySelector } from "../src/components/CountrySelector"
+import { CountryCounter } from "../src/components/CountryCounter"
 
 export default function Home() {
   const { t } = useTranslation()
@@ -23,6 +25,9 @@ export default function Home() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+
+  // Estado para el país
+  const [country, setCountry] = useState("")
 
   // Referencia para controlar si ya se inició la verificación
   const worldIDInitiated = useRef(false)
@@ -130,7 +135,12 @@ export default function Home() {
     }
   }
 
-  // Función para guardar username
+  // Función para manejar el cambio de país
+  const handleCountryChange = (value: string) => {
+    setCountry(value)
+  }
+
+  // Función para guardar username y país
   const handleSaveUsername = async () => {
     const identifier = getUserIdentifier()
     if (!identifier || !username) {
@@ -144,6 +154,7 @@ export default function Home() {
 
       console.log("Guardando username:", username, "para wallet:", identifier)
 
+      // Primero guardamos el username
       const response = await fetch("/api/username", {
         method: "POST",
         headers: {
@@ -159,6 +170,29 @@ export default function Home() {
       console.log("Respuesta al guardar username:", data)
 
       if (response.ok && data.success) {
+        // Si se seleccionó un país, lo guardamos
+        if (country) {
+          try {
+            const countryResponse = await fetch("/api/update-country", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                wallet_address: identifier,
+                country: country,
+              }),
+            })
+
+            if (!countryResponse.ok) {
+              console.error("Error al guardar el país, pero continuamos con el flujo")
+            }
+          } catch (error) {
+            console.error("Error al guardar el país:", error)
+            // No bloqueamos el flujo si falla la actualización del país
+          }
+        }
+
         console.log("Username guardado correctamente, redirigiendo a dashboard")
 
         // Mostrar confeti
@@ -328,6 +362,15 @@ export default function Home() {
                         />
                       </div>
 
+                      {/* Selector de país */}
+                      <div className="mb-6">
+                        <label htmlFor="country" className="block text-sm font-medium text-[#4ebd0a] mb-2">
+                          {t("select_your_country")}
+                        </label>
+                        <CountrySelector value={country} onChangeAction={handleCountryChange} className="w-full" />
+                        <p className="text-xs text-gray-500 mt-2">{t("country_optional")}</p>
+                      </div>
+
                       {usernameError && (
                         <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
                           <p className="text-sm text-[#ff1744]">{usernameError}</p>
@@ -357,9 +400,10 @@ export default function Home() {
         )}
       </main>
 
-      {/* Barra inferior fija con contador de usuarios - ACTUALIZADO */}
+      {/* Barra inferior fija con contador de usuarios y países */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-3 px-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-center">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
+          {/* Contador de usuarios verificados */}
           <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
             <div className="h-8 w-8 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-2">
               <svg
@@ -389,6 +433,9 @@ export default function Home() {
               </span>
             </span>
           </div>
+
+          {/* Contador de países */}
+          <CountryCounter />
         </div>
       </div>
 
