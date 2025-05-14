@@ -252,7 +252,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header simplificado para la página de inicio */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -332,23 +332,23 @@ export default function Home() {
 
                 {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
                 {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
-                  <div className="w-full max-w-md flex flex-col items-center">
-                    {/* Imagen decorativa arriba del formulario */}
-                    <div className="mb-6">
+                  <div className="w-full max-w-md flex flex-col items-center mb-20">
+                    {/* Imagen decorativa arriba del formulario - reducimos tamaño */}
+                    <div className="mb-4">
                       <Image
                         src="/Jefe Tribo Discord.png"
                         alt="Jefe Tribo"
-                        width={120}
-                        height={120}
+                        width={100}
+                        height={100}
                         className="animate-pulse"
                       />
                     </div>
 
-                    <div className="w-full bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-8 mb-8 relative overflow-hidden">
-                      <h2 className="text-2xl font-semibold mb-6 text-white text-center">{t("welcome_tribo")}</h2>
-                      <p className="text-gray-300 mb-6 text-center">{t("choose_name")}</p>
+                    <div className="w-full bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 mb-4 relative overflow-hidden">
+                      <h2 className="text-xl font-semibold mb-4 text-white text-center">{t("welcome_tribo")}</h2>
+                      <p className="text-gray-300 mb-4 text-center">{t("choose_name")}</p>
 
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <label htmlFor="username" className="block text-sm font-medium text-[#4ebd0a] mb-2">
                           {t("triber_name")}
                         </label>
@@ -363,16 +363,16 @@ export default function Home() {
                       </div>
 
                       {/* Selector de país */}
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <label htmlFor="country" className="block text-sm font-medium text-[#4ebd0a] mb-2">
                           {t("select_your_country")}
                         </label>
                         <CountrySelector value={country} onChangeAction={handleCountryChange} className="w-full" />
-                        <p className="text-xs text-gray-500 mt-2">{t("country_optional")}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t("country_optional")}</p>
                       </div>
 
                       {usernameError && (
-                        <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-md">
+                        <div className="mb-4 p-2 bg-black border border-[#ff1744] rounded-md">
                           <p className="text-sm text-[#ff1744]">{usernameError}</p>
                         </div>
                       )}
@@ -401,7 +401,7 @@ export default function Home() {
       </main>
 
       {/* Barra inferior fija con contador de usuarios y países */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-3 px-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-2 px-4 z-30">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
           {/* Contador de usuarios verificados */}
           <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
@@ -439,14 +439,16 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Modificar el estilo global para permitir scroll en la pantalla de registro */}
       <style jsx global>{`
         html,
         body {
           width: 100vw;
           height: 100vh;
           overscroll-behavior: none;
-          overflow: hidden;
         }
+        
+        /* Eliminamos overflow: hidden para permitir scroll */
         
         .detectriber-container {
           margin-top: 2rem;
