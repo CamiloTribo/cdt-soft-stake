@@ -892,11 +892,11 @@ export default function Dashboard() {
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        
+
         .animated-gradient-button {
-          background: linear-gradient(270deg, #4ebd0a, #ff1744, #4ebd0a);
-          background-size: 200% 200%;
-          animation: gradient-animation 6s ease infinite;
+          background: linear-gradient(270deg, #4ebd0a, #d4d4d8, #ff1744, #d4d4d8, #4ebd0a);
+          background-size: 400% 400%;
+          animation: gradient-animation 8s ease infinite;
           color: white;
           font-weight: bold;
           transition: transform 0.3s, box-shadow 0.3s;
