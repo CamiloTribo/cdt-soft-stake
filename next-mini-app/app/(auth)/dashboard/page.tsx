@@ -159,6 +159,7 @@ export default function Dashboard() {
   const [isProfileHovered, setIsProfileHovered] = useState(false)
   const [isReferralBannerHovered, setIsReferralBannerHovered] = useState(false)
   const [isDailyGiveawayHovered, setIsDailyGiveawayHovered] = useState(false)
+  const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
 
   // También necesitamos añadir los estados para el hover de los nuevos botones.
   const [isTelegramHovered, setIsTelegramHovered] = useState(false)
@@ -1157,6 +1158,55 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* NUEVO: Botón para conocer TRIBO */}
+        <div className="mb-6">
+          <Link
+            href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cryptodigitaltribe.com/"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-[#4ebd0a] to-[#3fa008] text-white transition-all duration-300 ${
+              isWebsiteHovered ? "transform -translate-y-1 shadow-lg" : ""
+            }`}
+            onMouseEnter={() => setIsWebsiteHovered(true)}
+            onMouseLeave={() => setIsWebsiteHovered(false)}
+            onTouchStart={() => setIsWebsiteHovered(true)}
+            onTouchEnd={() => setIsWebsiteHovered(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-1"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span className="whitespace-nowrap">Conoce TRIBO</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`ml-1 transition-transform duration-300 ${isWebsiteHovered ? "translate-x-1" : ""}`}
+            >
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </Link>
+        </div>
+
         {/* Card de TRIBO Wallet - Versión simplificada con branding consistente */}
         <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
           <div className="flex items-center justify-between mb-4">
@@ -1350,23 +1400,9 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Botón de Telegram - ACTUALIZADO con icono integrado */}
+        {/* Botón de Telegram - ACTUALIZADO con diseño unificado */}
         <div className="mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#0088cc] rounded-full flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m20 4-2 14-6-4-2 2v-4.5L18 6l-8 5-4-2Z" />
-            </svg>
-          </div>
+          <Image src="/Jefe Tribo Discord.png" alt="Telegram" width={48} height={48} className="rounded-full" />
           <Link
             href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/cryptodigitaltribe"}
             target="_blank"
@@ -1400,24 +1436,9 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Botón de Twitter/X - ACTUALIZADO con icono separado */}
+        {/* Botón de Twitter/X - ACTUALIZADO con diseño unificado */}
         <div className="mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center border border-gray-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 4l11.733 16h4.267l-11.733 -16z"></path>
-              <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path>
-            </svg>
-          </div>
+          <Image src="/Jefe Tribo Discord.png" alt="Twitter" width={48} height={48} className="rounded-full" />
           <Link
             href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://x.com/TriboCDT"}
             target="_blank"
