@@ -264,7 +264,9 @@ export default function Dashboard() {
     }
 
     // Calcular recompensas acumuladas (0.1% diario)
-    return stakedAmount * 0.001 * dayFraction
+    // Añadir milisegundos para crear un efecto de incremento continuo
+    const millisecondFraction = (now.getMilliseconds() / 1000) * 0.000001 * stakedAmount
+    return stakedAmount * 0.001 * dayFraction + millisecondFraction
   }, [lastClaimDate, stakedAmount, pendingRewards, nextClaimTime])
 
   // Función para obtener el precio del token
@@ -850,10 +852,11 @@ export default function Dashboard() {
   const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
 
   // Formatear las recompensas en tiempo real
-  const formattedRealtimeRewards = {
-    integer: Math.floor(realtimeRewards),
-    decimal: (realtimeRewards - Math.floor(realtimeRewards)).toFixed(6),
-  }
+  // Eliminar esta línea:
+  // const formattedRealtimeRewards = {
+  //   integer: Math.floor(realtimeRewards),
+  //   decimal: (realtimeRewards - Math.floor(realtimeRewards)).toFixed(6),
+  // }
 
   return (
     // FIX 1: Añadir clase overflow-hidden para evitar scroll horizontal y mantener contenido fijo
@@ -885,13 +888,15 @@ export default function Dashboard() {
         
         /* Animación para el contador de recompensas */
         @keyframes pulse-green {
-          0% { color: #4ebd0a; }
-          50% { color: #5fde0b; }
-          100% { color: #4ebd0a; }
+          0% { opacity: 1; }
+          50% { opacity: 0.8; }
+          100% { opacity: 1; }
         }
-        
+
         .rewards-counter {
           animation: pulse-green 2s infinite;
+          font-family: 'Helvetica Neue', monospace;
+          letter-spacing: -0.5px;
         }
       `}</style>
 
@@ -1203,11 +1208,12 @@ export default function Dashboard() {
             <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
           )}
 
-          {/* Cantidad a reclamar - MODIFICADA para mostrar recompensas en tiempo real */}
+          {/* Cantidad a reclamar - MODIFICADA para mostrar recompensas en tiempo real en un único contador */}
           <div className="text-center mb-5">
             <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
-            <p className="text-4xl font-bold text-white">{formattedRealtimeRewards.integer} CDT</p>
-            <p className="text-sm text-[#4ebd0a] mt-1 rewards-counter">+{formattedRealtimeRewards.decimal} CDT</p>
+            <p className="text-4xl font-bold text-[#4ebd0a] rewards-counter">
+              {realtimeRewards.toFixed(6)} <span className="text-white">CDT</span>
+            </p>
           </div>
 
           {/* Botón de reclamar - MODIFICADO para integrar el contador */}
