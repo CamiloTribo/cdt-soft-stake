@@ -155,9 +155,7 @@ export default function Dashboard() {
   const [txError, setTxError] = useState<string | null>(null)
 
   // Estado para los botones con hover
-  const [isBuyButtonHovered, setIsBuyButtonHovered] = useState(false)
   const [isDiscordHovered, setIsDiscordHovered] = useState(false)
-  const [isSwapButtonHovered, setIsSwapButtonHovered] = useState(false)
   const [isProfileHovered, setIsProfileHovered] = useState(false)
   const [isReferralBannerHovered, setIsReferralBannerHovered] = useState(false)
   const [isDailyGiveawayHovered, setIsDailyGiveawayHovered] = useState(false)
@@ -841,10 +839,6 @@ export default function Dashboard() {
     )
   }
 
-  // URL directa al token CDT en World App - Asegurarse de que sea la correcta
-  const cdtTokenUrl =
-    "https://worldcoin.org/mini-app?app_id=app_15daccf5b7d4ec9b7dbba044a8fdeab5&path=app/token/0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
-
   // URL del topic de sorteos en Telegram
   const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/10775"
 
@@ -890,6 +884,27 @@ export default function Dashboard() {
           animation: pulse-green 2s infinite;
           font-family: 'Helvetica Neue', monospace;
           letter-spacing: -0.5px;
+        }
+        
+        /* Animación para el botón de Swap */
+        @keyframes gradient-animation {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        .animated-gradient-button {
+          background: linear-gradient(270deg, #4ebd0a, #ff1744, #4ebd0a);
+          background-size: 200% 200%;
+          animation: gradient-animation 6s ease infinite;
+          color: white;
+          font-weight: bold;
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .animated-gradient-button:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
       `}</style>
 
@@ -994,38 +1009,51 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Botón Buy CDT - Primero según la captura */}
+        {/* NUEVO: Botón de Swap WLD/CDT con animación de gradiente */}
         <div className="mb-6">
-          <a
-            href={cdtTokenUrl}
+          <Link
+            href={getUnoDeeplinkUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-white font-medium text-lg transition-all duration-300 ${
-              isBuyButtonHovered ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1" : "bg-[#ff1744] hover:bg-[#ff2954]"
-            }`}
-            onMouseEnter={() => setIsBuyButtonHovered(true)}
-            onMouseLeave={() => setIsBuyButtonHovered(false)}
-            onTouchStart={() => setIsBuyButtonHovered(true)}
-            onTouchEnd={() => setIsBuyButtonHovered(false)}
+            className="flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold animated-gradient-button"
           >
-            <Image src="/TOKEN CDT.png" alt="CDT Token" width={28} height={28} className="rounded-full" />
-            <span className="font-bold">{t("buy_cdt")}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`ml-2 transition-transform duration-300 ${isBuyButtonHovered ? "translate-x-1" : ""}`}
+              className="mr-1"
             >
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
+              <path d="M16 3h5v5"></path>
+              <path d="M4 20 21 3"></path>
+              <path d="M21 16v5h-5"></path>
+              <path d="M15 15 3 3"></path>
             </svg>
-          </a>
+            <span className="whitespace-nowrap">SWAP WLD/CDT</span>
+            <div className="flex items-center gap-1">
+              <Image src="/TOKEN CDT.png" alt="CDT Token" width={24} height={24} className="rounded-full" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ml-1"
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </div>
+          </Link>
         </div>
 
         {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - Ahora con fecha */}
@@ -1418,43 +1446,6 @@ export default function Dashboard() {
               <path d="M5 12h14"></path>
               <path d="m12 5 7 7-7 7"></path>
             </svg>
-          </Link>
-        </div>
-
-        {/* NUEVO: Botón de Swap CDT */}
-        <div className="mb-6">
-          <Link
-            href={getUnoDeeplinkUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center justify-center gap-3 w-full px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-              isSwapButtonHovered
-                ? "bg-[#4ebd0a] shadow-lg transform -translate-y-1"
-                : "bg-[#ff1744] hover:bg-[#ff2954]"
-            }`}
-            onMouseEnter={() => setIsSwapButtonHovered(true)}
-            onMouseLeave={() => setIsSwapButtonHovered(false)}
-            onTouchStart={() => setIsSwapButtonHovered(true)}
-            onTouchEnd={() => setIsSwapButtonHovered(false)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M16 3h5v5"></path>
-              <path d="M4 20 21 3"></path>
-              <path d="M21 16v5h-5"></path>
-              <path d="M15 15 3 3"></path>
-            </svg>
-            <span className="whitespace-nowrap">{t("swap_cdt")}</span>
-            <Image src="/TOKEN CDT.png" alt="CDT Token" width={20} height={20} className="rounded-full" />
           </Link>
         </div>
 
