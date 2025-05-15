@@ -1057,44 +1057,37 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - Ahora con fecha */}
+        {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - REDISEÑADA */}
         <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
           <h2 className="text-xl font-semibold mb-4 text-center text-[#4ebd0a]">{t("next_claim")}</h2>
 
-          {/* Countdown grande */}
-          {nextClaimTime && (
-            <div className="text-4xl font-mono font-bold mb-3 text-center text-white">{timeRemaining}</div>
-          )}
-
           {/* Fecha y barra de progreso */}
           {nextClaimTime ? (
-            <>
-              <div className="flex flex-col items-center mb-5">
-                {/* Fecha del próximo claim */}
-                <div className="text-sm text-gray-400 mb-3">
-                  {nextClaimTime ? formatDate(nextClaimTime) : "Fecha no disponible"}
-                </div>
-
-                <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
-                  <div
-                    className="bg-[#4ebd0a] h-3 rounded-full"
-                    style={{
-                      width: `${
-                        nextClaimTime && lastClaimDate
-                          ? Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
-                              ),
-                            )
-                          : 0
-                      }%`,
-                    }}
-                  ></div>
-                </div>
+            <div className="flex flex-col items-center mb-5">
+              {/* Fecha del próximo claim */}
+              <div className="text-sm text-gray-400 mb-3">
+                {nextClaimTime ? formatDate(nextClaimTime) : "Fecha no disponible"}
               </div>
-            </>
+
+              <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
+                <div
+                  className="bg-[#4ebd0a] h-3 rounded-full"
+                  style={{
+                    width: `${
+                      nextClaimTime && lastClaimDate
+                        ? Math.min(
+                            100,
+                            Math.max(
+                              0,
+                              100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
+                            ),
+                          )
+                        : 0
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </div>
           ) : (
             <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
           )}
@@ -1107,15 +1100,15 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Botón de reclamar - MODIFICADO para integrar el contador */}
+          {/* Botón de reclamar - MODIFICADO para integrar el contador con texto blanco y más grande */}
           <button
             onClick={handleClaimRewards}
             disabled={isClaiming || !areRewardsClaimable}
-            className={`w-full px-4 py-3 rounded-full text-xl font-medium ${
+            className={`w-full px-4 py-4 rounded-full text-xl font-medium ${
               isClaiming
                 ? "bg-gray-700 cursor-not-allowed"
                 : !areRewardsClaimable
-                  ? "bg-[#4ebd0a] text-black"
+                  ? "bg-[#4ebd0a] text-white"
                   : "bg-[#ff1744] hover:bg-[#ff2954]"
             } transition-colors`}
           >
@@ -1137,7 +1130,7 @@ export default function Dashboard() {
                 {t("claiming")}
               </span>
             ) : !areRewardsClaimable ? (
-              <span className="flex items-center justify-center font-mono">{timeRemaining}</span>
+              <span className="flex items-center justify-center font-mono text-2xl">{timeRemaining}</span>
             ) : (
               t("claim_rewards")
             )}
