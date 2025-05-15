@@ -3,6 +3,7 @@ export type TranslationKey =
   | "welcome"
   | "hello"
   | "buy_cdt"
+  | "swap_wld_cdt"
   | "username_changes_title"
   | "username_changes_description"
   | "tribo_wallet"

@@ -1034,7 +1034,7 @@ export default function Dashboard() {
               <path d="M21 16v5h-5"></path>
               <path d="M15 15 3 3"></path>
             </svg>
-            <span className="whitespace-nowrap">SWAP WLD/CDT</span>
+            <span className="whitespace-nowrap">{t("swap_wld_cdt")}</span>
             <div className="flex items-center gap-1">
               <Image src="/TOKEN CDT.png" alt="CDT Token" width={24} height={24} className="rounded-full" />
               <svg
