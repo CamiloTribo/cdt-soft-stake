@@ -77,15 +77,34 @@ export async function POST(request: Request) {
 
     console.log("User data found:", userData) // Añadir log para depuración
 
-    // Enviar 1 CDT como regalo de bienvenida
-    const result = await sendRewards(wallet_address, 1)
+    // Implementar mecanismo de reintento para enviar recompensas
+    let result
+    let retryCount = 0
+    const maxRetries = 3
 
-    if (!result.success) {
+    while (retryCount < maxRetries) {
+      // Enviar 1 CDT como regalo de bienvenida
+      result = await sendRewards(wallet_address, 1)
+
+      if (result.success) {
+        break // Si tiene éxito, salir del bucle
+      } else if (result.error && result.error.includes("nonce too low")) {
+        // Si es un error de nonce, esperar un poco y reintentar
+        console.log(`Reintento ${retryCount + 1}/${maxRetries} debido a error de nonce`)
+        await new Promise((resolve) => setTimeout(resolve, 2000)) // Esperar 2 segundos
+        retryCount++
+      } else {
+        // Si es otro tipo de error, no reintentar
+        break
+      }
+    }
+
+    if (!result || !result.success) {
       return NextResponse.json(
         {
           success: false,
-          error: "Failed to send welcome gift",
-          details: result.error,
+          error: "Failed to send welcome gift after retries",
+          details: result?.error || "Unknown error",
         },
         { status: 400 },
       )

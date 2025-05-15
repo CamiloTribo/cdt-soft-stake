@@ -9,6 +9,10 @@ const CDT_CONTRACT_ADDRESS = "0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
 // ABI simplificado para el token CDT
 const CDT_ABI = ["function transfer(address to, uint256 amount) returns (bool)"]
 
+// Variable global para almacenar el último nonce utilizado
+let lastUsedNonce = -1
+let nonceUpdateTime = 0
+
 // Función para obtener el balance de CDT de una dirección
 export async function getCDTBalance(address: string): Promise<number> {
   console.log("Obteniendo balance real para:", address)
@@ -72,6 +76,53 @@ export async function getCDTBalance(address: string): Promise<number> {
   }
 }
 
+// Función para obtener el nonce actual con manejo de concurrencia
+async function getCurrentNonce(walletAddress: string): Promise<number> {
+  // Si el último nonce se actualizó hace menos de 2 segundos, incrementarlo en lugar de consultar
+  const now = Date.now()
+  if (lastUsedNonce !== -1 && now - nonceUpdateTime < 2000) {
+    lastUsedNonce++
+    console.log("Usando nonce incrementado:", lastUsedNonce)
+    return lastUsedNonce
+  }
+
+  // Obtener el nonce actual desde la blockchain
+  try {
+    const nonceResponse = await axios.post(
+      ALCHEMY_API_URL,
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_getTransactionCount",
+        params: [walletAddress, "pending"], // Usar "pending" en lugar de "latest"
+      },
+      {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      },
+    )
+
+    if (!nonceResponse.data || !nonceResponse.data.result) {
+      throw new Error("No se pudo obtener el nonce")
+    }
+
+    const nonce = Number.parseInt(nonceResponse.data.result, 16)
+
+    // Actualizar el nonce global
+    lastUsedNonce = nonce
+    nonceUpdateTime = now
+
+    console.log("Nonce obtenido de la blockchain:", nonce)
+    return nonce
+  } catch (error) {
+    console.error("Error al obtener nonce:", error)
+    throw error
+  }
+}
+
 // Función para enviar recompensas de staking usando la API de Alchemy directamente
 export async function sendRewards(
   toAddress: string,
@@ -106,20 +157,9 @@ export async function sendRewards(
       }
     }
 
-    // Obtener el nonce actual para la wallet central usando la API de Alchemy
-    const nonceResponse = await axios.post(ALCHEMY_API_URL, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "eth_getTransactionCount",
-      params: [wallet.address, "latest"],
-    })
-
-    if (!nonceResponse.data || !nonceResponse.data.result) {
-      throw new Error("No se pudo obtener el nonce")
-    }
-
-    const nonce = Number.parseInt(nonceResponse.data.result, 16)
-    console.log("Nonce actual:", nonce)
+    // Obtener el nonce actual con manejo de concurrencia
+    const nonce = await getCurrentNonce(wallet.address)
+    console.log("Nonce a utilizar:", nonce)
 
     // Obtener el gas price usando la API de Alchemy
     const gasPriceResponse = await axios.post(ALCHEMY_API_URL, {
@@ -173,7 +213,23 @@ export async function sendRewards(
       console.log("Transacción enviada. Hash:", txHash)
       return { success: true, txHash }
     } else if (sendResponse.data && sendResponse.data.error) {
-      throw new Error(`Error de Alchemy: ${JSON.stringify(sendResponse.data.error)}`)
+      // Si hay un error de nonce, intentar recuperar
+      const errorData = sendResponse.data.error
+      if (errorData && typeof errorData.message === "string" && errorData.message.includes("nonce too low")) {
+        console.log("Error de nonce detectado, actualizando nonce global")
+
+        // Forzar actualización del nonce
+        nonceUpdateTime = 0
+        await getCurrentNonce(wallet.address)
+
+        return {
+          success: false,
+          txHash: null,
+          error: `Error de nonce: ${JSON.stringify(errorData)}. Por favor, intenta nuevamente.`,
+        }
+      }
+
+      throw new Error(`Error de Alchemy: ${JSON.stringify(errorData)}`)
     }
 
     throw new Error("Respuesta inesperada de Alchemy")
