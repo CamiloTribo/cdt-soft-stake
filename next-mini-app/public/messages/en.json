@@ -176,5 +176,12 @@
   "country_updated": "Country updated successfully!",
   "error_updating_country": "Error updating country",
   "countries_using_app": "Countries using the app",
-  "country_optional": "Selecting a country is optional, but it helps us improve your experience"
+  "country_optional": "Selecting a country is optional, but it helps us improve your experience",
+
+  "welcome_gift_title": "Welcome Gift!",
+  "welcome_gift_description": "Thanks for joining Tribo Vault. Claim your 1 CDT welcome gift!",
+  "claim_welcome_gift": "Claim 1 CDT",
+  "claiming_welcome_gift": "Claiming...",
+  "welcome_gift_claimed": "Gift claimed successfully!",
+  "welcome_gift_error": "Error claiming gift"
 }

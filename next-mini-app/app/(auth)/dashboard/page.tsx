@@ -171,6 +171,11 @@ export default function Dashboard() {
   // Añadir un nuevo estado para controlar la animación
   const [showCdtRain, setShowCdtRain] = useState(false)
 
+  // Añadir estos estados al inicio del componente Dashboard, junto a los otros estados
+  const [showWelcomeGift, setShowWelcomeGift] = useState(false)
+  const [isClaimingWelcomeGift, setIsClaimingWelcomeGift] = useState(false)
+  const [welcomeGiftError, setWelcomeGiftError] = useState<string | null>(null)
+
   const { session, pay } = useWorldAuth()
   const translationValues = useTranslation() // Use a different name to avoid shadowing
   const { t: translation } = translationValues
@@ -422,6 +427,61 @@ export default function Dashboard() {
     }
   }, [fetchStakingData, fetchTokenPrice])
 
+  // Añadir este useEffect después de los otros useEffect
+  useEffect(() => {
+    const checkWelcomeGift = async () => {
+      const identifier = getUserIdentifier()
+      if (!identifier) return
+
+      // Verificar en localStorage si ya verificamos
+      const giftCheckKey = `tribo-welcome-gift-check-${identifier}`
+      const hasCheckedGift = localStorage.getItem(giftCheckKey)
+
+      if (hasCheckedGift) {
+        // Si ya verificamos antes y estaba reclamado, no mostrar nada
+        const giftClaimedKey = `tribo-welcome-gift-claimed-${identifier}`
+        const hasClaimedGift = localStorage.getItem(giftClaimedKey)
+        if (hasClaimedGift) {
+          return
+        }
+      }
+
+      try {
+        // Verificar en la base de datos si ya reclamó
+        const response = await fetch(`/api/welcome-gift?wallet_address=${identifier}`, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+
+          // Marcar que ya verificamos
+          localStorage.setItem(giftCheckKey, "true")
+
+          if (data.claimed) {
+            // Ya reclamó, guardar en localStorage
+            localStorage.setItem(`tribo-welcome-gift-claimed-${identifier}`, "true")
+          } else {
+            // No ha reclamado, mostrar modal
+            setShowWelcomeGift(true)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking welcome gift:", error)
+        // Si hay error, mostrar el modal por si acaso
+        setShowWelcomeGift(true)
+      }
+    }
+
+    // Solo verificar si el usuario está autenticado y tenemos su username
+    if (session && username) {
+      checkWelcomeGift()
+    }
+  }, [session, username, getUserIdentifier])
+
   // Modificar la función handleClaimRewards para activar la animación
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
@@ -474,6 +534,53 @@ export default function Dashboard() {
       setIsClaiming(false)
     }
   }, [getUserIdentifier, fetchStakingData, t])
+
+  // Añadir esta función para reclamar el regalo
+  const handleClaimWelcomeGift = async () => {
+    const identifier = getUserIdentifier()
+    if (!identifier) return
+
+    try {
+      setIsClaimingWelcomeGift(true)
+      setWelcomeGiftError(null)
+
+      const response = await fetch("/api/welcome-gift", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ wallet_address: identifier }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Marcar como reclamado en localStorage
+        localStorage.setItem(`tribo-welcome-gift-claimed-${identifier}`, "true")
+
+        // Actualizar estados
+        setShowWelcomeGift(false)
+
+        // Mostrar animación de celebración
+        setShowCdtRain(true)
+        setTimeout(() => {
+          setShowCdtRain(false)
+        }, 5000)
+
+        // Actualizar el balance después de un breve retraso
+        setTimeout(() => {
+          fetchStakingData()
+        }, 3000)
+      } else {
+        setWelcomeGiftError(data.error || t("welcome_gift_error"))
+      }
+    } catch (error) {
+      console.error("Error claiming welcome gift:", error)
+      setWelcomeGiftError(error instanceof Error ? error.message : t("welcome_gift_error"))
+    } finally {
+      setIsClaimingWelcomeGift(false)
+    }
+  }
 
   const handleUpdateStake = useCallback(async () => {
     const identifier = getUserIdentifier()
@@ -541,6 +648,7 @@ export default function Dashboard() {
 
       // SOLUCIÓN: Si tenemos un hash de transacción, SIEMPRE consideramos que fue exitosa
       // independientemente del campo success
+      // La transacción tiene un hash o success=true, lo que significa que se completó en la blockchain
       // La transacción tiene un hash o success=true, lo que significa que se completó en la blockchain
       if (hasHash || hasSuccess) {
         setTxHash(t("thanks_support"))
@@ -1260,6 +1368,33 @@ export default function Dashboard() {
         {showCdtRain && (
           <div className="cdt-rain-container">
             <CdtRain count={50} duration={5} />
+          </div>
+        )}
+
+        {showWelcomeGift && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 max-w-md w-full">
+              <h2 className="text-2xl font-semibold mb-4 text-white">{t("welcome_gift_title")}</h2>
+              <p className="text-gray-300 mb-6">{t("welcome_gift_description")}</p>
+
+              <button
+                onClick={handleClaimWelcomeGift}
+                disabled={isClaimingWelcomeGift}
+                className={`w-full px-4 py-3 rounded-full ${
+                  isClaimingWelcomeGift
+                    ? "bg-gray-700 cursor-not-allowed"
+                    : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+                } font-medium transition-colors`}
+              >
+                {isClaimingWelcomeGift ? t("claiming_welcome_gift") : t("claim_welcome_gift")}
+              </button>
+
+              {welcomeGiftError && (
+                <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-full">
+                  <p className="text-sm font-medium text-[#ff1744]">{welcomeGiftError}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
