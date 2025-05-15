@@ -6,9 +6,38 @@ import RoadmapTimeline from "@/src/components/RoadmapTimeline"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 
+// Función para generar el enlace a UNO correctamente
+function getUnoDeeplinkUrl({
+  fromToken,
+  toToken,
+}: {
+  fromToken?: string
+  toToken?: string
+}) {
+  const UNO_APP_ID = "app_a4f7f3e62c1de0b9490a5260cb390b56"
+  let path = `?tab=swap`
+
+  if (fromToken) {
+    path += `&fromToken=${fromToken}`
+  }
+
+  if (toToken) {
+    path += `&toToken=${toToken}`
+  }
+
+  const encodedPath = encodeURIComponent(path)
+  return `https://worldcoin.org/mini-app?app_id=${UNO_APP_ID}&path=${encodedPath}`
+}
+
 export default function ProyectoTriboPage() {
   const { t } = useTranslation()
   const [mounted, setMounted] = useState(false)
+
+  // Generar el enlace a UNO para el swap WLD/CDT
+  const unoSwapLink = getUnoDeeplinkUrl({
+    fromToken: "0x340f0eebd9a417b36eb5a5fba6a9fc9d8ffcb9f1", // WLD token
+    toToken: "0x1fa2f83ba2df61c3d370071d55daec05c1f82c5c", // CDT token
+  })
 
   useEffect(() => {
     setMounted(true)
@@ -113,16 +142,10 @@ export default function ProyectoTriboPage() {
           </div>
         </ProjectSection>
 
-        {/* Bebé TRIBO en cohete (segunda aparición) */}
+        {/* Espacio para el futuro mini mapa */}
         <div className="flex justify-center my-8">
-          <div className="w-48 h-48 relative animate-float">
-            <Image
-              src="/BEBE TRIBO EN COHETE DESPEGUE.png"
-              alt="Bebé TRIBO en cohete"
-              width={200}
-              height={200}
-              className="drop-shadow-[0_0_8px_rgba(255,165,0,0.5)] transform -scale-x-100" // Volteado horizontalmente
-            />
+          <div className="w-full h-48 bg-gray-800/50 rounded-xl border border-gray-700 flex items-center justify-center">
+            <p className="text-gray-400">Aquí irá el mapa de países TRIBO</p>
           </div>
         </div>
 
@@ -244,7 +267,7 @@ export default function ProyectoTriboPage() {
         {/* Llamada a la acción */}
         <div className="mt-10">
           <a
-            href="https://app.uniswap.org/#/swap?inputCurrency=0x340f0eebd9a417b36eb5a5fba6a9fc9d8ffcb9f1&outputCurrency=0x1fa2f83ba2df61c3d370071d55daec05c1f82c5c"
+            href={unoSwapLink}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-gradient-to-r from-[#4ebd0a] to-green-600 hover:from-green-600 hover:to-[#4ebd0a] text-black font-bold py-4 px-6 rounded-xl text-center text-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-[#4ebd0a]/30"
