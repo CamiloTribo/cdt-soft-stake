@@ -72,12 +72,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Obtener el username del usuario
-    const { data: userData } = await supabase
-      .from("users")
-      .select("username")
-      .eq("wallet_address", wallet_address)
-      .single()
+    // Obtener el username del usuario - Corregido para usar "address" en lugar de "wallet_address"
+    const { data: userData } = await supabase.from("users").select("username").eq("address", wallet_address).single()
+
+    console.log("User data found:", userData) // Añadir log para depuración
 
     // Enviar 1 CDT como regalo de bienvenida
     const result = await sendRewards(wallet_address, 1)
