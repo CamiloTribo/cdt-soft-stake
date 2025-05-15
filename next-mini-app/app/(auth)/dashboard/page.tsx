@@ -940,6 +940,7 @@ export default function Dashboard() {
         )}
 
         {/* Banner de concurso de referidos */}
+
         <Link
           href="/rankings?tab=referrals"
           className={`block mb-6 bg-gradient-to-r from-[#4ebd0a] to-[#3fa008] rounded-xl p-4 shadow-lg transition-all duration-300 ${
@@ -953,7 +954,6 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-black font-bold text-xl">🏆 {t("weekly_rewards")}</h3>
-              <p className="text-white text-sm mt-1">{t("join_referral_contest")}</p>
             </div>
             <div className="bg-white/20 rounded-full p-2">
               <svg
