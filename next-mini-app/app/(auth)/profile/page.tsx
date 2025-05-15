@@ -90,6 +90,7 @@ export default function Profile() {
 
       // Obtener el username y datos del usuario
       try {
+        console.log("Fetching user data for profile:", identifier)
         const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`, {
           cache: "no-store",
           headers: {
@@ -101,6 +102,8 @@ export default function Profile() {
 
         if (usernameResponse.ok) {
           const usernameData = await usernameResponse.json()
+          console.log("User data received in profile:", usernameData)
+
           if (usernameData.username) {
             setUsername(usernameData.username)
 
@@ -113,9 +116,14 @@ export default function Profile() {
 
             // Actualizar el país si existe
             if (usernameData.country) {
+              console.log("Country found in profile:", usernameData.country)
               setCountry(usernameData.country)
+            } else {
+              console.log("No country found in user data for profile")
             }
           }
+        } else {
+          console.error("Error response in profile:", await usernameResponse.text())
         }
       } catch (error) {
         console.error("Error fetching username:", error)

@@ -1,153 +1,103 @@
-// app/api/username/route.ts
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-// Crear cliente de Supabase directamente en este archivo
+// Crear cliente de Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Función para validar username
-function validateUsername(username: string): { valid: boolean; error?: string } {
-  // Eliminar espacios al inicio y final
-  const trimmedUsername = username.trim()
-
-  // Verificar longitud mínima (3 caracteres)
-  if (trimmedUsername.length < 3) {
-    return { valid: false, error: "El nombre de usuario debe tener al menos 3 caracteres" }
-  }
-
-  // Verificar longitud máxima (20 caracteres)
-  if (trimmedUsername.length > 20) {
-    return { valid: false, error: "El nombre de usuario no puede exceder los 20 caracteres" }
-  }
-
-  // Verificar que no contenga espacios
-  if (trimmedUsername.includes(" ")) {
-    return { valid: false, error: "El nombre de usuario no puede contener espacios" }
-  }
-
-  // Verificar que solo contenga caracteres alfanuméricos y algunos símbolos permitidos
-  const validCharsRegex = /^[a-zA-Z0-9_.-]+$/
-  if (!validCharsRegex.test(trimmedUsername)) {
-    return {
-      valid: false,
-      error: "El nombre de usuario solo puede contener letras, números, guiones, puntos y guiones bajos",
-    }
-  }
-
-  return { valid: true }
-}
-
-// GET: Verifica si el usuario tiene username y lo devuelve
 export async function GET(request: Request) {
   try {
-    const url = new URL(request.url)
-    const walletAddress = url.searchParams.get("wallet_address")
+    const { searchParams } = new URL(request.url)
+    const wallet_address = searchParams.get("wallet_address")
 
-    if (!walletAddress) {
-      return NextResponse.json({ error: "Se requiere dirección de wallet" }, { status: 400 })
+    if (!wallet_address) {
+      return NextResponse.json({ success: false, error: "Wallet address is required" }, { status: 400 })
     }
 
-    // Buscar directamente en la tabla users
-    const { data, error } = await supabase
+    // Obtener datos del usuario
+    const { data: userData, error } = await supabase
       .from("users")
-      .select("username, total_claimed, referral_count")
-      .eq("address", walletAddress)
-      .maybeSingle()
+      .select("id, username, total_claimed, referral_count, country") // Asegurarse de que country está incluido
+      .eq("address", wallet_address)
+      .single()
 
-    // Si hay un error o no hay datos, simplemente devolvemos hasUsername: false
-    // Esto permite que los nuevos usuarios continúen sin bloqueo
-    if (error || !data || !data.username) {
-      return NextResponse.json({ hasUsername: false, username: null })
+    if (error) {
+      console.error("Error fetching user data:", error)
+      return NextResponse.json({ success: false, error: "Error fetching user data" }, { status: 500 })
     }
 
+    // Si no hay datos, devolver un error
+    if (!userData) {
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
+    }
+
+    // Devolver los datos del usuario
     return NextResponse.json({
-      hasUsername: true,
-      username: data.username,
-      referralLink: `https://tribovault.com/ref/${data.username}`,
-      total_claimed: data.total_claimed || 0,
-      referral_count: data.referral_count || 0,
+      success: true,
+      username: userData.username,
+      total_claimed: userData.total_claimed || 0,
+      referral_count: userData.referral_count || 0,
+      country: userData.country || null, // Asegurarse de devolver el país
     })
   } catch (error) {
-    console.error("Error checking username:", error)
-    // En caso de error, también devolvemos hasUsername: false para evitar bloqueos
-    return NextResponse.json({ hasUsername: false, username: null })
+    console.error("Error in username API:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
+    )
   }
 }
 
-// POST: Registra un nuevo username
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { wallet_address, username } = body
 
     if (!wallet_address || !username) {
-      return NextResponse.json(
-        { success: false, error: "Se requiere dirección de wallet y nombre de usuario" },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Wallet address and username are required" }, { status: 400 })
     }
 
-    // Validar el username
-    const validation = validateUsername(username)
-    if (!validation.valid) {
-      return NextResponse.json({ success: false, error: validation.error }, { status: 400 })
-    }
-
-    // Verificar si el usuario ya existe
-    const { data: existingUser } = await supabase
+    // Verificar si el username ya está en uso
+    const { data: existingUser, error: checkError } = await supabase
       .from("users")
-      .select("username")
-      .eq("address", wallet_address)
+      .select("id")
+      .eq("username", username)
+      .neq("address", wallet_address)
       .maybeSingle()
 
-    // Si el usuario ya existe y tiene username, no permitimos cambiarlo
-    if (existingUser && existingUser.username) {
-      return NextResponse.json({ success: false, error: "Ya tienes un nombre de usuario registrado" }, { status: 400 })
+    if (checkError) {
+      console.error("Error checking existing username:", checkError)
+      return NextResponse.json({ success: false, error: "Error checking username" }, { status: 500 })
     }
 
-    // Verificar si el username ya está en uso (búsqueda case-insensitive)
-    const { data: existingUsername, error: usernameError } = await supabase
-      .from("users")
-      .select("username")
-      .ilike("username", username)
-      .maybeSingle()
-
-    if (usernameError) {
-      console.error("Error checking existing username:", usernameError)
+    if (existingUser) {
+      return NextResponse.json({ success: false, error: "Username already taken" }, { status: 400 })
     }
 
-    if (existingUsername) {
-      return NextResponse.json({ success: false, error: "Este nombre de usuario ya está en uso" }, { status: 400 })
-    }
+    // Actualizar el username del usuario
+    const { error: updateError } = await supabase.from("users").update({ username }).eq("address", wallet_address)
 
-    // Intentar insertar el usuario con el username
-    const { error: insertError } = await supabase.from("users").upsert(
-      [
-        {
-          address: wallet_address,
-          username: username,
-        },
-      ],
-      {
-        onConflict: "address", // Si hay conflicto en address, actualizar
-        ignoreDuplicates: false, // No ignorar duplicados
-      },
-    )
-
-    if (insertError) {
-      console.error("Error al registrar username:", insertError)
-      return NextResponse.json({ success: false, error: "Error al registrar nombre de usuario" }, { status: 500 })
+    if (updateError) {
+      console.error("Error updating username:", updateError)
+      return NextResponse.json({ success: false, error: "Error updating username" }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      message: "Nombre de usuario registrado correctamente",
-      referralLink: `https://tribovault.com/ref/${username}`,
+      message: "Username updated successfully",
     })
   } catch (error) {
     console.error("Error in username API:", error)
-    return NextResponse.json({ success: false, error: "Error al registrar nombre de usuario" }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
+    )
   }
 }

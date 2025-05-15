@@ -13,30 +13,49 @@ export default function Header() {
   const { t } = useTranslation()
   const [username, setUsername] = useState<string | null>(null)
   const [country, setCountry] = useState<string | null>(null)
+  // Eliminamos la variable isLoading que no se usa
 
-  // Obtener el username personalizado del usuario
+  // Obtener el username y país del usuario
   useEffect(() => {
-    const fetchUsername = async () => {
+    const fetchUserData = async () => {
       if (session?.user?.walletAddress) {
         try {
-          const response = await fetch(`/api/username?wallet_address=${session.user.walletAddress}`)
+          console.log("Fetching user data for:", session.user.walletAddress)
+          const response = await fetch(`/api/username?wallet_address=${session.user.walletAddress}`, {
+            cache: "no-store",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          })
+
           if (response.ok) {
             const data = await response.json()
+            console.log("User data received:", data)
+
             if (data.username) {
               setUsername(data.username)
-              // Obtener el país si existe
-              if (data.country) {
-                setCountry(data.country)
-              }
             }
+
+            // Establecer el país si existe
+            if (data.country) {
+              console.log("Country found:", data.country)
+              setCountry(data.country)
+            } else {
+              console.log("No country found in user data")
+              setCountry(null)
+            }
+          } else {
+            console.error("Error response:", await response.text())
           }
         } catch (error) {
-          console.error("Error fetching username:", error)
+          console.error("Error fetching user data:", error)
         }
       }
     }
 
-    fetchUsername()
+    fetchUserData()
   }, [session])
 
   return (
