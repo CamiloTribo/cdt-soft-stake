@@ -209,6 +209,14 @@ export default function Profile() {
     fetchUserData()
   }, [isAuthenticated, router, fetchUserData])
 
+  // Añadir este efecto después del useEffect existente
+  useEffect(() => {
+    // Actualizar la UI cuando cambia el país
+    if (country) {
+      console.log("País actualizado:", country)
+    }
+  }, [country])
+
   // Función para copiar el código de referido
   const copyReferralCode = () => {
     navigator.clipboard.writeText(username)
@@ -290,6 +298,7 @@ export default function Profile() {
       if (response.ok && data.success) {
         setCountryUpdateSuccess(true)
         setTimeout(() => setCountryUpdateSuccess(false), 3000)
+        // No es necesario actualizar el estado country aquí porque ya se actualizó en el selector
       } else {
         setCountryUpdateError(data.error || t("error_updating_country"))
       }

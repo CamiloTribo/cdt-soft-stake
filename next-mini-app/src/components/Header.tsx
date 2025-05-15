@@ -6,11 +6,13 @@ import { LanguageSelector } from "./LanguageSelector"
 import { useTranslation } from "./TranslationProvider"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { CountryFlag } from "./CountryFlag"
 
 export default function Header() {
   const { signOut, session } = useWorldAuth()
   const { t } = useTranslation()
   const [username, setUsername] = useState<string | null>(null)
+  const [country, setCountry] = useState<string | null>(null)
 
   // Obtener el username personalizado del usuario
   useEffect(() => {
@@ -22,6 +24,10 @@ export default function Header() {
             const data = await response.json()
             if (data.username) {
               setUsername(data.username)
+              // Obtener el país si existe
+              if (data.country) {
+                setCountry(data.country)
+              }
             }
           }
         } catch (error) {
@@ -50,8 +56,8 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <LanguageSelector />
           {username && (
-            <span className="text-sm bg-gray-800 px-3 py-1 rounded-full text-white truncate max-w-[150px]">
-              @{username}
+            <span className="text-sm bg-gray-800 px-3 py-1 rounded-full text-white truncate max-w-[150px] flex items-center">
+              {country && <CountryFlag countryCode={country} className="mr-2" />}@{username}
             </span>
           )}
           {session && (
