@@ -185,7 +185,7 @@ export default function Dashboard() {
   const [isUpdatingCountry, setIsUpdatingCountry] = useState(false)
   const [countryUpdateError, setCountryUpdateError] = useState<string | null>(null)
 
-  // Añadir este estado para las recompensas en tiempo real
+  // Estado para las recompensas en tiempo real
   const [realtimeRewards, setRealtimeRewards] = useState(0)
 
   const { session, pay } = useWorldAuth()
@@ -252,18 +252,20 @@ export default function Dashboard() {
 
   // Función para calcular recompensas en tiempo real
   const calculateRealtimeRewards = useCallback(() => {
-    if (!lastClaimDate || !stakedAmount) return pendingRewards
+    if (!lastClaimDate || !stakedAmount) return 0
 
     const now = new Date()
     const elapsedMs = now.getTime() - lastClaimDate.getTime()
     const dayFraction = elapsedMs / (24 * 60 * 60 * 1000)
 
-    // Calcular recompensas acumuladas (0.1% diario)
-    const accumulatedRewards = stakedAmount * 0.001 * dayFraction
+    // Si ya pasó el tiempo de claim (24h), mostrar las recompensas completas
+    if (nextClaimTime && now >= nextClaimTime) {
+      return pendingRewards
+    }
 
-    // Limitar al máximo de pendingRewards para evitar discrepancias con el backend
-    return Math.min(pendingRewards, accumulatedRewards)
-  }, [lastClaimDate, stakedAmount, pendingRewards])
+    // Calcular recompensas acumuladas (0.1% diario)
+    return stakedAmount * 0.001 * dayFraction
+  }, [lastClaimDate, stakedAmount, pendingRewards, nextClaimTime])
 
   // Función para obtener el precio del token
   const fetchTokenPrice = useCallback(async () => {
@@ -844,6 +846,15 @@ export default function Dashboard() {
   // URL del topic de sorteos en Telegram
   const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/10775"
 
+  // Verificar si las recompensas están disponibles para reclamar
+  const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
+
+  // Formatear las recompensas en tiempo real
+  const formattedRealtimeRewards = {
+    integer: Math.floor(realtimeRewards),
+    decimal: (realtimeRewards - Math.floor(realtimeRewards)).toFixed(6),
+  }
+
   return (
     // FIX 1: Añadir clase overflow-hidden para evitar scroll horizontal y mantener contenido fijo
     <div className="max-w-4xl mx-auto relative overflow-hidden">
@@ -870,6 +881,17 @@ export default function Dashboard() {
           bottom: 0;
           z-index: 1000;
           overflow: hidden;
+        }
+        
+        /* Animación para el contador de recompensas */
+        @keyframes pulse-green {
+          0% { color: #4ebd0a; }
+          50% { color: #5fde0b; }
+          100% { color: #4ebd0a; }
+        }
+        
+        .rewards-counter {
+          animation: pulse-green 2s infinite;
         }
       `}</style>
 
@@ -1184,35 +1206,44 @@ export default function Dashboard() {
           {/* Cantidad a reclamar - MODIFICADA para mostrar recompensas en tiempo real */}
           <div className="text-center mb-5">
             <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
-            <p className="text-4xl font-bold text-white">
-              {lastClaimDate ? Math.floor(realtimeRewards).toLocaleString() : pendingRewards.toLocaleString()} CDT
-            </p>
-            {lastClaimDate && (
-              <p className="text-sm text-[#4ebd0a] mt-1 animate-pulse">
-                +{(realtimeRewards - Math.floor(realtimeRewards)).toFixed(6)} CDT
-              </p>
-            )}
+            <p className="text-4xl font-bold text-white">{formattedRealtimeRewards.integer} CDT</p>
+            <p className="text-sm text-[#4ebd0a] mt-1 rewards-counter">+{formattedRealtimeRewards.decimal} CDT</p>
           </div>
 
           {/* Botón de reclamar - MODIFICADO para integrar el contador */}
           <button
             onClick={handleClaimRewards}
-            disabled={isClaiming || pendingRewards <= 0}
+            disabled={isClaiming || pendingRewards <= 0 || !areRewardsClaimable}
             className={`w-full px-4 py-3 rounded-full ${
               isClaiming
                 ? "bg-gray-700 cursor-not-allowed"
                 : pendingRewards <= 0
                   ? "bg-gray-700 cursor-not-allowed"
-                  : nextClaimTime && new Date() < nextClaimTime
+                  : !areRewardsClaimable
                     ? "bg-gray-800 hover:bg-gray-700 cursor-not-allowed"
                     : "bg-[#ff1744] hover:bg-[#ff2954]"
             } text-white font-medium transition-colors`}
           >
             {isClaiming ? (
-              t("claiming")
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                {t("claiming")}
+              </span>
             ) : pendingRewards <= 0 ? (
               t("no_rewards")
-            ) : nextClaimTime && new Date() < nextClaimTime ? (
+            ) : !areRewardsClaimable ? (
               <span className="flex items-center justify-center">
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
