@@ -31,28 +31,16 @@ export default function ProyectoTriboPage() {
           <p className="text-gray-200 leading-relaxed">{t("mission_text")}</p>
         </ProjectSection>
 
-        {/* Ilustración de cohete */}
+        {/* Ilustración de cohete - Bebé TRIBO */}
         <div className="flex justify-center my-8">
-          <div className="w-20 h-20 relative animate-bounce-slow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="80"
-              height="80"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#4ebd0a"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="drop-shadow-[0_0_8px_rgba(78,189,10,0.5)]"
-            >
-              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
-              <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
-              <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
-              <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
-            </svg>
-            {/* Efecto de fuego del cohete */}
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gradient-to-t from-orange-500 via-yellow-400 to-transparent rounded-full opacity-75 animate-pulse" />
+          <div className="w-48 h-48 relative animate-bounce-slow">
+            <Image
+              src="/BEBE TRIBO EN COHETE DESPEGUE.png"
+              alt="Bebé TRIBO en cohete"
+              width={200}
+              height={200}
+              className="drop-shadow-[0_0_8px_rgba(255,165,0,0.5)]"
+            />
           </div>
         </div>
 
@@ -79,16 +67,33 @@ export default function ProyectoTriboPage() {
           <p className="text-gray-200 mb-4">{t("roadmap_intro")}</p>
           <RoadmapTimeline />
 
-          {/* Nuevo apartado para roadmaps completos */}
-          <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-            <h3 className="text-lg font-semibold text-[#4ebd0a] mb-2">{t("view_full_roadmap")}</h3>
-            <p className="text-gray-300 mb-3">{t("full_roadmap_description")}</p>
+          {/* Nuevo apartado para roadmaps completos - Mejorado */}
+          <div className="mt-8 p-6 bg-gradient-to-br from-gray-800/70 to-gray-900/70 rounded-xl border border-gray-700 shadow-lg">
+            <h3 className="text-xl font-bold text-[#4ebd0a] mb-3">{t("view_full_roadmap")}</h3>
+            <p className="text-gray-300 mb-4">{t("full_roadmap_description")}</p>
             <a
               href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribocdt.com"}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-[#4ebd0a]/20"
+              className="group flex items-center justify-center gap-3 bg-gradient-to-r from-[#4ebd0a]/90 to-green-600/90 hover:from-[#4ebd0a] hover:to-green-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-[#4ebd0a]/30"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform duration-300 group-hover:rotate-12"
+              >
+                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                <path d="M12 8v8" />
+                <path d="M8 12h8" />
+              </svg>
+              <span className="text-lg">tribocdt.com</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -99,36 +104,25 @@ export default function ProyectoTriboPage() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-[#4ebd0a]"
+                className="transition-transform duration-300 group-hover:translate-x-1"
               >
-                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
-                <path d="M12 8v8" />
-                <path d="M8 12h8" />
+                <path d="M7 7h10v10" />
+                <path d="M7 17 17 7" />
               </svg>
-              tribocdt.com
             </a>
           </div>
         </ProjectSection>
 
-        {/* Ilustración de gráfico creciente */}
+        {/* Bebé TRIBO en cohete (segunda aparición) */}
         <div className="flex justify-center my-8">
-          <div className="w-20 h-20 relative">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="80"
-              height="80"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#4ebd0a"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="drop-shadow-[0_0_8px_rgba(78,189,10,0.5)]"
-            >
-              <path d="M3 3v18h18" />
-              <path d="m19 9-5 5-4-4-3 3" />
-              <path d="M14 9h5v5" />
-            </svg>
+          <div className="w-48 h-48 relative animate-float">
+            <Image
+              src="/BEBE TRIBO EN COHETE DESPEGUE.png"
+              alt="Bebé TRIBO en cohete"
+              width={200}
+              height={200}
+              className="drop-shadow-[0_0_8px_rgba(255,165,0,0.5)] transform -scale-x-100" // Volteado horizontalmente
+            />
           </div>
         </div>
 
@@ -224,7 +218,7 @@ export default function ProyectoTriboPage() {
               <p className="text-gray-200 leading-relaxed">{t("contract_upgrade")}</p>
             </div>
             <div className="flex-shrink-0">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4ebd0a] to-green-700 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4ebd0a] to-green-600 flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="32"
