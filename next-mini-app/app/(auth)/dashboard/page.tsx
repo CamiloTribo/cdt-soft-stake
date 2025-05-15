@@ -851,13 +851,6 @@ export default function Dashboard() {
   // Verificar si las recompensas están disponibles para reclamar
   const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
 
-  // Formatear las recompensas en tiempo real
-  // Eliminar esta línea:
-  // const formattedRealtimeRewards = {
-  //   integer: Math.floor(realtimeRewards),
-  //   decimal: (realtimeRewards - Math.floor(realtimeRewards)).toFixed(6),
-  // }
-
   return (
     // FIX 1: Añadir clase overflow-hidden para evitar scroll horizontal y mantener contenido fijo
     <div className="max-w-4xl mx-auto relative overflow-hidden">
@@ -1039,7 +1032,12 @@ export default function Dashboard() {
         <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
           <h2 className="text-xl font-semibold mb-4 text-center text-[#4ebd0a]">{t("next_claim")}</h2>
 
-          {/* Countdown con barra */}
+          {/* Countdown grande */}
+          {nextClaimTime && (
+            <div className="text-4xl font-mono font-bold mb-3 text-center text-white">{timeRemaining}</div>
+          )}
+
+          {/* Fecha y barra de progreso */}
           {nextClaimTime ? (
             <>
               <div className="flex flex-col items-center mb-5">
@@ -1520,6 +1518,13 @@ export default function Dashboard() {
             </button>
 
             {txHash && !txError && isSendingCDT === false && (
+              <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-full">
+                <p className="text-sm font-medium text-[#4ebd0a]">{txHash}</p>
+                <p className="text-xs mt-1 text-[#4ebd0a]">{t("reward_message")}</p>
+              </div>
+            )}
+
+            {txError && isSendingCDT === false && (
               <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-full">
                 <p className="text-sm font-medium text-[#ff1744]">{t("error_sending")}</p>
                 <p className="text-xs mt-1 text-[#ff1744]">{txError}</p>
