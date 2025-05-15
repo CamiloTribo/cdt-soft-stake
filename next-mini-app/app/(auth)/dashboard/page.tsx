@@ -1061,6 +1061,42 @@ export default function Dashboard() {
         <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
           <h2 className="text-xl font-semibold mb-4 text-center text-[#4ebd0a]">{t("next_claim")}</h2>
 
+          {/* Botón de reclamar - MOVIDO ARRIBA */}
+          <button
+            onClick={handleClaimRewards}
+            disabled={isClaiming || !areRewardsClaimable}
+            className={`w-full px-4 py-4 rounded-full text-xl font-medium mb-5 ${
+              isClaiming
+                ? "bg-gray-700 cursor-not-allowed"
+                : !areRewardsClaimable
+                  ? "bg-[#4ebd0a] text-white"
+                  : "bg-[#ff1744] hover:bg-[#ff2954]"
+            } transition-colors`}
+          >
+            {isClaiming ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                {t("claiming")}
+              </span>
+            ) : !areRewardsClaimable ? (
+              <span className="flex items-center justify-center font-mono text-2xl">{timeRemaining}</span>
+            ) : (
+              t("claim_rewards")
+            )}
+          </button>
+
           {/* Fecha y barra de progreso */}
           {nextClaimTime ? (
             <div className="flex flex-col items-center mb-5">
@@ -1099,42 +1135,6 @@ export default function Dashboard() {
               {realtimeRewards.toFixed(6)} <span className="text-white">CDT</span>
             </p>
           </div>
-
-          {/* Botón de reclamar - MODIFICADO para integrar el contador con texto blanco y más grande */}
-          <button
-            onClick={handleClaimRewards}
-            disabled={isClaiming || !areRewardsClaimable}
-            className={`w-full px-4 py-4 rounded-full text-xl font-medium ${
-              isClaiming
-                ? "bg-gray-700 cursor-not-allowed"
-                : !areRewardsClaimable
-                  ? "bg-[#4ebd0a] text-white"
-                  : "bg-[#ff1744] hover:bg-[#ff2954]"
-            } transition-colors`}
-          >
-            {isClaiming ? (
-              <span className="flex items-center justify-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                {t("claiming")}
-              </span>
-            ) : !areRewardsClaimable ? (
-              <span className="flex items-center justify-center font-mono text-2xl">{timeRemaining}</span>
-            ) : (
-              t("claim_rewards")
-            )}
-          </button>
 
           {/* Mensajes de éxito/error para claim */}
           {claimSuccess && !claimError && !isClaiming && (
