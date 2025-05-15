@@ -182,5 +182,9 @@
   "claim_welcome_gift": "Reclamar 1 CDT",
   "claiming_welcome_gift": "Reclamando...",
   "welcome_gift_claimed": "¡Regalo reclamado correctamente!",
-  "welcome_gift_error": "Error al reclamar el regalo"
+  "welcome_gift_error": "Error al reclamar el regalo",
+  "select_country_title": "¡Selecciona tu país!",
+  "select_country_description": "Ayúdanos a mejorar tu experiencia seleccionando tu país. Esto nos permite personalizar contenido y conectarte con otros usuarios de tu región.",
+  "remind_later": "Recordar más tarde",
+  "save_country": "Guardar país"
 }

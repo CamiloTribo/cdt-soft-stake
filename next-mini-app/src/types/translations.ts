@@ -226,3 +226,7 @@ export type TranslationKey =
   | "claiming_welcome_gift"
   | "welcome_gift_claimed"
   | "welcome_gift_error"
+  | "select_country_title"
+  | "select_country_description"
+  | "remind_later"
+  | "save_country"

@@ -13,6 +13,7 @@ import Link from "next/link"
 import CdtRain from "../../../src/components/CdtRain"
 import CdtButtonRain from "../../../src/components/CdtButtonRain"
 import { CountryFlag } from "../../../src/components/CountryFlag"
+import { CountrySelector } from "../../../src/components/CountrySelector"
 
 // Función para generar el enlace a UNO con parámetros específicos para swap
 function getUnoDeeplinkUrl() {
@@ -178,6 +179,11 @@ export default function Dashboard() {
   const [showWelcomeGift, setShowWelcomeGift] = useState(false)
   const [isClaimingWelcomeGift, setIsClaimingWelcomeGift] = useState(false)
   const [welcomeGiftError, setWelcomeGiftError] = useState<string | null>(null)
+
+  // Añadir este estado junto a los otros estados al inicio del componente
+  const [showCountryModal, setShowCountryModal] = useState(false)
+  const [isUpdatingCountry, setIsUpdatingCountry] = useState(false)
+  const [countryUpdateError, setCountryUpdateError] = useState<string | null>(null)
 
   const { session, pay } = useWorldAuth()
   const translationValues = useTranslation() // Use a different name to avoid shadowing
@@ -434,7 +440,7 @@ export default function Dashboard() {
     }
   }, [fetchStakingData, fetchTokenPrice])
 
-  // Añadir este useEffect después de los otros useEffect
+  // Añadir este useEffect after de los otros useEffect
   useEffect(() => {
     const checkWelcomeGift = async () => {
       const identifier = getUserIdentifier()
@@ -488,6 +494,70 @@ export default function Dashboard() {
       checkWelcomeGift()
     }
   }, [session, username, getUserIdentifier])
+
+  // MODIFICADO: Actualizado el useEffect para que siempre muestre el modal si no hay país seleccionado
+  useEffect(() => {
+    const checkCountrySelection = async () => {
+      const identifier = getUserIdentifier()
+      if (!identifier) return
+
+      // Si ya tiene país, no mostrar modal
+      if (country) {
+        return
+      }
+
+      // Si no tiene país, mostrar el modal siempre (obligatorio)
+      setShowCountryModal(true)
+    }
+
+    // Solo verificar si el usuario está autenticado y tenemos su username
+    if (session && username) {
+      checkCountrySelection()
+    }
+  }, [session, username, country, getUserIdentifier])
+
+  // Añadir esta función para guardar el país seleccionado
+  const handleSaveCountry = async (selectedCountry: string) => {
+    const identifier = getUserIdentifier()
+    if (!identifier) return
+
+    try {
+      setIsUpdatingCountry(true)
+      setCountryUpdateError(null)
+
+      const response = await fetch("/api/update-country", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: identifier,
+          country: selectedCountry,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Actualizar el estado local
+        setCountry(selectedCountry)
+
+        // Marcar como visto en localStorage
+        const countryModalKey = `tribo-country-modal-${identifier}`
+        localStorage.setItem(countryModalKey, "true")
+
+        // Cerrar el modal
+        setShowCountryModal(false)
+      } else {
+        setCountryUpdateError(data.error || t("error_updating_country"))
+      }
+    } catch (error) {
+      console.error("Error updating country:", error)
+      setCountryUpdateError(t("error_updating_country"))
+    } finally {
+      setIsUpdatingCountry(false)
+    }
+  }
 
   // Modificar la función handleClaimRewards para activar la animación
   const handleClaimRewards = useCallback(async () => {
@@ -842,8 +912,7 @@ export default function Dashboard() {
               </h2>
               {username && (
                 <p className="text-white text-xl mt-1 flex items-center">
-                  {t("hello")},{" "}
-                  {country && <CountryFlag countryCode={country} className="mx-1" />}
+                  {t("hello")}, {country && <CountryFlag countryCode={country} className="mx-1" />}
                   <span className="font-bold text-[#4ebd0a]">{username}</span>
                 </p>
               )}
@@ -1403,6 +1472,40 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-[#ff1744]">{welcomeGiftError}</p>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+        {showCountryModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 max-w-md w-full">
+              <h2 className="text-2xl font-semibold mb-4 text-white">{t("select_country_title")}</h2>
+              <p className="text-gray-300 mb-6">{t("select_country_description")}</p>
+
+              <CountrySelector value={country} onChangeAction={(value) => handleSaveCountry(value)} className="mb-6" />
+
+              {countryUpdateError && (
+                <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-full">
+                  <p className="text-sm font-medium text-[#ff1744]">{countryUpdateError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    const identifier = getUserIdentifier()
+                    if (identifier) {
+                      localStorage.setItem(`tribo-country-modal-${identifier}`, "true")
+                    }
+                    setShowCountryModal(false)
+                  }}
+                  disabled={isUpdatingCountry}
+                  className={`flex-1 px-4 py-3 rounded-full ${
+                    isUpdatingCountry ? "bg-gray-600 cursor-not-allowed" : "bg-gray-800 hover:bg-gray-700"
+                  } text-white font-medium`}
+                >
+                  {t("remind_later")}
+                </button>
+              </div>
             </div>
           </div>
         )}

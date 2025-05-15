@@ -183,5 +183,10 @@
   "claim_welcome_gift": "Claim 1 CDT",
   "claiming_welcome_gift": "Claiming...",
   "welcome_gift_claimed": "Gift claimed successfully!",
-  "welcome_gift_error": "Error claiming gift"
+  "welcome_gift_error": "Error claiming gift",
+
+  "select_country_title": "Select Your Country!",
+  "select_country_description": "Help us improve your experience by selecting your country. This allows us to personalize content and connect you with other users from your region.",
+  "remind_later": "Remind me later",
+  "save_country": "Save country"
 }
