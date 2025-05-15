@@ -4,7 +4,6 @@ import { useTranslation } from "@/src/components/TranslationProvider"
 import ProjectSection from "@/src/components/ProjectSection"
 import RoadmapTimeline from "@/src/components/RoadmapTimeline"
 import Image from "next/image"
-import Link from "next/link"
 import { useEffect, useState } from "react"
 
 export default function ProyectoTriboPage() {
@@ -32,6 +31,31 @@ export default function ProyectoTriboPage() {
           <p className="text-gray-200 leading-relaxed">{t("mission_text")}</p>
         </ProjectSection>
 
+        {/* Ilustración de cohete */}
+        <div className="flex justify-center my-8">
+          <div className="w-20 h-20 relative animate-bounce-slow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="80"
+              height="80"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#4ebd0a"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="drop-shadow-[0_0_8px_rgba(78,189,10,0.5)]"
+            >
+              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+              <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+              <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+              <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+            </svg>
+            {/* Efecto de fuego del cohete */}
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gradient-to-t from-orange-500 via-yellow-400 to-transparent rounded-full opacity-75 animate-pulse" />
+          </div>
+        </div>
+
         {/* ¿Qué es CDT? */}
         <ProjectSection title={t("what_is_cdt")}>
           <div className="flex flex-col md:flex-row gap-6 items-center">
@@ -54,7 +78,59 @@ export default function ProyectoTriboPage() {
         <ProjectSection title={t("our_roadmap")}>
           <p className="text-gray-200 mb-4">{t("roadmap_intro")}</p>
           <RoadmapTimeline />
+
+          {/* Nuevo apartado para roadmaps completos */}
+          <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+            <h3 className="text-lg font-semibold text-[#4ebd0a] mb-2">{t("view_full_roadmap")}</h3>
+            <p className="text-gray-300 mb-3">{t("full_roadmap_description")}</p>
+            <a
+              href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribocdt.com"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-[#4ebd0a]/20"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#4ebd0a]"
+              >
+                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                <path d="M12 8v8" />
+                <path d="M8 12h8" />
+              </svg>
+              tribocdt.com
+            </a>
+          </div>
         </ProjectSection>
+
+        {/* Ilustración de gráfico creciente */}
+        <div className="flex justify-center my-8">
+          <div className="w-20 h-20 relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="80"
+              height="80"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#4ebd0a"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="drop-shadow-[0_0_8px_rgba(78,189,10,0.5)]"
+            >
+              <path d="M3 3v18h18" />
+              <path d="m19 9-5 5-4-4-3 3" />
+              <path d="M14 9h5v5" />
+            </svg>
+          </div>
+        </div>
 
         {/* Comunidad TRIBO */}
         <ProjectSection title={t("join_tribe")}>
@@ -173,14 +249,14 @@ export default function ProyectoTriboPage() {
 
         {/* Llamada a la acción */}
         <div className="mt-10">
-          <Link
-            href={process.env.NEXT_PUBLIC_BUY_CDT_URL || "#"}
+          <a
+            href="https://app.uniswap.org/#/swap?inputCurrency=0x340f0eebd9a417b36eb5a5fba6a9fc9d8ffcb9f1&outputCurrency=0x1fa2f83ba2df61c3d370071d55daec05c1f82c5c"
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-gradient-to-r from-[#4ebd0a] to-green-600 hover:from-green-600 hover:to-[#4ebd0a] text-black font-bold py-4 px-6 rounded-xl text-center text-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-[#4ebd0a]/30"
           >
             {t("swap_wld_cdt")}
-          </Link>
+          </a>
           <p className="text-center text-gray-400 mt-3 text-sm">{t("invest_future")}</p>
         </div>
       </div>

@@ -268,3 +268,5 @@ export type TranslationKey =
   | "token_utilities"
   | "new_integrations"
   | "global_expansion"
+  | "view_full_roadmap"
+  | "full_roadmap_description"
