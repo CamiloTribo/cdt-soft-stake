@@ -1081,15 +1081,13 @@ export default function Dashboard() {
           {/* Botón de reclamar - MODIFICADO para integrar el contador */}
           <button
             onClick={handleClaimRewards}
-            disabled={isClaiming || pendingRewards <= 0 || !areRewardsClaimable}
+            disabled={isClaiming || !areRewardsClaimable}
             className={`w-full px-4 py-3 rounded-full text-xl font-medium ${
               isClaiming
                 ? "bg-gray-700 cursor-not-allowed"
-                : pendingRewards <= 0
-                  ? "bg-gray-700 cursor-not-allowed"
-                  : !areRewardsClaimable
-                    ? "bg-[#4ebd0a] text-black"
-                    : "bg-[#ff1744] hover:bg-[#ff2954]"
+                : !areRewardsClaimable
+                  ? "bg-[#4ebd0a] text-black"
+                  : "bg-[#ff1744] hover:bg-[#ff2954]"
             } transition-colors`}
           >
             {isClaiming ? (
@@ -1109,8 +1107,6 @@ export default function Dashboard() {
                 </svg>
                 {t("claiming")}
               </span>
-            ) : pendingRewards <= 0 ? (
-              t("no_rewards")
             ) : !areRewardsClaimable ? (
               <span className="flex items-center justify-center font-mono">{timeRemaining}</span>
             ) : (
