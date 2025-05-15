@@ -12,6 +12,7 @@ import Link from "next/link"
 // Corregir la ruta de importación para que apunte a src/components
 import CdtRain from "../../../src/components/CdtRain"
 import CdtButtonRain from "../../../src/components/CdtButtonRain"
+import { CountryFlag } from "../../../src/components/CountryFlag"
 
 // Función para generar el enlace a UNO con parámetros específicos para swap
 function getUnoDeeplinkUrl() {
@@ -141,6 +142,8 @@ export default function Dashboard() {
   })
   // Estado para el total claimed
   const [totalClaimed, setTotalClaimed] = useState(0)
+  // Estado para el país
+  const [country, setCountry] = useState("")
 
   // Estado para controlar si es la primera visita
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -337,6 +340,10 @@ export default function Dashboard() {
               setUsername(usernameData.username)
               // Obtener el total claimed
               setTotalClaimed(usernameData.total_claimed || 0)
+              // Obtener el país si existe
+              if (usernameData.country) {
+                setCountry(usernameData.country)
+              }
             }
           }
         } catch (error) {
@@ -791,46 +798,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* NUEVO: Banner de sorteos diarios con animación de lluvia de tokens CDT */}
-        <Link
-          href={telegramGiveawayUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`block mb-6 bg-gradient-to-r from-[#ff1744] to-[#ff2954] rounded-xl p-4 shadow-lg transition-all duration-300 relative overflow-hidden ${
-            isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
-          }`}
-          onMouseEnter={() => setIsDailyGiveawayHovered(true)}
-          onMouseLeave={() => setIsDailyGiveawayHovered(false)}
-          onTouchStart={() => setIsDailyGiveawayHovered(true)}
-          onTouchEnd={() => setIsDailyGiveawayHovered(false)}
-        >
-          {/* Componente de lluvia de tokens CDT - ahora siempre activo */}
-          <CdtButtonRain containerClassName="rounded-xl" />
-
-          <div className="flex items-center justify-between relative z-10">
-            <div>
-              <h3 className="text-black font-bold text-xl">{t("daily_giveaway")}</h3>
-              <p className="text-white text-sm mt-1">{t("join_daily_giveaway")}</p>
-            </div>
-            <div className="bg-white/20 rounded-full p-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isDailyGiveawayHovered ? "translate-x-1" : ""}`}
-              >
-                <path d="m9 18 6-6-6-6"></path>
-              </svg>
-            </div>
-          </div>
-        </Link>
-
         {/* Banner de concurso de referidos */}
         <Link
           href="/rankings?tab=referrals"
@@ -874,8 +841,10 @@ export default function Dashboard() {
                 Tribo <span className="text-[#4ebd0a]">Vault</span>
               </h2>
               {username && (
-                <p className="text-white text-xl mt-1">
-                  {t("hello")}, <span className="font-bold text-[#4ebd0a]">{username}</span>
+                <p className="text-white text-xl mt-1 flex items-center">
+                  {t("hello")},{" "}
+                  {country && <CountryFlag countryCode={country} className="mx-1" />}
+                  <span className="font-bold text-[#4ebd0a]">{username}</span>
                 </p>
               )}
             </div>
@@ -1332,6 +1301,46 @@ export default function Dashboard() {
             <Image src="/TOKEN CDT.png" alt="CDT Token" width={20} height={20} className="rounded-full" />
           </Link>
         </div>
+
+        {/* NUEVO: Banner de sorteos diarios con animación de lluvia de tokens CDT - MOVIDO AQUÍ */}
+        <Link
+          href={telegramGiveawayUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`block mb-6 bg-gradient-to-r from-[#ff1744] to-[#ff2954] rounded-xl p-4 shadow-lg transition-all duration-300 relative overflow-hidden ${
+            isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
+          }`}
+          onMouseEnter={() => setIsDailyGiveawayHovered(true)}
+          onMouseLeave={() => setIsDailyGiveawayHovered(false)}
+          onTouchStart={() => setIsDailyGiveawayHovered(true)}
+          onTouchEnd={() => setIsDailyGiveawayHovered(false)}
+        >
+          {/* Componente de lluvia de tokens CDT - ahora siempre activo */}
+          <CdtButtonRain containerClassName="rounded-xl" />
+
+          <div className="flex items-center justify-between relative z-10">
+            <div>
+              <h3 className="text-black font-bold text-xl">{t("daily_giveaway")}</h3>
+              <p className="text-white text-sm mt-1">{t("join_daily_giveaway")}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isDailyGiveawayHovered ? "translate-x-1" : ""}`}
+              >
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </div>
+          </div>
+        </Link>
 
         {/* Sección de propina - Movida al final */}
         <div className="mb-6">

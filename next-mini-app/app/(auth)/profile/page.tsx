@@ -384,32 +384,6 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Nuevo: Selector de país */}
-          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-3">{t("select_your_country")}</h4>
-            <p className="text-sm text-gray-300 mb-4">{t("country_selection_description")}</p>
-
-            <div className="mb-4">
-              <CountrySelector value={country} onChangeAction={setCountry} className="w-full" />
-            </div>
-
-            <button
-              onClick={handleUpdateCountry}
-              disabled={isUpdatingCountry || !country}
-              className={`w-full px-4 py-2 rounded-full ${
-                isUpdatingCountry || !country
-                  ? "bg-gray-700 cursor-not-allowed"
-                  : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
-              } font-medium transition-colors`}
-            >
-              {isUpdatingCountry ? t("updating") : t("update_country")}
-            </button>
-
-            {countryUpdateSuccess && <p className="text-sm text-[#4ebd0a] mt-2 text-center">{t("country_updated")}</p>}
-
-            {countryUpdateError && <p className="text-sm text-red-500 mt-2 text-center">{countryUpdateError}</p>}
-          </div>
-
           {/* Balance Total */}
           <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
             <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">{t("total_balance")}</h4>
@@ -621,6 +595,32 @@ export default function Profile() {
                 {referralSuccess && <p className="text-sm text-[#4ebd0a] mt-2">{t("referral_registered")}</p>}
               </form>
             </div>
+          </div>
+
+          {/* Nuevo: Selector de país - MOVIDO DEBAJO DE LA SECCIÓN DE REFERIDOS */}
+          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
+            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-3">{t("select_your_country")}</h4>
+            <p className="text-sm text-gray-300 mb-4">{t("country_selection_description")}</p>
+
+            <div className="mb-4">
+              <CountrySelector value={country} onChangeAction={setCountry} className="w-full" />
+            </div>
+
+            <button
+              onClick={handleUpdateCountry}
+              disabled={isUpdatingCountry || !country}
+              className={`w-full px-4 py-2 rounded-full ${
+                isUpdatingCountry || !country
+                  ? "bg-gray-700 cursor-not-allowed"
+                  : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
+              } font-medium transition-colors`}
+            >
+              {isUpdatingCountry ? t("updating") : t("update_country")}
+            </button>
+
+            {countryUpdateSuccess && <p className="text-sm text-[#4ebd0a] mt-2 text-center">{t("country_updated")}</p>}
+
+            {countryUpdateError && <p className="text-sm text-red-500 mt-2 text-center">{countryUpdateError}</p>}
           </div>
 
           {/* Botón para volver al dashboard */}
