@@ -30,11 +30,11 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Transactions */}
-          <Link href="/transactions" className="group flex flex-col items-center py-2" aria-label="Transactions">
+          {/* Proyecto TRIBO (reemplaza Transactions) */}
+          <Link href="/proyecto-tribo" className="group flex flex-col items-center py-2" aria-label="Proyecto TRIBO">
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
-                pathname.includes("/transactions")
+                pathname.includes("/proyecto-tribo")
                   ? "bg-[#4ebd0a] shadow-lg shadow-[#4ebd0a]/20"
                   : "bg-gray-800 group-hover:bg-gray-700"
               }`}
@@ -45,13 +45,15 @@ export default function Navbar() {
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke={pathname.includes("/transactions") ? "#000" : "#fff"}
+                stroke={pathname.includes("/proyecto-tribo") ? "#000" : "#fff"}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="transition-transform group-hover:scale-110"
               >
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                <path d="M2 12h20"></path>
               </svg>
             </div>
           </Link>
