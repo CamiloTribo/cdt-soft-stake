@@ -841,7 +841,7 @@ export default function Dashboard() {
   }
 
   // URL del topic de sorteos en Telegram
-  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/10775"
+  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/5474"
 
   // Verificar si las recompensas están disponibles para reclamar
   const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
