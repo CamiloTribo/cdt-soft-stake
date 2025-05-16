@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 import { useWorldAuth } from "next-world-auth/react"
+import { useSearchParams } from "next/navigation"
 import Header from "@/src/components/Header"
 import Image from "next/image"
 
@@ -18,7 +19,10 @@ interface RankingUser {
 
 export default function Rankings() {
   const { t } = useTranslation()
-  const [activeRanking, setActiveRanking] = useState<RankingType>("holders")
+  const searchParams = useSearchParams()
+  // Obtener el parámetro tab de la URL y usarlo como valor inicial si existe
+  const initialTab = (searchParams.get("tab") as RankingType) || "holders"
+  const [activeRanking, setActiveRanking] = useState<RankingType>(initialTab)
   const [rankings, setRankings] = useState<RankingUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
