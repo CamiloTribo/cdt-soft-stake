@@ -171,7 +171,7 @@ export default function Dashboard() {
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
 
-  // Añadir un nuevo estado para controlar la animación
+  // Estado para controlar la animación de lluvia de CDT
   const [showCdtRain, setShowCdtRain] = useState(false)
 
   // Añadir estos estados al inicio del componente Dashboard, junto a los otros estados
@@ -624,6 +624,7 @@ export default function Dashboard() {
         setClaimSuccess(data.message || t("rewards_claimed"))
 
         // Activar la lluvia de CDT cuando el claim es exitoso
+        console.log("Activando lluvia de CDT")
         setShowCdtRain(true)
 
         // Desactivar después de 5 segundos
@@ -870,8 +871,16 @@ export default function Dashboard() {
           left: 0;
           right: 0;
           bottom: 0;
-          z-index: 1000;
+          z-index: 9999;
           overflow: hidden;
+        }
+
+        .cdt-rain-container.hidden {
+          display: none;
+        }
+
+        .cdt-rain-container.visible {
+          display: block;
         }
         
         /* Animación para el contador de recompensas */
@@ -1519,13 +1528,6 @@ export default function Dashboard() {
             </button>
 
             {txHash && !txError && isSendingCDT === false && (
-              <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-full">
-                <p className="text-sm font-medium text-[#4ebd0a]">{txHash}</p>
-                <p className="text-xs mt-1 text-[#4ebd0a]">{t("reward_message")}</p>
-              </div>
-            )}
-
-            {txError && isSendingCDT === false && (
               <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-full">
                 <p className="text-sm font-medium text-[#ff1744]">{t("error_sending")}</p>
                 <p className="text-xs mt-1 text-[#ff1744]">{txError}</p>
@@ -1534,12 +1536,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* FIX 2: Mejorar la implementación de CdtRain para que funcione correctamente */}
-        {showCdtRain && (
-          <div className="cdt-rain-container">
-            <CdtRain count={50} duration={5} />
-          </div>
-        )}
+        {/* Componente CdtRain - Siempre presente pero solo visible cuando showCdtRain es true */}
+        <div className={`cdt-rain-container ${showCdtRain ? "visible" : "hidden"}`}>
+          <CdtRain count={50} duration={5} />
+        </div>
 
         {showWelcomeGift && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
