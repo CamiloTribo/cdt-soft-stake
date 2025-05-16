@@ -6,19 +6,27 @@ import { useWorldAuth } from "next-world-auth/react"
 import { useSearchParams } from "next/navigation"
 import Header from "@/src/components/Header"
 import Image from "next/image"
-// Primero, añadir la importación del componente CountryFlag
 import { CountryFlag } from "../../../src/components/CountryFlag"
 
-type RankingType = "holders" | "stakers" | "referrals"
+// Añadir "countries" al tipo RankingType
+type RankingType = "holders" | "stakers" | "referrals" | "countries"
 
-// Modificar la interfaz RankingUser para incluir el código de país
+// Interfaz para usuarios
 interface RankingUser {
   id: string
   username: string
   value: number
   position: number
   isCurrentUser: boolean
-  country?: string // Añadir campo opcional para el código de país
+  country?: string
+}
+
+// Nueva interfaz para países
+interface CountryRanking {
+  country: string
+  totalCDT: number
+  userCount: number
+  position: number
 }
 
 export default function Rankings() {
@@ -28,6 +36,7 @@ export default function Rankings() {
   const initialTab = (searchParams.get("tab") as RankingType) || "holders"
   const [activeRanking, setActiveRanking] = useState<RankingType>(initialTab)
   const [rankings, setRankings] = useState<RankingUser[]>([])
+  const [countryRankings, setCountryRankings] = useState<CountryRanking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { session } = useWorldAuth()
@@ -35,6 +44,31 @@ export default function Rankings() {
 
   // Obtener el ID del usuario actual
   const currentUserId = session?.user?.walletAddress || ""
+
+  // Obtener el país del usuario actual si está disponible en algún lugar
+  // Nota: Esto dependerá de cómo almacenas el país del usuario actual
+  const [userCountry, setUserCountry] = useState<string>("")
+
+  // Intentar obtener el país del usuario actual
+  useEffect(() => {
+    const fetchUserCountry = async () => {
+      if (!currentUserId) return
+
+      try {
+        const response = await fetch(`/api/username?wallet_address=${currentUserId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.country) {
+            setUserCountry(data.country)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user country:", error)
+      }
+    }
+
+    fetchUserCountry()
+  }, [currentUserId])
 
   // Calcular tiempo restante hasta el 18/05/25 a las 23:59 UTC
   useEffect(() => {
@@ -75,24 +109,42 @@ export default function Rankings() {
       setError(null)
 
       try {
-        // Aquí llamaríamos a la API para obtener los rankings
-        const response = await fetch(`/api/rankings?type=${activeRanking}`)
+        // Si es ranking de países, usar el endpoint de country-stats
+        if (activeRanking === "countries") {
+          const response = await fetch(`/api/country-stats?type=ranking`)
 
-        if (!response.ok) {
-          throw new Error("Error al cargar rankings")
+          if (!response.ok) {
+            throw new Error("Error al cargar rankings de países")
+          }
+
+          const data = await response.json()
+
+          if (data.success && data.rankings) {
+            setCountryRankings(data.rankings)
+          } else {
+            throw new Error("Formato de respuesta inválido")
+          }
         }
+        // Para otros tipos de ranking, usar el endpoint de rankings
+        else {
+          const response = await fetch(`/api/rankings?type=${activeRanking}`)
 
-        const data = await response.json()
+          if (!response.ok) {
+            throw new Error("Error al cargar rankings")
+          }
 
-        // Marcar al usuario actual en los rankings
-        const rankingsWithCurrentUser = data.rankings.map((user: RankingUser) => ({
-          ...user,
-          isCurrentUser: user.id === currentUserId,
-        }))
+          const data = await response.json()
 
-        // Limitar a 25 elementos
-        const limitedRankings = rankingsWithCurrentUser.slice(0, 25)
-        setRankings(limitedRankings)
+          // Marcar al usuario actual en los rankings
+          const rankingsWithCurrentUser = data.rankings.map((user: RankingUser) => ({
+            ...user,
+            isCurrentUser: user.id === currentUserId,
+          }))
+
+          // Limitar a 25 elementos
+          const limitedRankings = rankingsWithCurrentUser.slice(0, 25)
+          setRankings(limitedRankings)
+        }
       } catch (err) {
         console.error("Error fetching rankings:", err)
         setError(t("error_loading_rankings"))
@@ -123,8 +175,8 @@ export default function Rankings() {
       <Header />
 
       <div className="max-w-md mx-auto px-4 pt-4">
-        {/* Tabs para cambiar entre rankings */}
-        <div className="flex bg-gray-900 rounded-xl p-1 mb-6">
+        {/* Tabs para cambiar entre rankings - Añadir pestaña de países */}
+        <div className="flex bg-gray-900 rounded-xl p-1 mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveRanking("holders")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -148,6 +200,15 @@ export default function Rankings() {
             }`}
           >
             {t("referrals_ranking")}
+          </button>
+          <button
+            onClick={() => setActiveRanking("countries")}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeRanking === "countries" ? "bg-[#4ebd0a] text-black" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            {/* Usar texto directo en lugar de traducción */}
+            Países
           </button>
         </div>
 
@@ -183,6 +244,16 @@ export default function Rankings() {
           </div>
         )}
 
+        {/* Banner informativo para países */}
+        {activeRanking === "countries" && (
+          <div className="bg-gradient-to-r from-[#4ebd0a]/30 to-[#4ebd0a]/10 rounded-xl p-4 mb-6 border border-[#4ebd0a]/50">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-[#4ebd0a] font-bold text-lg">🌎 Estadísticas Globales</h3>
+            </div>
+            <p className="text-white text-sm mb-2">Ranking de países por cantidad total de CDT y usuarios.</p>
+          </div>
+        )}
+
         {/* Podio (Top 3) - Diseño Horizontal */}
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
@@ -192,6 +263,162 @@ export default function Rankings() {
           <div className="py-8 text-center">
             <p className="text-red-500">{error}</p>
           </div>
+        ) : activeRanking === "countries" ? (
+          // Renderizar ranking de países
+          countryRankings.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-gray-400">{t("no_rankings_available")}</p>
+            </div>
+          ) : (
+            <>
+              {/* Nuevo diseño horizontal para el Top 3 de países */}
+              <div className="mb-6">
+                {/* Primer lugar - Destacado */}
+                {countryRankings.length > 0 && (
+                  <div className="bg-[#4ebd0a]/10 border border-[#4ebd0a] rounded-xl p-4 mb-4">
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 rounded-full bg-[#4ebd0a]/20 flex items-center justify-center border-2 border-[#4ebd0a] mr-4 flex-shrink-0">
+                        <span className="text-xl font-bold text-[#4ebd0a]">1</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-lg font-bold text-white truncate">
+                          <CountryFlag countryCode={countryRankings[0].country} className="mr-1 inline-block" />
+                          {countryRankings[0].country}
+                        </p>
+                        <div className="flex items-center">
+                          <p className="text-[#4ebd0a] font-bold text-lg">
+                            {formatLargeNumber(countryRankings[0].totalCDT)}
+                          </p>
+                          <Image src="/TOKEN CDT.png" alt="CDT" width={18} height={18} className="ml-1" />
+                          <span className="ml-2 text-gray-400 text-sm">{countryRankings[0].userCount} usuarios</span>
+                        </div>
+                      </div>
+                      <div className="bg-[#4ebd0a] rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="black"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Segundo y tercer lugar - En fila */}
+                <div className="grid grid-cols-2 gap-3">
+                  {countryRankings.length > 1 && (
+                    <div className="bg-gray-900 rounded-xl p-3">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 flex-shrink-0">
+                          <span className="text-base font-bold">2</span>
+                        </div>
+                        <p className="text-base font-medium text-white truncate">
+                          <CountryFlag countryCode={countryRankings[1].country} className="mr-1 inline-block" />
+                          {countryRankings[1].country}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <p className="text-[#4ebd0a] font-bold">{formatLargeNumber(countryRankings[1].totalCDT)}</p>
+                        <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                      </div>
+                      <div className="text-center mt-1 text-xs text-gray-400">
+                        {countryRankings[1].userCount} usuarios
+                      </div>
+                    </div>
+                  )}
+
+                  {countryRankings.length > 2 && (
+                    <div className="bg-gray-900 rounded-xl p-3">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 flex-shrink-0">
+                          <span className="text-base font-bold">3</span>
+                        </div>
+                        <p className="text-base font-medium text-white truncate">
+                          <CountryFlag countryCode={countryRankings[2].country} className="mr-1 inline-block" />
+                          {countryRankings[2].country}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <p className="text-[#4ebd0a] font-bold">{formatLargeNumber(countryRankings[2].totalCDT)}</p>
+                        <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                      </div>
+                      <div className="text-center mt-1 text-xs text-gray-400">
+                        {countryRankings[2].userCount} usuarios
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Lista de rankings de países */}
+              <div className="bg-black rounded-2xl shadow-lg border border-gray-800 overflow-hidden">
+                <div className="max-h-96 overflow-y-auto">
+                  {countryRankings.slice(3).map((country) => (
+                    <div
+                      key={country.country}
+                      className={`flex items-center p-4 border-b border-gray-800 last:border-b-0 ${
+                        country.country === userCountry ? "bg-[#4ebd0a]/10" : ""
+                      }`}
+                    >
+                      <div className="w-8 text-center font-bold text-gray-400 flex-shrink-0">{country.position}</div>
+                      <div className="flex-1 ml-4 min-w-0">
+                        <p
+                          className={`font-medium truncate ${country.country === userCountry ? "text-[#4ebd0a]" : "text-white"}`}
+                        >
+                          <CountryFlag countryCode={country.country} className="mr-1 inline-block" />
+                          {country.country}
+                        </p>
+                      </div>
+                      <div className="text-right flex flex-col items-end justify-end flex-shrink-0">
+                        <div className="flex items-center">
+                          <p className="font-mono font-bold text-[#4ebd0a]">{formatLargeNumber(country.totalCDT)}</p>
+                          <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                        </div>
+                        <p className="text-xs text-gray-400">{country.userCount} usuarios</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tu país - si el usuario tiene un país asignado y está en el ranking */}
+              {userCountry && countryRankings.some((c) => c.country === userCountry) && (
+                <div className="mt-6 bg-[#4ebd0a]/20 rounded-xl p-4 border border-[#4ebd0a]">
+                  <p className="text-sm text-gray-300 mb-1">Tu país</p>
+                  <div className="flex items-center">
+                    <div className="w-8 text-center font-bold text-[#4ebd0a] flex-shrink-0">
+                      {countryRankings.find((c) => c.country === userCountry)?.position || 0}
+                    </div>
+                    <div className="flex-1 ml-4 min-w-0">
+                      <p className="font-medium text-white truncate">
+                        <CountryFlag countryCode={userCountry} className="mr-1 inline-block" />
+                        {userCountry}
+                      </p>
+                    </div>
+                    <div className="text-right flex flex-col items-end justify-end flex-shrink-0">
+                      <div className="flex items-center">
+                        <p className="font-mono font-bold text-[#4ebd0a]">
+                          {formatLargeNumber(countryRankings.find((c) => c.country === userCountry)?.totalCDT || 0)}
+                        </p>
+                        <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {countryRankings.find((c) => c.country === userCountry)?.userCount || 0} usuarios
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )
         ) : rankings.length === 0 ? (
           <div className="py-8 text-center">
             <p className="text-gray-400">{t("no_rankings_available")}</p>
