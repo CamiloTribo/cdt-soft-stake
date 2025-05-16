@@ -6,15 +6,19 @@ import { useWorldAuth } from "next-world-auth/react"
 import { useSearchParams } from "next/navigation"
 import Header from "@/src/components/Header"
 import Image from "next/image"
+// Primero, añadir la importación del componente CountryFlag
+import { CountryFlag } from "../../../src/components/CountryFlag"
 
 type RankingType = "holders" | "stakers" | "referrals"
 
+// Modificar la interfaz RankingUser para incluir el código de país
 interface RankingUser {
   id: string
   username: string
   value: number
   position: number
   isCurrentUser: boolean
+  country?: string // Añadir campo opcional para el código de país
 }
 
 export default function Rankings() {
@@ -204,7 +208,11 @@ export default function Rankings() {
                       <span className="text-xl font-bold text-[#4ebd0a]">1</span>
                     </div>
                     <div className="flex-1 min-w-0">
+                      {/* En el primer lugar (destacado) */}
                       <p className="text-lg font-bold text-white truncate" title={`@${rankings[0].username}`}>
+                        {rankings[0].country && (
+                          <CountryFlag countryCode={rankings[0].country} className="mr-1 inline-block" />
+                        )}
                         @{rankings[0].username}
                       </p>
                       <div className="flex items-center">
@@ -248,7 +256,11 @@ export default function Rankings() {
                       <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 flex-shrink-0">
                         <span className="text-base font-bold">2</span>
                       </div>
+                      {/* En el segundo lugar */}
                       <p className="text-base font-medium text-white truncate" title={`@${rankings[1].username}`}>
+                        {rankings[1].country && (
+                          <CountryFlag countryCode={rankings[1].country} className="mr-1 inline-block" />
+                        )}
                         @{rankings[1].username}
                       </p>
                     </div>
@@ -274,7 +286,11 @@ export default function Rankings() {
                       <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-2 flex-shrink-0">
                         <span className="text-base font-bold">3</span>
                       </div>
+                      {/* En el tercer lugar */}
                       <p className="text-base font-medium text-white truncate" title={`@${rankings[2].username}`}>
+                        {rankings[2].country && (
+                          <CountryFlag countryCode={rankings[2].country} className="mr-1 inline-block" />
+                        )}
                         @{rankings[2].username}
                       </p>
                     </div>
@@ -308,11 +324,13 @@ export default function Rankings() {
                   >
                     <div className="w-8 text-center font-bold text-gray-400 flex-shrink-0">{user.position}</div>
                     <div className="flex-1 ml-4 min-w-0">
+                      {/* En la lista de rankings (posiciones 4 en adelante) */}
                       <p
                         className={`font-medium truncate ${user.isCurrentUser ? "text-[#4ebd0a]" : "text-white"}`}
                         title={`@${user.username}`}
                       >
-                        @{user.username}
+                        {user.country && <CountryFlag countryCode={user.country} className="mr-1 inline-block" />}@
+                        {user.username}
                       </p>
                     </div>
                     <div className="text-right flex items-center justify-end flex-shrink-0">
@@ -351,10 +369,17 @@ export default function Rankings() {
                     {rankings.find((user) => user.isCurrentUser)?.position || 0}
                   </div>
                   <div className="flex-1 ml-4 min-w-0">
+                    {/* En la sección "Tu posición" */}
                     <p
                       className="font-medium text-white truncate"
                       title={`@${rankings.find((user) => user.isCurrentUser)?.username}`}
                     >
+                      {rankings.find((user) => user.isCurrentUser)?.country && (
+                        <CountryFlag
+                          countryCode={rankings.find((user) => user.isCurrentUser)?.country || ""}
+                          className="mr-1 inline-block"
+                        />
+                      )}
                       @{rankings.find((user) => user.isCurrentUser)?.username}
                     </p>
                   </div>
