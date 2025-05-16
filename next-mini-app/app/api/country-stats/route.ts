@@ -7,7 +7,23 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Definir interfaces para tipar correctamente
-interface CountryStats {
+interface StakingInfo {
+  staked_amount: number | string
+}
+
+interface UserWithStaking {
+  country: string
+  staking_info: StakingInfo[]
+}
+
+interface CountryStatsResult {
+  country: string
+  total_cdt: string | number
+  user_count: string | number
+}
+
+// Definir el tipo para los rankings que devolvemos en la respuesta
+type CountryRanking = {
   country: string
   totalCDT: number
   userCount: number
@@ -44,71 +60,77 @@ export async function GET(request: Request) {
 
     // Si queremos el ranking de países
     else if (type === "ranking") {
-      // 1. Obtener todos los usuarios con su país
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("id, country")
-        .not("country", "is", null)
-        .not("country", "eq", "")
+      // Usar la consulta SQL directamente como RPC para obtener los totales de CDT por país
+      const { data: cdtByCountry, error: cdtError } = await supabase.rpc("get_country_stats")
 
-      if (userError) {
-        console.error("Error fetching user data:", userError)
-        return NextResponse.json({ success: false, error: "Error fetching user data" }, { status: 500 })
+      if (cdtError) {
+        console.error("Error fetching CDT by country:", cdtError)
+
+        // Si la función RPC falla, intentamos con una consulta directa
+        console.log("Intentando con consulta directa...")
+
+        // Ejecutar consulta SQL directamente
+        const { data: directQueryData, error: directQueryError } = await supabase
+          .from("users")
+          .select(`
+            country,
+            staking_info!inner (
+              staked_amount
+            )
+          `)
+          .not("country", "is", null)
+          .not("country", "eq", "")
+
+        if (directQueryError) {
+          console.error("Error en consulta directa:", directQueryError)
+          return NextResponse.json({ success: false, error: "Error fetching country data" }, { status: 500 })
+        }
+
+        // Procesar los resultados de la consulta directa
+        const countryTotals: Record<string, { totalCDT: number; userCount: number }> = {}
+
+        directQueryData.forEach((user: UserWithStaking) => {
+          const country = user.country
+          const stakedAmount = Array.isArray(user.staking_info)
+            ? user.staking_info.reduce(
+                (sum: number, item: StakingInfo) => sum + (Number.parseFloat(String(item.staked_amount)) || 0),
+                0,
+              )
+            : 0
+
+          if (!countryTotals[country]) {
+            countryTotals[country] = { totalCDT: 0, userCount: 0 }
+          }
+
+          countryTotals[country].totalCDT += stakedAmount
+          countryTotals[country].userCount += 1
+        })
+
+        // Convertir a array y ordenar
+        const countryRankings: CountryRanking[] = Object.entries(countryTotals)
+          .map(([country, stats], index) => ({
+            country,
+            totalCDT: stats.totalCDT,
+            userCount: stats.userCount,
+            position: index + 1,
+          }))
+          .sort((a, b) => b.totalCDT - a.totalCDT)
+          .map((item, index) => ({ ...item, position: index + 1 }))
+          .slice(0, 25)
+
+        return NextResponse.json({
+          success: true,
+          rankings: countryRankings,
+        })
       }
 
-      // 2. Obtener datos de staking
-      const { data: stakingData, error: stakingError } = await supabase
-        .from("staking_info")
-        .select("user_id, staked_amount")
-
-      if (stakingError) {
-        console.error("Error fetching staking data:", stakingError)
-        return NextResponse.json({ success: false, error: "Error fetching staking data" }, { status: 500 })
-      }
-
-      // 3. Crear un mapa de usuario a país
-      const userToCountry: Record<string, string> = {}
-      userData.forEach((user) => {
-        if (user.id && user.country) {
-          userToCountry[user.id] = user.country
-        }
-      })
-
-      // 4. Agregar datos por país
-      const countryStats: Record<string, { totalCDT: number; userCount: number }> = {}
-      
-      // Contar usuarios por país
-      userData.forEach((user) => {
-        if (user.country) {
-          if (!countryStats[user.country]) {
-            countryStats[user.country] = { totalCDT: 0, userCount: 0 }
-          }
-          countryStats[user.country].userCount += 1
-        }
-      })
-
-      // Sumar CDT por país
-      stakingData.forEach((stake) => {
-        const country = userToCountry[stake.user_id]
-        if (country && stake.staked_amount) {
-          if (!countryStats[country]) {
-            countryStats[country] = { totalCDT: 0, userCount: 0 }
-          }
-          countryStats[country].totalCDT += stake.staked_amount
-        }
-      })
-
-      // 5. Convertir a array y ordenar por totalCDT
-      const countryRankings: CountryStats[] = Object.entries(countryStats)
-        .map(([country, stats], index) => ({
-          country,
-          totalCDT: stats.totalCDT,
-          userCount: stats.userCount,
-          position: index + 1, // Se actualizará después de ordenar
-        }))
-        .sort((a, b) => b.totalCDT - a.totalCDT)
-        .map((item, index) => ({ ...item, position: index + 1 })) // Actualizar posiciones después de ordenar
-        .slice(0, 25) // Limitar a 25 elementos
+      // Si la función RPC funciona, usamos esos datos
+      const countryRankings: CountryRanking[] = (cdtByCountry as CountryStatsResult[]).map((item, index) => ({
+        country: item.country,
+        totalCDT: Number.parseFloat(String(item.total_cdt)) || 0,
+        userCount: Number.parseInt(String(item.user_count)) || 0,
+        position: index + 1,
+      }))
 
       return NextResponse.json({
         success: true,
