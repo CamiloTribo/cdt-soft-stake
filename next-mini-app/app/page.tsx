@@ -182,26 +182,6 @@ export default function Home() {
     }
   }, [])
 
-  // NUEVO: Efecto para solicitar permisos de notificaciones después de autenticar con wallet
-  useEffect(() => {
-    // Solo solicitar si el usuario está autenticado con wallet y no se ha solicitado antes
-    if (isAuthenticated && session?.isAuthenticatedWallet && !notificationsRequested.current) {
-      // Verificar si ya se solicitó antes (en sesiones anteriores)
-      const previousPermission = localStorage.getItem("notification_permission")
-      if (!previousPermission) {
-        // Pequeño retraso para no mostrar demasiados diálogos a la vez
-        const timer = setTimeout(() => {
-          requestNotificationPermission()
-        }, 2000) // 2 segundos después de autenticar
-
-        return () => clearTimeout(timer)
-      } else {
-        // Marcar como ya solicitado si hay un registro previo
-        notificationsRequested.current = true
-      }
-    }
-  }, [isAuthenticated, session, requestNotificationPermission])
-
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
     // CAMBIO: Ahora solo verificamos si está autenticado con wallet
@@ -327,8 +307,50 @@ export default function Home() {
   }, [isAuthenticated, session, handleContinueToDashboard])
 
   // Función para manejar el desbloqueo de la caja fuerte
-  const handleVaultUnlock = () => {
+  const handleVaultUnlock = async () => {
     setShowVault(false)
+
+    // NUEVO: Solicitar permisos de notificaciones después del unlock
+    if (!notificationsRequested.current) {
+      try {
+        const previousPermission = localStorage.getItem("notification_permission")
+        if (!previousPermission) {
+          // Pequeño retraso para no mostrar demasiados diálogos a la vez
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          await requestNotificationPermission()
+        } else {
+          notificationsRequested.current = true
+        }
+      } catch (error) {
+        console.error("Error al solicitar permiso de notificaciones:", error)
+      }
+    }
+  }
+
+  // NUEVO: Función para manejar el clic en el botón de conectar wallet
+  const handleSignInWallet = () => {
+    // Si no se ha solicitado permiso de notificaciones, intentar ahora
+    if (!notificationsRequested.current && !session?.isAuthenticatedWallet) {
+      const previousPermission = localStorage.getItem("notification_permission")
+      if (!previousPermission) {
+        requestNotificationPermission()
+          .then(() => {
+            // Después de solicitar permiso, continuar con el sign in
+            signInWallet()
+          })
+          .catch((error) => {
+            console.error("Error solicitando permisos:", error)
+            // Continuar con el sign in aunque haya error
+            signInWallet()
+          })
+      } else {
+        notificationsRequested.current = true
+        signInWallet()
+      }
+    } else {
+      // Si ya se solicitó o el usuario ya está autenticado, simplemente continuar
+      signInWallet()
+    }
   }
 
   return (
@@ -389,9 +411,9 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Botón de conectar wallet - ACTUALIZADO */}
+                    {/* Botón de conectar wallet - ACTUALIZADO para usar nuestra función personalizada */}
                     <button
-                      onClick={signInWallet}
+                      onClick={handleSignInWallet}
                       className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
                       disabled={session?.isAuthenticatedWallet}
                     >
