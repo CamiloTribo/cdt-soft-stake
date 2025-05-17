@@ -98,6 +98,52 @@ export default function Home() {
     }
   }, [isLoading, isAuthenticated, signInWorldID])
 
+  // NUEVO: Solicitar permisos de notificaciones automáticamente
+  useEffect(() => {
+    // Solo solicitar si no está cargando, está autenticado con wallet y no se ha solicitado antes
+    if (!isLoading && isAuthenticated && session?.isAuthenticatedWallet && !notificationsRequested.current) {
+      console.log("Solicitando permisos de notificaciones automáticamente")
+      notificationsRequested.current = true
+
+      // Pequeño retraso para asegurar que todo esté cargado y no interferir con otros diálogos
+      const timer = setTimeout(() => {
+        // Verificar si ya se solicitó antes (en sesiones anteriores)
+        const previousPermission = localStorage.getItem("notification_permission")
+        if (!previousPermission) {
+          const requestPayload: RequestPermissionInput = {
+            permission: Permission.Notifications,
+          }
+          MiniKit.commandsAsync
+            .requestPermission(requestPayload)
+            .then((response) => {
+              console.log("Respuesta de permiso de notificaciones:", response)
+              // Guardar el resultado en localStorage
+              if (response.finalPayload) {
+                try {
+                  const payload = response.finalPayload as unknown as MiniAppRequestPermissionPayload
+                  if (payload.status === "success") {
+                    localStorage.setItem("notification_permission", "granted")
+                    console.log("Permiso de notificaciones concedido")
+                  } else if (payload.status === "error") {
+                    localStorage.setItem("notification_permission", payload.error_code || "denied")
+                    console.log("Permiso de notificaciones denegado:", payload.error_code)
+                  }
+                } catch (error) {
+                  console.error("Error al procesar la respuesta:", error)
+                  localStorage.setItem("notification_permission", "error_processing")
+                }
+              }
+            })
+            .catch((error) => {
+              console.error("Error al solicitar permiso de notificaciones:", error)
+            })
+        }
+      }, 2000) // Un poco más de retraso que World ID para no mostrar ambos diálogos a la vez
+
+      return () => clearTimeout(timer)
+    }
+  }, [isLoading, isAuthenticated, session])
+
   // Efecto para mostrar el dial después de la verificación
   useEffect(() => {
     // Si el usuario está autenticado con World ID, mostrar el dial
@@ -142,45 +188,6 @@ export default function Home() {
         })
     }
   }, [isAuthenticated, session, fetchUserCounts])
-
-  // NUEVO: Función para solicitar permisos de notificaciones
-  const requestNotificationPermission = useCallback(async () => {
-    // Evitar solicitar permisos múltiples veces
-    if (notificationsRequested.current) return
-
-    try {
-      console.log("Solicitando permiso para notificaciones...")
-      notificationsRequested.current = true
-
-      const requestPayload: RequestPermissionInput = {
-        permission: Permission.Notifications,
-      }
-
-      const response = await MiniKit.commandsAsync.requestPermission(requestPayload)
-      console.log("Respuesta de permiso de notificaciones:", response)
-
-      // Verificar la respuesta correctamente según la estructura
-      if (response.finalPayload) {
-        // Intentar convertir la respuesta al tipo correcto
-        try {
-          const payload = response.finalPayload as unknown as MiniAppRequestPermissionPayload
-
-          if (payload.status === "success") {
-            localStorage.setItem("notification_permission", "granted")
-            console.log("Permiso de notificaciones concedido")
-          } else if (payload.status === "error") {
-            localStorage.setItem("notification_permission", payload.error_code || "denied")
-            console.log("Permiso de notificaciones denegado:", payload.error_code)
-          }
-        } catch (error) {
-          console.error("Error al procesar la respuesta:", error)
-          localStorage.setItem("notification_permission", "error_processing")
-        }
-      }
-    } catch (error) {
-      console.error("Error al solicitar permiso de notificaciones:", error)
-    }
-  }, [])
 
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
@@ -307,50 +314,8 @@ export default function Home() {
   }, [isAuthenticated, session, handleContinueToDashboard])
 
   // Función para manejar el desbloqueo de la caja fuerte
-  const handleVaultUnlock = async () => {
+  const handleVaultUnlock = () => {
     setShowVault(false)
-
-    // NUEVO: Solicitar permisos de notificaciones después del unlock
-    if (!notificationsRequested.current) {
-      try {
-        const previousPermission = localStorage.getItem("notification_permission")
-        if (!previousPermission) {
-          // Pequeño retraso para no mostrar demasiados diálogos a la vez
-          await new Promise((resolve) => setTimeout(resolve, 500))
-          await requestNotificationPermission()
-        } else {
-          notificationsRequested.current = true
-        }
-      } catch (error) {
-        console.error("Error al solicitar permiso de notificaciones:", error)
-      }
-    }
-  }
-
-  // NUEVO: Función para manejar el clic en el botón de conectar wallet
-  const handleSignInWallet = () => {
-    // Si no se ha solicitado permiso de notificaciones, intentar ahora
-    if (!notificationsRequested.current && !session?.isAuthenticatedWallet) {
-      const previousPermission = localStorage.getItem("notification_permission")
-      if (!previousPermission) {
-        requestNotificationPermission()
-          .then(() => {
-            // Después de solicitar permiso, continuar con el sign in
-            signInWallet()
-          })
-          .catch((error) => {
-            console.error("Error solicitando permisos:", error)
-            // Continuar con el sign in aunque haya error
-            signInWallet()
-          })
-      } else {
-        notificationsRequested.current = true
-        signInWallet()
-      }
-    } else {
-      // Si ya se solicitó o el usuario ya está autenticado, simplemente continuar
-      signInWallet()
-    }
   }
 
   return (
@@ -411,9 +376,9 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Botón de conectar wallet - ACTUALIZADO para usar nuestra función personalizada */}
+                    {/* Botón de conectar wallet - ACTUALIZADO */}
                     <button
-                      onClick={handleSignInWallet}
+                      onClick={signInWallet}
                       className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
                       disabled={session?.isAuthenticatedWallet}
                     >
