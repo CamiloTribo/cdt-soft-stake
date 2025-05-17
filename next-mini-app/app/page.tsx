@@ -9,6 +9,24 @@ import { LanguageSelector } from "../src/components/LanguageSelector"
 import VaultDial from "../src/components/VaultDial"
 import { CountrySelector } from "../src/components/CountrySelector"
 import { CountryCounter } from "../src/components/CountryCounter"
+// Importar MiniKit
+import { MiniKit, Permission, type RequestPermissionInput } from "@worldcoin/minikit-js"
+
+// Definir interfaces para los tipos de respuesta
+interface MiniAppRequestPermissionSuccessPayload {
+  status: "success"
+  permission: "notifications"
+  timestamp: string
+  version: number
+}
+
+interface MiniAppRequestPermissionErrorPayload {
+  status: "error"
+  error_code: string
+  version: number
+}
+
+type MiniAppRequestPermissionPayload = MiniAppRequestPermissionSuccessPayload | MiniAppRequestPermissionErrorPayload
 
 export default function Home() {
   const { t } = useTranslation()
@@ -31,6 +49,9 @@ export default function Home() {
 
   // Referencia para controlar si ya se inició la verificación
   const worldIDInitiated = useRef(false)
+
+  // Referencia para controlar si ya se solicitaron notificaciones
+  const notificationsRequested = useRef(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -121,6 +142,65 @@ export default function Home() {
         })
     }
   }, [isAuthenticated, session, fetchUserCounts])
+
+  // NUEVO: Función para solicitar permisos de notificaciones
+  const requestNotificationPermission = useCallback(async () => {
+    // Evitar solicitar permisos múltiples veces
+    if (notificationsRequested.current) return
+
+    try {
+      console.log("Solicitando permiso para notificaciones...")
+      notificationsRequested.current = true
+
+      const requestPayload: RequestPermissionInput = {
+        permission: Permission.Notifications,
+      }
+
+      const response = await MiniKit.commandsAsync.requestPermission(requestPayload)
+      console.log("Respuesta de permiso de notificaciones:", response)
+
+      // Verificar la respuesta correctamente según la estructura
+      if (response.finalPayload) {
+        // Intentar convertir la respuesta al tipo correcto
+        try {
+          const payload = response.finalPayload as unknown as MiniAppRequestPermissionPayload
+
+          if (payload.status === "success") {
+            localStorage.setItem("notification_permission", "granted")
+            console.log("Permiso de notificaciones concedido")
+          } else if (payload.status === "error") {
+            localStorage.setItem("notification_permission", payload.error_code || "denied")
+            console.log("Permiso de notificaciones denegado:", payload.error_code)
+          }
+        } catch (error) {
+          console.error("Error al procesar la respuesta:", error)
+          localStorage.setItem("notification_permission", "error_processing")
+        }
+      }
+    } catch (error) {
+      console.error("Error al solicitar permiso de notificaciones:", error)
+    }
+  }, [])
+
+  // NUEVO: Efecto para solicitar permisos de notificaciones después de autenticar con wallet
+  useEffect(() => {
+    // Solo solicitar si el usuario está autenticado con wallet y no se ha solicitado antes
+    if (isAuthenticated && session?.isAuthenticatedWallet && !notificationsRequested.current) {
+      // Verificar si ya se solicitó antes (en sesiones anteriores)
+      const previousPermission = localStorage.getItem("notification_permission")
+      if (!previousPermission) {
+        // Pequeño retraso para no mostrar demasiados diálogos a la vez
+        const timer = setTimeout(() => {
+          requestNotificationPermission()
+        }, 2000) // 2 segundos después de autenticar
+
+        return () => clearTimeout(timer)
+      } else {
+        // Marcar como ya solicitado si hay un registro previo
+        notificationsRequested.current = true
+      }
+    }
+  }, [isAuthenticated, session, requestNotificationPermission])
 
   // Función para manejar el clic en la mascota - Ahora muestra mensaje si no está verificado
   const handleMascotClick = () => {
