@@ -33,7 +33,14 @@ function getUnoDeeplinkUrl() {
   return `https://worldcoin.org/mini-app?app_id=${UNO_APP_ID}&path=${encodedPath}`
 }
 
-// Componente PriceDisplay con flecha de dirección pero sin porcentaje
+// Vamos a mejorar varios aspectos del dashboard para hacerlo más profesional y alineado con las guidelines
+
+// 1. Optimizar las animaciones para mejor rendimiento
+// 2. Mejorar la consistencia visual y el espaciado
+// 3. Refinar la jerarquía visual
+// 4. Añadir transiciones más suaves
+
+// Modificar el componente PriceDisplay para hacerlo más elegante
 const PriceDisplay = React.memo(
   ({
     initialPrice,
@@ -68,14 +75,14 @@ const PriceDisplay = React.memo(
       <>
         {/* Estadísticas adicionales con diseño mejorado */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700">
+          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700 hover:bg-black/70">
             <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-primary">$</span>
               {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
             </p>
           </div>
-          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700">
+          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700 hover:bg-black/70">
             <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
             <p className="text-lg font-semibold text-white">
               <span className="text-primary">+</span>
@@ -85,7 +92,7 @@ const PriceDisplay = React.memo(
         </div>
 
         {/* Sección de precio con diseño mejorado */}
-        <div className="flex items-center justify-between mb-6 bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700">
+        <div className="flex items-center justify-between mb-6 bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700 hover:bg-black/70">
           <div>
             <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
             <div className="flex items-center">
@@ -125,6 +132,7 @@ const PriceDisplay = React.memo(
 
 PriceDisplay.displayName = "PriceDisplay"
 
+// Modificar el componente principal para mejorar la estructura y el diseño
 export default function Dashboard() {
   const { t } = useTranslation()
   const [stakedAmount, setStakedAmount] = useState(0)
@@ -847,6 +855,7 @@ export default function Dashboard() {
   // Verificar si las recompensas están disponibles para reclamar
   const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
 
+  // Modificar el return para mejorar la estructura y el diseño
   return (
     // Contenedor principal con overflow-hidden para evitar scroll horizontal
     <div className="w-full max-w-5xl mx-auto relative overflow-hidden">
@@ -916,13 +925,54 @@ export default function Dashboard() {
           transform: translateY(-4px);
           box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
+        
+        /* Mejoras para las tarjetas */
+        .dashboard-card {
+          background: rgba(0, 0, 0, 0.6);
+          border: 1px solid #333;
+          border-radius: 1rem;
+          transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+          border-color: #444;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+          transform: translateY(-2px);
+        }
+        
+        /* Mejoras para los botones */
+        .primary-button {
+          background-color: var(--primary);
+          color: black;
+          font-weight: 500;
+          transition: all 0.3s ease;
+        }
+        
+        .primary-button:hover {
+          background-color: var(--primary-hover);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 15px rgba(78, 189, 10, 0.2);
+        }
+        
+        .secondary-button {
+          background-color: var(--secondary);
+          color: white;
+          font-weight: 500;
+          transition: all 0.3s ease;
+        }
+        
+        .secondary-button:hover {
+          background-color: var(--secondary-hover);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 15px rgba(255, 23, 68, 0.2);
+        }
       `}</style>
 
       {/* Contenedor con posición relativa y overflow hidden para mantener todo en su lugar */}
       <div className="dashboard-content relative p-5">
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
-          <div className="mb-6 bg-black/60 border-l-4 border-primary p-4 rounded-xl shadow-lg animate-fadeIn">
+          <div className="mb-6 bg-black/60 border-l-4 border-primary p-4 rounded-xl shadow-lg animate-fadeIn dashboard-card">
             <div className="flex items-start">
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white">
@@ -932,13 +982,13 @@ export default function Dashboard() {
                 <div className="mt-3 flex gap-4">
                   <button
                     onClick={handleUpdateStake}
-                    className="px-4 py-2 bg-primary hover:bg-primary-hover text-black font-medium rounded-full transition-colors text-sm"
+                    className="px-4 py-2 bg-primary hover:bg-primary-hover text-black font-medium rounded-full transition-all text-sm primary-button"
                   >
                     {t("update_balance")}
                   </button>
                   <button
                     onClick={() => setIsFirstVisit(false)}
-                    className="px-4 py-2 bg-transparent border border-gray-600 hover:bg-gray-800 text-white rounded-full transition-colors text-sm"
+                    className="px-4 py-2 bg-transparent border border-gray-600 hover:bg-gray-800 text-white rounded-full transition-all text-sm"
                   >
                     {t("disconnect")}
                   </button>
@@ -1010,7 +1060,7 @@ export default function Dashboard() {
         </div>
 
         {/* CDTs Ganados - Diseño mejorado */}
-        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+        <div className="mb-6 dashboard-card p-6">
           <h4 className="text-lg font-semibold text-primary mb-2">{t("cdts_earned")}</h4>
           <p className="text-4xl font-bold text-white mb-1">{totalClaimed.toLocaleString()} CDT</p>
           <p className="text-sm text-primary">
@@ -1066,7 +1116,7 @@ export default function Dashboard() {
         </div>
 
         {/* Próximo Claim simplificada - Diseño mejorado */}
-        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+        <div className="mb-6 dashboard-card p-6">
           <h2 className="text-xl font-semibold mb-4 text-center text-primary">{t("next_claim")}</h2>
 
           {/* Botón de reclamar - Mejorado */}
@@ -1077,9 +1127,10 @@ export default function Dashboard() {
               isClaiming
                 ? "bg-gray-700 cursor-not-allowed"
                 : !areRewardsClaimable
-                  ? "bg-primary text-white"
-                  : "bg-secondary hover:bg-secondary-hover hover:shadow-lg transform hover:-translate-y-0.5"
+                  ? "bg-primary text-white primary-button"
+                  : "bg-secondary hover:bg-secondary-hover hover:shadow-lg transform hover:-translate-y-0.5 secondary-button"
             }`}
+            aria-live="polite"
           >
             {isClaiming ? (
               <span className="flex items-center justify-center">
@@ -1129,6 +1180,20 @@ export default function Dashboard() {
                         : 0
                     }%`,
                   }}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={
+                    nextClaimTime && lastClaimDate
+                      ? Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
+                          ),
+                        )
+                      : 0
+                  }
                 ></div>
               </div>
             </div>
@@ -1209,7 +1274,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card de TRIBO Wallet - Diseño mejorado */}
-        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+        <div className="mb-6 dashboard-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               {/* Logo más grande sin texto */}
@@ -1220,7 +1285,7 @@ export default function Dashboard() {
               href="/profile"
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 isProfileHovered
-                  ? "bg-primary text-black shadow-lg transform -translate-y-0.5"
+                  ? "bg-primary text-black shadow-lg transform -translate-y-0.5 primary-button"
                   : "bg-gray-800 text-white hover:bg-gray-700"
               }`}
               onMouseEnter={() => setIsProfileHovered(true)}
@@ -1277,8 +1342,9 @@ export default function Dashboard() {
             className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
               isUpdating
                 ? "bg-gray-700 cursor-not-allowed"
-                : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5"
+                : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5 primary-button"
             } font-medium`}
+            aria-live="polite"
           >
             {isUpdating ? (
               <span className="flex items-center justify-center">
@@ -1346,19 +1412,19 @@ export default function Dashboard() {
         </div>
 
         {/* Sección de ganancias - Diseño mejorado */}
-        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+        <div className="mb-6 dashboard-card p-6">
           <h3 className="text-xl font-semibold mb-4 text-center text-white">{t("earn_daily")}</h3>
 
           <div className="grid grid-cols-3 gap-4 mb-5">
-            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover">
+            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover hover:bg-black/70">
               <p className="text-sm text-gray-400 mb-1">{t("daily")}</p>
               <p className="text-2xl font-bold text-primary">0.1%</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover">
+            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover hover:bg-black/70">
               <p className="text-sm text-gray-400 mb-1">{t("monthly")}</p>
               <p className="text-2xl font-bold text-primary">3%</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover">
+            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover hover:bg-black/70">
               <p className="text-sm text-gray-400 mb-1">{t("yearly")}</p>
               <p className="text-2xl font-bold text-primary">36.5%</p>
             </div>
@@ -1367,125 +1433,132 @@ export default function Dashboard() {
           <p className="text-center text-sm text-gray-400">{t("how_works_desc")}</p>
         </div>
 
-        {/* Botón de Discord - Mejorado */}
-        <div className="mb-6 flex items-center gap-4">
-          <Image src="/Jefe Tribo Discord.png" alt="Discord" width={48} height={48} className="rounded-full" />
-          <Link
-            href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/BaYaaUsUuN"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-              isDiscordHovered
-                ? "bg-[#5865F2] shadow-lg transform -translate-y-1"
-                : "bg-[#5865F2]/80 hover:bg-[#5865F2]"
-            }`}
-            onMouseEnter={() => setIsDiscordHovered(true)}
-            onMouseLeave={() => setIsDiscordHovered(false)}
-            onTouchStart={() => setIsDiscordHovered(true)}
-            onTouchEnd={() => setIsDiscordHovered(false)}
-          >
-            <span className="whitespace-nowrap">{t("join_community")}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`transition-transform duration-300 ${isDiscordHovered ? "translate-x-1" : ""}`}
+        {/* Sección de redes sociales - Rediseñada para mejor organización */}
+        <div className="mb-6 grid grid-cols-1 gap-4">
+          {/* Botón de Discord - Mejorado */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#5865F2]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3847-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
+              </svg>
+            </div>
+            <Link
+              href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/BaYaaUsUuN"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
+                isDiscordHovered
+                  ? "bg-[#5865F2] shadow-lg transform -translate-y-1"
+                  : "bg-[#5865F2]/80 hover:bg-[#5865F2]"
+              }`}
+              onMouseEnter={() => setIsDiscordHovered(true)}
+              onMouseLeave={() => setIsDiscordHovered(false)}
+              onTouchStart={() => setIsDiscordHovered(true)}
+              onTouchEnd={() => setIsDiscordHovered(false)}
             >
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </Link>
-        </div>
-
-        {/* Botón de Telegram - Mejorado */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#0088cc]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="white"
-              className="transform translate-x-0.5"
-            >
-              <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
-            </svg>
+              <span className="whitespace-nowrap">{t("join_community")}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isDiscordHovered ? "translate-x-1" : ""}`}
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </Link>
           </div>
-          <Link
-            href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/cryptodigitaltribe"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-              isTelegramHovered
-                ? "bg-[#0088cc] shadow-lg transform -translate-y-1"
-                : "bg-[#0088cc]/80 hover:bg-[#0088cc]"
-            }`}
-            onMouseEnter={() => setIsTelegramHovered(true)}
-            onMouseLeave={() => setIsTelegramHovered(false)}
-            onTouchStart={() => setIsTelegramHovered(true)}
-            onTouchEnd={() => setIsTelegramHovered(false)}
-          >
-            <span className="whitespace-nowrap">{t("join_telegram")}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`transition-transform duration-300 ${isTelegramHovered ? "translate-x-1" : ""}`}
-            >
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </Link>
-        </div>
 
-        {/* Botón de Twitter/X - Mejorado */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-black">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-            </svg>
-          </div>
-          <Link
-            href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://x.com/TriboCDT"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-              isTwitterHovered ? "bg-gray-900 shadow-lg transform -translate-y-1" : "bg-gray-800 hover:bg-gray-900"
-            }`}
-            onMouseEnter={() => setIsTwitterHovered(true)}
-            onMouseLeave={() => setIsTwitterHovered(false)}
-            onTouchStart={() => setIsTwitterHovered(true)}
-            onTouchEnd={() => setIsTwitterHovered(false)}
-          >
-            <span className="whitespace-nowrap">{t("follow_twitter")}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`transition-transform duration-300 ${isTwitterHovered ? "translate-x-1" : ""}`}
+          {/* Botón de Telegram - Mejorado */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#0088cc]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="white"
+                className="transform translate-x-0.5"
+              >
+                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
+              </svg>
+            </div>
+            <Link
+              href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/cryptodigitaltribe"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
+                isTelegramHovered
+                  ? "bg-[#0088cc] shadow-lg transform -translate-y-1"
+                  : "bg-[#0088cc]/80 hover:bg-[#0088cc]"
+              }`}
+              onMouseEnter={() => setIsTelegramHovered(true)}
+              onMouseLeave={() => setIsTelegramHovered(false)}
+              onTouchStart={() => setIsTelegramHovered(true)}
+              onTouchEnd={() => setIsTelegramHovered(false)}
             >
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </Link>
+              <span className="whitespace-nowrap">{t("join_telegram")}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isTelegramHovered ? "translate-x-1" : ""}`}
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </Link>
+          </div>
+
+          {/* Botón de Twitter/X - Mejorado */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-black">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </div>
+            <Link
+              href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://x.com/TriboCDT"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
+                isTwitterHovered ? "bg-gray-900 shadow-lg transform -translate-y-1" : "bg-gray-800 hover:bg-gray-900"
+              }`}
+              onMouseEnter={() => setIsTwitterHovered(true)}
+              onMouseLeave={() => setIsTwitterHovered(false)}
+              onTouchStart={() => setIsTwitterHovered(true)}
+              onTouchEnd={() => setIsTwitterHovered(false)}
+            >
+              <span className="whitespace-nowrap">{t("follow_twitter")}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isTwitterHovered ? "translate-x-1" : ""}`}
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </Link>
+          </div>
         </div>
 
         {/* Banner de sorteos diarios - Mejorado */}
@@ -1530,7 +1603,7 @@ export default function Dashboard() {
 
         {/* Sección de propina - Mejorada */}
         <div className="mb-6">
-          <div className="bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+          <div className="dashboard-card p-6">
             <h2 className="text-xl font-semibold mb-2 text-primary">{t("support_project")}</h2>
             <p className="text-gray-400 text-sm mb-4">{t("support_help")}</p>
             <button
@@ -1539,8 +1612,9 @@ export default function Dashboard() {
               className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
                 isSendingCDT
                   ? "bg-gray-700 cursor-not-allowed"
-                  : "bg-secondary hover:bg-secondary-hover hover:shadow-md hover:-translate-y-0.5"
+                  : "bg-secondary hover:bg-secondary-hover hover:shadow-md hover:-translate-y-0.5 secondary-button"
               } text-white font-medium`}
+              aria-live="polite"
             >
               {isSendingCDT ? t("processing") : t("support_with").replace("0.023", "0.23")}
             </button>
@@ -1561,15 +1635,22 @@ export default function Dashboard() {
         </div>
 
         {/* Componente CdtRain - Siempre presente pero solo visible cuando showCdtRain es true */}
-        <div className={`cdt-rain-container ${showCdtRain ? "visible" : "hidden"}`}>
+        <div className={`cdt-rain-container ${showCdtRain ? "visible" : "hidden"}`} aria-hidden="true">
           <CdtRain count={50} duration={5} />
         </div>
 
         {/* Modal de regalo de bienvenida - Mejorado */}
         {showWelcomeGift && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="welcome-gift-title"
+          >
             <div className="bg-black/90 border border-primary rounded-xl shadow-lg p-6 max-w-md w-full animate-fadeIn">
-              <h2 className="text-2xl font-semibold mb-4 text-white">{t("welcome_gift_title")}</h2>
+              <h2 id="welcome-gift-title" className="text-2xl font-semibold mb-4 text-white">
+                {t("welcome_gift_title")}
+              </h2>
               <p className="text-gray-300 mb-6">{t("welcome_gift_description")}</p>
 
               <button
@@ -1578,8 +1659,9 @@ export default function Dashboard() {
                 className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
                   isClaimingWelcomeGift
                     ? "bg-gray-700 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5"
+                    : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5 primary-button"
                 } font-medium`}
+                aria-live="polite"
               >
                 {isClaimingWelcomeGift ? t("claiming_welcome_gift") : t("claim_welcome_gift")}
               </button>
@@ -1595,9 +1677,16 @@ export default function Dashboard() {
 
         {/* Modal de selección de país - Mejorado */}
         {showCountryModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="country-select-title"
+          >
             <div className="bg-black/90 border border-primary rounded-xl shadow-lg p-6 max-w-md w-full animate-fadeIn">
-              <h2 className="text-2xl font-semibold mb-4 text-white">{t("select_country_title")}</h2>
+              <h2 id="country-select-title" className="text-2xl font-semibold mb-4 text-white">
+                {t("select_country_title")}
+              </h2>
               <p className="text-gray-300 mb-6">{t("select_country_description")}</p>
 
               <CountrySelector value={country} onChangeAction={(value) => handleSaveCountry(value)} className="mb-6" />

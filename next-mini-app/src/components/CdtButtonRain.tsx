@@ -9,6 +9,8 @@ interface CdtButtonRainProps {
   containerClassName?: string
 }
 
+// Optimizar el componente CdtButtonRain para mejor rendimiento
+
 const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }) => {
   const [tokens, setTokens] = useState<
     Array<{
@@ -22,12 +24,12 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
     }>
   >([])
 
-  // Generar tokens cuando el componente se monta
+  // Generar tokens cuando el componente se monta - OPTIMIZADO
   useEffect(() => {
     // Crear una función para generar nuevos tokens
     const generateTokens = () => {
-      // Aumentar significativamente la cantidad de tokens (80)
-      return Array.from({ length: 80 }, (_, i) => ({
+      // Reducir la cantidad de tokens para mejor rendimiento (50 en lugar de 80)
+      return Array.from({ length: 50 }, (_, i) => ({
         id: i,
         // Distribuir los tokens por todo el ancho del botón
         x: Math.random() * 100,
@@ -39,8 +41,8 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
         delay: Math.random() * 1,
         // Duración muy corta para que caigan muy rápido
         duration: 0.5 + Math.random() * 0.8,
-        // Diferentes tipos de animación
-        type: Math.floor(Math.random() * 5),
+        // Reducir tipos de animación para mejor rendimiento (3 en lugar de 5)
+        type: Math.floor(Math.random() * 3),
       }))
     }
 
@@ -48,15 +50,16 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
     setTokens(generateTokens())
 
     // Regenerar tokens cada cierto tiempo para mantener el efecto constante
+    // Aumentar el intervalo para mejor rendimiento (7 segundos en lugar de 5)
     const interval = setInterval(() => {
       setTokens(generateTokens())
-    }, 5000) // Regenerar cada 5 segundos
+    }, 7000)
 
     return () => clearInterval(interval)
   }, [])
 
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${containerClassName}`}>
+    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${containerClassName}`} aria-hidden="true">
       {tokens.map((token) => (
         <div
           key={token.id}
@@ -68,6 +71,7 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
             height: `${token.size}px`,
             animation: `cdtTokenFall${token.type} ${token.duration}s linear infinite`,
             animationDelay: `${token.delay}s`,
+            willChange: "transform",
           }}
         >
           <Image
@@ -108,34 +112,6 @@ const CdtButtonRain: React.FC<CdtButtonRainProps> = ({ containerClassName = "" }
           }
           100% {
             transform: translateY(200%) translateX(0%) rotate(360deg);
-            opacity: 0.9;
-          }
-        }
-        @keyframes cdtTokenFall3 {
-          0% {
-            transform: translateY(0) translateX(-5%) rotate(0deg);
-            opacity: 0.9;
-          }
-          50% {
-            transform: translateY(100%) translateX(10%) rotate(180deg);
-            opacity: 0.9;
-          }
-          100% {
-            transform: translateY(200%) translateX(-5%) rotate(360deg);
-            opacity: 0.9;
-          }
-        }
-        @keyframes cdtTokenFall4 {
-          0% {
-            transform: translateY(0) translateX(5%) rotate(0deg);
-            opacity: 0.9;
-          }
-          50% {
-            transform: translateY(100%) translateX(-10%) rotate(180deg);
-            opacity: 0.9;
-          }
-          100% {
-            transform: translateY(200%) translateX(5%) rotate(360deg);
             opacity: 0.9;
           }
         }

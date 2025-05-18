@@ -43,7 +43,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800 shadow-lg">
       <div className="max-w-4xl mx-auto px-4 py-2.5 flex justify-between items-center">
         <div className="flex items-center">
-          <Link href="/dashboard" className="flex items-center group">
+          <Link href="/dashboard" className="flex items-center group" aria-label="Ir al dashboard">
             <div className="relative overflow-hidden rounded-full p-0.5 bg-gradient-to-r from-purple-500/30 to-blue-500/30 transition-all duration-300 group-hover:from-purple-500/50 group-hover:to-blue-500/50">
               <Image
                 src="/LOGO TRIBO Vault- sin fondo.png"
