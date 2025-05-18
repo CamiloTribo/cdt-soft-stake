@@ -1,7 +1,9 @@
 "use client"
 
-import type React from "react"
+// Vamos a mejorar la página de perfil manteniendo toda la funcionalidad pero mejorando la UI/UX
 
+// Primero, organizamos mejor las importaciones y añadimos algunas utilidades
+import type React from "react"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useWorldAuth } from "next-world-auth/react"
@@ -11,6 +13,7 @@ import { useTranslation } from "../../../src/components/TranslationProvider"
 import { CountrySelector } from "../../../src/components/CountrySelector"
 import { CountryFlag } from "../../../src/components/CountryFlag"
 
+// Mantenemos los tipos existentes
 type UserStats = {
   totalStaked: number
   totalClaimed: number
@@ -57,7 +60,7 @@ export default function Profile() {
   const [referralSuccess, setReferralSuccess] = useState(false)
   const [referralError, setReferralError] = useState("")
 
-  // Nuevo estado para el país
+  // Estado para el país
   const [country, setCountry] = useState("")
   const [isUpdatingCountry, setIsUpdatingCountry] = useState(false)
   const [countryUpdateSuccess, setCountryUpdateSuccess] = useState(false)
@@ -217,9 +220,8 @@ export default function Profile() {
     fetchUserData()
   }, [isAuthenticated, router, fetchUserData])
 
-  // Añadir este efecto después del useEffect existente
+  // Efecto para actualizar la UI cuando cambia el país
   useEffect(() => {
-    // Actualizar la UI cuando cambia el país
     if (country) {
       console.log("País actualizado:", country)
     }
@@ -280,7 +282,7 @@ export default function Profile() {
     }
   }
 
-  // Nueva función para actualizar el país del usuario
+  // Función para actualizar el país del usuario
   const handleUpdateCountry = async () => {
     const identifier = getUserIdentifier()
     if (!identifier || !country) return
@@ -356,18 +358,42 @@ export default function Profile() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]" aria-label="Loading"></div>
       </div>
     )
   }
 
+  // Clases comunes para las tarjetas
+  const cardClass =
+    "mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800 transition-all duration-300 hover:border-gray-700"
+  const cardTitleClass = "text-xl font-semibold text-[#4ebd0a] mb-2"
+  const cardValueClass = "text-4xl font-bold text-white mb-1"
+  const cardSubtitleClass = "text-sm text-gray-400 mb-3"
+  const cardSeparatorClass = "border-t border-gray-800 my-3"
+  const buttonPrimaryClass =
+    "w-full px-4 py-3 bg-[#4ebd0a] text-black rounded-full hover:bg-[#3fa008] text-center block font-medium transition-colors"
+  const buttonSecondaryClass =
+    "w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block transition-colors"
+
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="pt-0 pb-0 px-4">
+      <div className="pt-16 pb-8 px-4">
+        {" "}
+        {/* Ajustado el padding superior para dar espacio al header fijo */}
         <div className="max-w-md mx-auto">
           {/* Header con logo de TRIBO Wallet */}
-          <div className="flex flex-col items-center mb-4 mt-2">
-            <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={100} height={100} className="mb-1" />
+          <div className="flex flex-col items-center mb-6 mt-2 animate-fadeIn">
+            <div className="relative mb-2">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4ebd0a]/30 to-[#4ebd0a]/10 blur-md"></div>
+              <Image
+                src="/TRIBO Wallet sin fondo.png"
+                alt="TRIBO Wallet"
+                width={100}
+                height={100}
+                className="relative z-10"
+                priority
+              />
+            </div>
             {username && (
               <div className="flex flex-col items-center">
                 <div className="flex items-center">
@@ -385,12 +411,12 @@ export default function Profile() {
           </div>
 
           {/* Balance Total */}
-          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">{t("total_balance")}</h4>
-            <p className="text-4xl font-bold text-white mb-1">{userStats.totalStaked.toLocaleString()} CDT</p>
-            <p className="text-sm text-gray-400 mb-3">≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
+          <div className={`${cardClass} transform transition-transform hover:translate-y-[-2px]`}>
+            <h4 className={cardTitleClass}>{t("total_balance")}</h4>
+            <p className={cardValueClass}>{userStats.totalStaked.toLocaleString()} CDT</p>
+            <p className={cardSubtitleClass}>≈ ${calculateUsdValue(userStats.totalStaked)} USD</p>
 
-            <div className="border-t border-gray-800 my-3"></div>
+            <div className={cardSeparatorClass}></div>
 
             <h5 className="text-base font-medium text-white mb-2">{t("annual_projection")}</h5>
             <div className="flex justify-between items-center">
@@ -404,31 +430,30 @@ export default function Profile() {
           </div>
 
           {/* CDTs Ganados */}
-          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-2">{t("cdts_earned")}</h4>
-            <p className="text-4xl font-bold text-white mb-1">{userStats.totalClaimed.toLocaleString()} CDT</p>
-            <p className="text-sm text-gray-400 mb-3">
+          <div className={`${cardClass} transform transition-transform hover:translate-y-[-2px]`}>
+            <h4 className={cardTitleClass}>{t("cdts_earned")}</h4>
+            <p className={cardValueClass}>{userStats.totalClaimed.toLocaleString()} CDT</p>
+            <p className={cardSubtitleClass}>
               ≈ ${calculateUsdValue(userStats.totalClaimed)} USD {t("usd_claimed")}
             </p>
 
-            <div className="border-t border-gray-800 my-3"></div>
+            <div className={cardSeparatorClass}></div>
 
             <div className="flex justify-between items-center">
               <p className="text-sm text-gray-400">{t("last_claim")}</p>
               <p className="text-sm text-white">{formatLastClaimDate()}</p>
             </div>
             <div className="mt-3">
-              <Link
-                href="/transactions"
-                className="w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block"
-              >
+              <Link href="/transactions" className={buttonSecondaryClass} aria-label={t("view_full_history")}>
                 {t("view_full_history")}
               </Link>
             </div>
           </div>
 
           {/* Sección de referidos */}
-          <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+          <div
+            className={`mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800 transition-all duration-300 hover:border-gray-700`}
+          >
             <h4 className="text-xl font-semibold text-[#4ebd0a] mb-5">{t("referral_program")}</h4>
 
             <p className="text-sm text-gray-300 mb-4">{t("share_referral_code")}</p>
@@ -442,10 +467,12 @@ export default function Profile() {
                   value={username}
                   readOnly
                   className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm font-mono text-white"
+                  aria-label={t("your_referral_code")}
                 />
                 <button
                   onClick={copyReferralCode}
-                  className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-full"
+                  className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-full transition-colors"
+                  aria-label={isCopied ? "Copied" : "Copy code"}
                 >
                   {isCopied ? (
                     <svg
@@ -458,6 +485,7 @@ export default function Profile() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      aria-hidden="true"
                     >
                       <path d="M20 6 9 17l-5-5"></path>
                     </svg>
@@ -472,6 +500,7 @@ export default function Profile() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      aria-hidden="true"
                     >
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -492,19 +521,23 @@ export default function Profile() {
             <div className="mt-3">
               <Link
                 href="/rankings?tab=referrals"
-                className="w-full px-4 py-3 bg-[#4ebd0a] text-black rounded-full hover:bg-[#3fa008] text-center block font-medium transition-colors"
+                className={buttonPrimaryClass}
+                aria-label={t("join_referral_contest")}
               >
                 🏆 {t("join_referral_contest")}
               </Link>
             </div>
 
             {/* Lista de referidos */}
-            <div className="mb-5">
-              <p className="text-sm font-medium text-white mb-3">{t("your_referrals")}</p>
+            <div className="mb-5 mt-6">
+              <h5 className="text-base font-medium text-white mb-3">{t("your_referrals")}</h5>
 
               {isLoadingReferrals ? (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"></div>
+                  <div
+                    className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4ebd0a]"
+                    aria-label="Loading referrals"
+                  ></div>
                 </div>
               ) : referralsError ? (
                 <div className="bg-black/30 rounded-xl p-4 text-center">
@@ -534,6 +567,7 @@ export default function Profile() {
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            aria-hidden="true"
                           >
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
@@ -565,7 +599,7 @@ export default function Profile() {
             </div>
 
             {/* Separador */}
-            <div className="border-t border-gray-800 my-5"></div>
+            <div className={cardSeparatorClass}></div>
 
             {/* Formulario para añadir un referido */}
             <div>
@@ -578,28 +612,38 @@ export default function Profile() {
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     placeholder={t("referral_code")}
-                    className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white"
+                    className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#4ebd0a]"
+                    aria-label={t("referral_code")}
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`whitespace-nowrap px-4 py-2 rounded-r-full font-medium ${
+                    className={`whitespace-nowrap px-4 py-2 rounded-r-full font-medium transition-colors ${
                       isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
                     }`}
+                    aria-disabled={isSubmitting}
                   >
                     {isSubmitting ? t("sending") : t("register")}
                   </button>
                 </div>
 
-                {referralError && <p className="text-sm text-red-500 mt-2">{referralError}</p>}
-                {referralSuccess && <p className="text-sm text-[#4ebd0a] mt-2">{t("referral_registered")}</p>}
+                {referralError && (
+                  <p className="text-sm text-red-500 mt-2" role="alert">
+                    {referralError}
+                  </p>
+                )}
+                {referralSuccess && (
+                  <p className="text-sm text-[#4ebd0a] mt-2" role="alert">
+                    {t("referral_registered")}
+                  </p>
+                )}
               </form>
             </div>
           </div>
 
-          {/* Nuevo: Selector de país - MOVIDO DEBAJO DE LA SECCIÓN DE REFERIDOS */}
-          <div className="mb-4 bg-black rounded-2xl shadow-lg p-5 border border-gray-800">
-            <h4 className="text-xl font-semibold text-[#4ebd0a] mb-3">{t("select_your_country")}</h4>
+          {/* Selector de país */}
+          <div className={`${cardClass} transform transition-transform hover:translate-y-[-2px]`}>
+            <h4 className={cardTitleClass}>{t("select_your_country")}</h4>
             <p className="text-sm text-gray-300 mb-4">{t("country_selection_description")}</p>
 
             <div className="mb-4">
@@ -609,27 +653,55 @@ export default function Profile() {
             <button
               onClick={handleUpdateCountry}
               disabled={isUpdatingCountry || !country}
-              className={`w-full px-4 py-2 rounded-full ${
+              className={`w-full px-4 py-2 rounded-full transition-colors ${
                 isUpdatingCountry || !country
                   ? "bg-gray-700 cursor-not-allowed"
                   : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
-              } font-medium transition-colors`}
+              } font-medium`}
+              aria-disabled={isUpdatingCountry || !country}
             >
               {isUpdatingCountry ? t("updating") : t("update_country")}
             </button>
 
-            {countryUpdateSuccess && <p className="text-sm text-[#4ebd0a] mt-2 text-center">{t("country_updated")}</p>}
+            {countryUpdateSuccess && (
+              <p className="text-sm text-[#4ebd0a] mt-2 text-center animate-fadeIn" role="alert">
+                {t("country_updated")}
+              </p>
+            )}
 
-            {countryUpdateError && <p className="text-sm text-red-500 mt-2 text-center">{countryUpdateError}</p>}
+            {countryUpdateError && (
+              <p className="text-sm text-red-500 mt-2 text-center" role="alert">
+                {countryUpdateError}
+              </p>
+            )}
           </div>
 
           {/* Botón para volver al dashboard */}
           <div className="mb-6 text-center">
             <button
               onClick={() => router.push("/dashboard")}
-              className="px-6 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white"
+              className="px-6 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white transition-colors"
+              aria-label={t("back_to_dashboard")}
             >
-              {t("back_to_dashboard")}
+              <span className="flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-2"
+                  aria-hidden="true"
+                >
+                  <path d="m12 19-7-7 7-7" />
+                  <path d="M19 12H5" />
+                </svg>
+                {t("back_to_dashboard")}
+              </span>
             </button>
           </div>
         </div>
