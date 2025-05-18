@@ -66,31 +66,31 @@ const PriceDisplay = React.memo(
 
     return (
       <>
-        {/* Estadísticas adicionales con diseño simplificado */}
+        {/* Estadísticas adicionales con diseño mejorado */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-black p-4 rounded-xl border border-gray-800">
+          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700">
             <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
             <p className="text-lg font-semibold text-white">
-              <span className="text-[#4ebd0a]">$</span>
+              <span className="text-primary">$</span>
               {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
             </p>
           </div>
-          <div className="bg-black p-4 rounded-xl border border-gray-800">
+          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700">
             <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
             <p className="text-lg font-semibold text-white">
-              <span className="text-[#4ebd0a]">+</span>
+              <span className="text-primary">+</span>
               {yearlyEarnings.toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
             </p>
           </div>
         </div>
 
-        {/* Sección de precio con diseño simplificado */}
-        <div className="flex items-center justify-between mb-6 bg-black p-3 rounded-xl border border-gray-800">
+        {/* Sección de precio con diseño mejorado */}
+        <div className="flex items-center justify-between mb-6 bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700">
           <div>
             <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
             <div className="flex items-center">
               <p className="text-lg font-semibold text-white" style={{ fontFamily: "Helvetica Neue, sans-serif" }}>
-                <span className="text-[#4ebd0a]">$</span>
+                <span className="text-primary">$</span>
                 <span>{formattedPrice}</span>
               </p>
               <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
@@ -836,7 +836,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
@@ -848,7 +848,7 @@ export default function Dashboard() {
   const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
 
   return (
-    // FIX 1: Añadir clase overflow-hidden para evitar scroll horizontal y mantener contenido fijo
+    // Contenedor principal con overflow-hidden para evitar scroll horizontal
     <div className="max-w-4xl mx-auto relative overflow-hidden">
       {/* Aplicar Helvetica Neue a todo el dashboard */}
       <style jsx global>{`
@@ -856,14 +856,14 @@ export default function Dashboard() {
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
         
-        /* FIX 1: Asegurar que el contenido no cause scroll horizontal */
+        /* Asegurar que el contenido no cause scroll horizontal */
         body {
           overflow-x: hidden;
           width: 100%;
           position: relative;
         }
         
-        /* FIX 1: Asegurar que los elementos animados no causen problemas de layout */
+        /* Asegurar que los elementos animados no causen problemas de layout */
         .cdt-rain-container {
           pointer-events: none;
           position: fixed;
@@ -918,11 +918,11 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* FIX 1: Contenedor con posición relativa y overflow hidden para mantener todo en su lugar */}
-      <div className="dashboard-content relative">
+      {/* Contenedor con posición relativa y overflow hidden para mantener todo en su lugar */}
+      <div className="dashboard-content relative p-4">
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
-          <div className="mb-6 bg-black border-l-4 border-[#4ebd0a] p-4 rounded-xl shadow-lg animate-fadeIn">
+          <div className="mb-6 bg-black/60 border-l-4 border-primary p-4 rounded-xl shadow-lg animate-fadeIn">
             <div className="flex items-start">
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white">
@@ -932,7 +932,7 @@ export default function Dashboard() {
                 <div className="mt-3 flex gap-4">
                   <button
                     onClick={handleUpdateStake}
-                    className="px-4 py-2 bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black font-medium rounded-full transition-colors text-sm"
+                    className="px-4 py-2 bg-primary hover:bg-primary-hover text-black font-medium rounded-full transition-colors text-sm"
                   >
                     {t("update_balance")}
                   </button>
@@ -948,11 +948,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Banner de concurso de referidos */}
-
+        {/* Banner de concurso de referidos - Mejorado con transiciones más suaves */}
         <Link
           href="/rankings?tab=referrals"
-          className={`block mb-6 bg-gradient-to-r from-[#4ebd0a] to-[#3fa008] rounded-xl p-4 shadow-lg transition-all duration-300 ${
+          className={`block mb-6 bg-gradient-to-r from-primary to-primary-hover rounded-xl p-4 shadow-lg transition-all duration-300 ${
             isReferralBannerHovered ? "transform -translate-y-1 shadow-xl" : ""
           }`}
           onMouseEnter={() => setIsReferralBannerHovered(true)}
@@ -983,17 +982,17 @@ export default function Dashboard() {
           </div>
         </Link>
 
-        {/* Sección de usuario y saludo con detective verificador */}
+        {/* Sección de usuario y saludo con detective verificador - Mejorada */}
         <div className="mb-6 relative">
           <div className="flex items-center">
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-white">
-                Tribo <span className="text-[#4ebd0a]">Vault</span>
+                Tribo <span className="text-primary">Vault</span>
               </h2>
               {username && (
                 <p className="text-white text-xl mt-1 flex items-center">
                   {t("hello")}, {country && <CountryFlag countryCode={country} className="mx-1" />}
-                  <span className="font-bold text-[#4ebd0a]">{username}</span>
+                  <span className="font-bold text-primary">{username}</span>
                 </p>
               )}
             </div>
@@ -1010,16 +1009,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* NUEVA SECCIÓN: CDTs Ganados - ACTUALIZADA */}
-        <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-          <h4 className="text-lg font-semibold text-[#4ebd0a] mb-2">{t("cdts_earned")}</h4>
+        {/* CDTs Ganados - Diseño mejorado */}
+        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+          <h4 className="text-lg font-semibold text-primary mb-2">{t("cdts_earned")}</h4>
           <p className="text-4xl font-bold text-white mb-1">{totalClaimed.toLocaleString()} CDT</p>
-          <p className="text-sm text-[#4ebd0a]">
+          <p className="text-sm text-primary">
             ≈ ${calculateUsdValue(totalClaimed)} {t("usd_claimed")}
           </p>
         </div>
 
-        {/* NUEVO: Botón de Swap WLD/CDT con animación de gradiente */}
+        {/* Botón de Swap WLD/CDT con animación de gradiente - Mejorado */}
         <div className="mb-6">
           <Link
             href={getUnoDeeplinkUrl()}
@@ -1066,21 +1065,21 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* SECCIÓN UNIFICADA: Próximo Claim simplificada - REDISEÑADA */}
-        <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-          <h2 className="text-xl font-semibold mb-4 text-center text-[#4ebd0a]">{t("next_claim")}</h2>
+        {/* Próximo Claim simplificada - Diseño mejorado */}
+        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+          <h2 className="text-xl font-semibold mb-4 text-center text-primary">{t("next_claim")}</h2>
 
-          {/* Botón de reclamar - MOVIDO ARRIBA */}
+          {/* Botón de reclamar - Mejorado */}
           <button
             onClick={handleClaimRewards}
             disabled={isClaiming || !areRewardsClaimable}
-            className={`w-full px-4 py-4 rounded-full text-xl font-medium mb-5 ${
+            className={`w-full px-4 py-4 rounded-full text-xl font-medium mb-5 transition-all duration-300 ${
               isClaiming
                 ? "bg-gray-700 cursor-not-allowed"
                 : !areRewardsClaimable
-                  ? "bg-[#4ebd0a] text-white"
-                  : "bg-[#ff1744] hover:bg-[#ff2954]"
-            } transition-colors`}
+                  ? "bg-primary text-white"
+                  : "bg-secondary hover:bg-secondary-hover hover:shadow-lg transform hover:-translate-y-0.5"
+            }`}
           >
             {isClaiming ? (
               <span className="flex items-center justify-center">
@@ -1106,7 +1105,7 @@ export default function Dashboard() {
             )}
           </button>
 
-          {/* Fecha y barra de progreso */}
+          {/* Fecha y barra de progreso - Mejorada */}
           {nextClaimTime ? (
             <div className="flex flex-col items-center mb-5">
               {/* Fecha del próximo claim */}
@@ -1114,9 +1113,9 @@ export default function Dashboard() {
                 {nextClaimTime ? formatDate(nextClaimTime) : "Fecha no disponible"}
               </div>
 
-              <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
+              <div className="w-full bg-gray-800 rounded-full h-3 mb-6 overflow-hidden">
                 <div
-                  className="bg-[#4ebd0a] h-3 rounded-full"
+                  className="bg-primary h-3 rounded-full transition-all duration-500 ease-out"
                   style={{
                     width: `${
                       nextClaimTime && lastClaimDate
@@ -1137,36 +1136,36 @@ export default function Dashboard() {
             <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
           )}
 
-          {/* Cantidad a reclamar - MODIFICADA para mostrar recompensas en tiempo real en un único contador */}
+          {/* Cantidad a reclamar - Mejorada */}
           <div className="text-center mb-5">
             <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
-            <p className="text-4xl font-bold text-[#4ebd0a] rewards-counter">
+            <p className="text-4xl font-bold text-primary rewards-counter">
               {realtimeRewards.toFixed(6)} <span className="text-white">CDT</span>
             </p>
           </div>
 
-          {/* Mensajes de éxito/error para claim */}
+          {/* Mensajes de éxito/error para claim - Mejorados */}
           {claimSuccess && !claimError && !isClaiming && (
-            <div className="mt-4 p-3 bg-black border border-[#4ebd0a] rounded-full">
-              <p className="text-sm font-medium text-[#4ebd0a]">{claimSuccess}</p>
+            <div className="mt-4 p-3 bg-black/80 border border-primary rounded-full animate-pulse">
+              <p className="text-sm font-medium text-primary text-center">{claimSuccess}</p>
             </div>
           )}
 
           {claimError && !isClaiming && (
-            <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-full">
-              <p className="text-sm font-medium text-[#ff1744]">{t("error_claiming")}</p>
-              <p className="text-xs mt-1 text-[#ff1744]">{claimError}</p>
+            <div className="mt-4 p-3 bg-black/80 border border-secondary rounded-full">
+              <p className="text-sm font-medium text-secondary text-center">{t("error_claiming")}</p>
+              <p className="text-xs mt-1 text-secondary text-center">{claimError}</p>
             </div>
           )}
         </div>
 
-        {/* NUEVO: Botón para conocer TRIBO */}
+        {/* Botón para conocer TRIBO - Mejorado */}
         <div className="mb-6">
           <Link
             href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cryptodigitaltribe.com/"}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-[#4ebd0a] to-[#3fa008] text-white transition-all duration-300 ${
+            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-primary to-primary-hover text-white transition-all duration-300 ${
               isWebsiteHovered ? "transform -translate-y-1 shadow-lg" : ""
             }`}
             onMouseEnter={() => setIsWebsiteHovered(true)}
@@ -1209,19 +1208,19 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Card de TRIBO Wallet - Versión simplificada con branding consistente */}
-        <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+        {/* Card de TRIBO Wallet - Diseño mejorado */}
+        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               {/* Logo más grande sin texto */}
               <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={60} height={60} className="mr-3" />
             </div>
-            {/* Botón para ir a la página de perfil ampliado - DESTACADO Y VISIBLE - ACTUALIZADO */}
+            {/* Botón para ir a la página de perfil - Mejorado */}
             <Link
               href="/profile"
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 isProfileHovered
-                  ? "bg-[#4ebd0a] text-black shadow-lg transform -translate-y-0.5"
+                  ? "bg-primary text-black shadow-lg transform -translate-y-0.5"
                   : "bg-gray-800 text-white hover:bg-gray-700"
               }`}
               onMouseEnter={() => setIsProfileHovered(true)}
@@ -1265,7 +1264,7 @@ export default function Dashboard() {
           <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>
           <div className="flex items-center mb-4">
             <p className="text-3xl font-bold text-white">
-              {stakedAmount.toLocaleString()} <span className="text-[#4ebd0a]">CDT</span>
+              {stakedAmount.toLocaleString()} <span className="text-primary">CDT</span>
             </p>
           </div>
 
@@ -1275,9 +1274,11 @@ export default function Dashboard() {
           <button
             onClick={handleUpdateStake}
             disabled={isUpdating}
-            className={`w-full px-4 py-3 rounded-full ${
-              isUpdating ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
-            } font-medium transition-colors`}
+            className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
+              isUpdating
+                ? "bg-gray-700 cursor-not-allowed"
+                : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5"
+            } font-medium`}
           >
             {isUpdating ? (
               <span className="flex items-center justify-center">
@@ -1301,10 +1302,10 @@ export default function Dashboard() {
             )}
           </button>
 
-          {/* Mensaje de éxito para actualización de balance - ACTUALIZADO */}
+          {/* Mensaje de éxito para actualización de balance - Mejorado */}
           {updateSuccess && !updateError && !isUpdating && (
-            <div className="mt-4 p-3 bg-black/70 border border-[#4ebd0a] rounded-full animate-pulse">
-              <p className="text-sm font-medium text-[#4ebd0a] flex items-center">
+            <div className="mt-4 p-3 bg-black/70 border border-primary rounded-full animate-pulse">
+              <p className="text-sm font-medium text-primary flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-4 w-4 mr-2"
@@ -1319,10 +1320,10 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Mensaje de error para actualización de balance */}
+          {/* Mensaje de error para actualización de balance - Mejorado */}
           {updateError && !isUpdating && (
-            <div className="mt-4 p-3 bg-black/70 border border-[#ff1744] rounded-full">
-              <p className="text-sm font-medium text-[#ff1744] flex items-center">
+            <div className="mt-4 p-3 bg-black/70 border border-secondary rounded-full">
+              <p className="text-sm font-medium text-secondary flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-4 w-4 mr-2"
@@ -1339,34 +1340,34 @@ export default function Dashboard() {
                 </svg>
                 {t("error_updating")}
               </p>
-              <p className="text-xs mt-1 text-[#ff1744]">{updateError}</p>
+              <p className="text-xs mt-1 text-secondary text-center">{updateError}</p>
             </div>
           )}
         </div>
 
-        {/* Sección de ganancias - MODIFICADA con el estilo solicitado */}
-        <div className="mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
+        {/* Sección de ganancias - Diseño mejorado */}
+        <div className="mb-6 bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
           <h3 className="text-xl font-semibold mb-4 text-center text-white">{t("earn_daily")}</h3>
 
           <div className="grid grid-cols-3 gap-4 mb-5">
-            <div className="bg-black/50 p-4 rounded-xl border border-[#4ebd0a] text-center">
+            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover">
               <p className="text-sm text-gray-400 mb-1">{t("daily")}</p>
-              <p className="text-2xl font-bold text-[#4ebd0a]">0.1%</p>
+              <p className="text-2xl font-bold text-primary">0.1%</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-[#4ebd0a] text-center">
+            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover">
               <p className="text-sm text-gray-400 mb-1">{t("monthly")}</p>
-              <p className="text-2xl font-bold text-[#4ebd0a]">3%</p>
+              <p className="text-2xl font-bold text-primary">3%</p>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-[#4ebd0a] text-center">
+            <div className="bg-black/50 p-4 rounded-xl border border-primary text-center transition-all hover:border-primary-hover">
               <p className="text-sm text-gray-400 mb-1">{t("yearly")}</p>
-              <p className="text-2xl font-bold text-[#4ebd0a]">36.5%</p>
+              <p className="text-2xl font-bold text-primary">36.5%</p>
             </div>
           </div>
 
           <p className="text-center text-sm text-gray-400">{t("how_works_desc")}</p>
         </div>
 
-        {/* Botón de Discord */}
+        {/* Botón de Discord - Mejorado */}
         <div className="mb-6 flex items-center gap-4">
           <Image src="/Jefe Tribo Discord.png" alt="Discord" width={48} height={48} className="rounded-full" />
           <Link
@@ -1402,7 +1403,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Botón de Telegram - ACTUALIZADO con diseño unificado */}
+        {/* Botón de Telegram - Mejorado */}
         <div className="mb-6 flex items-center gap-4">
           <Image src="/Jefe Tribo Discord.png" alt="Telegram" width={48} height={48} className="rounded-full" />
           <Link
@@ -1438,7 +1439,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Botón de Twitter/X - ACTUALIZADO con diseño unificado */}
+        {/* Botón de Twitter/X - Mejorado */}
         <div className="mb-6 flex items-center gap-4">
           <Image src="/Jefe Tribo Discord.png" alt="Twitter" width={48} height={48} className="rounded-full" />
           <Link
@@ -1472,12 +1473,12 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* NUEVO: Banner de sorteos diarios con animación de lluvia de tokens CDT - MOVIDO AQUÍ */}
+        {/* Banner de sorteos diarios - Mejorado */}
         <Link
           href={telegramGiveawayUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={`block mb-6 bg-gradient-to-r from-[#ff1744] to-[#ff2954] rounded-xl p-4 shadow-lg transition-all duration-300 relative overflow-hidden ${
+          className={`block mb-6 bg-gradient-to-r from-secondary to-secondary-hover rounded-xl p-4 shadow-lg transition-all duration-300 relative overflow-hidden ${
             isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
           }`}
           onMouseEnter={() => setIsDailyGiveawayHovered(true)}
@@ -1512,25 +1513,33 @@ export default function Dashboard() {
           </div>
         </Link>
 
-        {/* Sección de propina - Movida al final */}
+        {/* Sección de propina - Mejorada */}
         <div className="mb-6">
-          <div className="bg-black rounded-2xl shadow-lg p-6 border border-gray-800">
-            <h2 className="text-xl font-semibold mb-2 text-[#4ebd0a]">{t("support_project")}</h2>
+          <div className="bg-black/60 rounded-2xl shadow-lg p-6 border border-gray-800 hover:border-gray-700 transition-all duration-300">
+            <h2 className="text-xl font-semibold mb-2 text-primary">{t("support_project")}</h2>
             <p className="text-gray-400 text-sm mb-4">{t("support_help")}</p>
             <button
               onClick={handleSendCDT}
               disabled={isSendingCDT}
-              className={`w-full px-4 py-3 rounded-full ${
-                isSendingCDT ? "bg-gray-700 cursor-not-allowed" : "bg-[#ff1744] hover:bg-[#ff2954]"
-              } text-white font-medium transition-colors`}
+              className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
+                isSendingCDT
+                  ? "bg-gray-700 cursor-not-allowed"
+                  : "bg-secondary hover:bg-secondary-hover hover:shadow-md hover:-translate-y-0.5"
+              } text-white font-medium`}
             >
               {isSendingCDT ? t("processing") : t("support_with").replace("0.023", "0.23")}
             </button>
 
             {txHash && !txError && isSendingCDT === false && (
-              <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-full">
-                <p className="text-sm font-medium text-[#ff1744]">{t("error_sending")}</p>
-                <p className="text-xs mt-1 text-[#ff1744]">{txError}</p>
+              <div className="mt-4 p-3 bg-black/70 border border-primary rounded-full animate-pulse">
+                <p className="text-sm font-medium text-primary text-center">{txHash}</p>
+              </div>
+            )}
+
+            {txError && !isSendingCDT && (
+              <div className="mt-4 p-3 bg-black/70 border border-secondary rounded-full">
+                <p className="text-sm font-medium text-secondary text-center">{t("error_sending")}</p>
+                <p className="text-xs mt-1 text-secondary text-center">{txError}</p>
               </div>
             )}
           </div>
@@ -1541,43 +1550,46 @@ export default function Dashboard() {
           <CdtRain count={50} duration={5} />
         </div>
 
+        {/* Modal de regalo de bienvenida - Mejorado */}
         {showWelcomeGift && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 max-w-md w-full">
+            <div className="bg-black/90 border border-primary rounded-xl shadow-lg p-6 max-w-md w-full animate-fadeIn">
               <h2 className="text-2xl font-semibold mb-4 text-white">{t("welcome_gift_title")}</h2>
               <p className="text-gray-300 mb-6">{t("welcome_gift_description")}</p>
 
               <button
                 onClick={handleClaimWelcomeGift}
                 disabled={isClaimingWelcomeGift}
-                className={`w-full px-4 py-3 rounded-full ${
+                className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
                   isClaimingWelcomeGift
                     ? "bg-gray-700 cursor-not-allowed"
-                    : "bg-[#4ebd0a] hover:bg-[#3fa008] text-black"
-                } font-medium transition-colors`}
+                    : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5"
+                } font-medium`}
               >
                 {isClaimingWelcomeGift ? t("claiming_welcome_gift") : t("claim_welcome_gift")}
               </button>
 
               {welcomeGiftError && (
-                <div className="mt-4 p-3 bg-black border border-[#ff1744] rounded-full">
-                  <p className="text-sm font-medium text-[#ff1744]">{welcomeGiftError}</p>
+                <div className="mt-4 p-3 bg-black/80 border border-secondary rounded-full">
+                  <p className="text-sm font-medium text-secondary text-center">{welcomeGiftError}</p>
                 </div>
               )}
             </div>
           </div>
         )}
+
+        {/* Modal de selección de país - Mejorado */}
         {showCountryModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-black border border-[#4ebd0a] rounded-xl shadow-lg p-6 max-w-md w-full">
+            <div className="bg-black/90 border border-primary rounded-xl shadow-lg p-6 max-w-md w-full animate-fadeIn">
               <h2 className="text-2xl font-semibold mb-4 text-white">{t("select_country_title")}</h2>
               <p className="text-gray-300 mb-6">{t("select_country_description")}</p>
 
               <CountrySelector value={country} onChangeAction={(value) => handleSaveCountry(value)} className="mb-6" />
 
               {countryUpdateError && (
-                <div className="mb-4 p-3 bg-black border border-[#ff1744] rounded-full">
-                  <p className="text-sm font-medium text-[#ff1744]">{countryUpdateError}</p>
+                <div className="mb-4 p-3 bg-black/80 border border-secondary rounded-full">
+                  <p className="text-sm font-medium text-secondary text-center">{countryUpdateError}</p>
                 </div>
               )}
 
@@ -1591,8 +1603,10 @@ export default function Dashboard() {
                     setShowCountryModal(false)
                   }}
                   disabled={isUpdatingCountry}
-                  className={`flex-1 px-4 py-3 rounded-full ${
-                    isUpdatingCountry ? "bg-gray-600 cursor-not-allowed" : "bg-gray-800 hover:bg-gray-700"
+                  className={`flex-1 px-4 py-3 rounded-full transition-all duration-300 ${
+                    isUpdatingCountry
+                      ? "bg-gray-600 cursor-not-allowed"
+                      : "bg-gray-800 hover:bg-gray-700 hover:-translate-y-0.5"
                   } text-white font-medium`}
                 >
                   {t("remind_later")}

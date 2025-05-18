@@ -1,7 +1,56 @@
-/* Estas directivas son procesadas por Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fix para el scroll bounce en iOS - recomendado por World App guidelines */
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 78 89% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 348 100% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 78 89% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 78 89% 39%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
 :root {
   /* Colores principales de Tribo Vault */
@@ -22,13 +71,6 @@
   --text-primary: #ffffff;
   --text-secondary: #aaaaaa;
   --text-muted: #666666;
-}
-
-/* Fix para el scroll bounce en iOS - recomendado por World App guidelines */
-html,
-body {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: none;
 }
 
 body {
