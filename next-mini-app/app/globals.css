@@ -605,3 +605,49 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Mejorar la visibilidad de los botones */
+.primary-button {
+  background-color: var(--primary);
+  color: black;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--primary-hover);
+}
+
+.primary-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(78, 189, 10, 0.3);
+}
+
+.secondary-button {
+  background-color: var(--secondary);
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--secondary-hover);
+}
+
+.secondary-button:hover {
+  background-color: var(--secondary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 23, 68, 0.3);
+}
+
+/* Mejorar la visibilidad de las tarjetas */
+.dashboard-card {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #333;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card:hover {
+  border-color: #444;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}

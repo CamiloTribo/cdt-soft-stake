@@ -1001,7 +1001,7 @@ export default function Dashboard() {
         {/* Banner de concurso de referidos - Mejorado con transiciones más suaves */}
         <Link
           href="/rankings?tab=referrals"
-          className={`block mb-6 bg-gradient-to-r from-primary to-primary-hover rounded-xl p-4 shadow-lg transition-all duration-300 ${
+          className={`block mb-6 bg-gradient-to-r from-primary to-primary-hover rounded-xl p-4 shadow-lg border border-primary/30 transition-all duration-300 ${
             isReferralBannerHovered ? "transform -translate-y-1 shadow-xl" : ""
           }`}
           onMouseEnter={() => setIsReferralBannerHovered(true)}
@@ -1230,7 +1230,7 @@ export default function Dashboard() {
             href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cryptodigitaltribe.com/"}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-primary to-primary-hover text-white transition-all duration-300 ${
+            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-primary to-primary-hover text-white transition-all duration-300 shadow-md ${
               isWebsiteHovered ? "transform -translate-y-1 shadow-lg" : ""
             }`}
             onMouseEnter={() => setIsWebsiteHovered(true)}
@@ -1286,7 +1286,7 @@ export default function Dashboard() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 isProfileHovered
                   ? "bg-primary text-black shadow-lg transform -translate-y-0.5 primary-button"
-                  : "bg-gray-800 text-white hover:bg-gray-700"
+                  : "bg-gray-800 text-white hover:bg-gray-700 border border-gray-700 shadow"
               }`}
               onMouseEnter={() => setIsProfileHovered(true)}
               onMouseLeave={() => setIsProfileHovered(false)}
@@ -1449,7 +1449,7 @@ export default function Dashboard() {
               className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
                 isDiscordHovered
                   ? "bg-[#5865F2] shadow-lg transform -translate-y-1"
-                  : "bg-[#5865F2]/80 hover:bg-[#5865F2]"
+                  : "bg-[#5865F2] hover:bg-[#5865F2] shadow"
               }`}
               onMouseEnter={() => setIsDiscordHovered(true)}
               onMouseLeave={() => setIsDiscordHovered(false)}
@@ -1496,7 +1496,7 @@ export default function Dashboard() {
               className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
                 isTelegramHovered
                   ? "bg-[#0088cc] shadow-lg transform -translate-y-1"
-                  : "bg-[#0088cc]/80 hover:bg-[#0088cc]"
+                  : "bg-[#0088cc] hover:bg-[#0088cc] shadow"
               }`}
               onMouseEnter={() => setIsTelegramHovered(true)}
               onMouseLeave={() => setIsTelegramHovered(false)}
@@ -1534,7 +1534,9 @@ export default function Dashboard() {
               target="_blank"
               rel="noopener noreferrer"
               className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-                isTwitterHovered ? "bg-gray-900 shadow-lg transform -translate-y-1" : "bg-gray-800 hover:bg-gray-900"
+                isTwitterHovered
+                  ? "bg-gray-900 shadow-lg transform -translate-y-1"
+                  : "bg-gray-800 hover:bg-gray-900 shadow"
               }`}
               onMouseEnter={() => setIsTwitterHovered(true)}
               onMouseLeave={() => setIsTwitterHovered(false)}
@@ -1566,7 +1568,7 @@ export default function Dashboard() {
           href={telegramGiveawayUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={`block mb-6 bg-gradient-to-r from-secondary to-secondary-hover rounded-xl p-4 shadow-lg transition-all duration-300 relative overflow-hidden ${
+          className={`block mb-6 bg-gradient-to-r from-secondary to-secondary-hover rounded-xl p-4 shadow-lg border border-secondary/30 transition-all duration-300 relative overflow-hidden ${
             isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
           }`}
           onMouseEnter={() => setIsDailyGiveawayHovered(true)}

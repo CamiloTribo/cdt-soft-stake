@@ -66,7 +66,7 @@ export default function Header() {
           {session && (
             <button
               onClick={signOut}
-              className="p-2 rounded-full bg-gray-800/50 border border-gray-700/50 hover:bg-gray-700/70 hover:border-gray-600 active:scale-95 transition-all duration-200"
+              className="p-2 rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 active:scale-95 transition-all duration-200"
               title={t("disconnect")}
               aria-label={t("disconnect")}
             >

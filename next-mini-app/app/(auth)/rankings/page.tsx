@@ -388,7 +388,7 @@ export default function Rankings() {
           {/* Dropdown menu */}
           {showDropdown && (
             <div
-              className="absolute z-50 mt-1 w-full bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-lg py-1 border border-gray-800 animate-in fade-in-50 slide-in-from-top-5 duration-200"
+              className="absolute z-10 mt-1 w-full bg-gray-900 rounded-xl shadow-lg py-1 border border-gray-700 animate-in fade-in-50 slide-in-from-top-5 duration-200 backdrop-blur-md"
               role="listbox"
             >
               <button
