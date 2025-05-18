@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 import { useWorldAuth } from "next-world-auth/react"
@@ -7,6 +9,7 @@ import { useSearchParams } from "next/navigation"
 import Header from "@/src/components/Header"
 import Image from "next/image"
 import { CountryFlag } from "../../../src/components/CountryFlag"
+import Link from "next/link"
 
 // Añadir "countries" y "levels" al tipo RankingType
 type RankingType = "holders" | "stakers" | "referrals" | "countries" | "levels"
@@ -29,6 +32,18 @@ interface CountryRanking {
   position: number
 }
 
+// Interfaz para niveles de staking
+interface StakingLevel {
+  id: string
+  name: string
+  minAmount: number
+  maxAmount: number | null
+  color: string
+  benefits: string[]
+  dailyRate: number
+  apy: number
+}
+
 export default function Rankings() {
   const { t } = useTranslation()
   const searchParams = useSearchParams()
@@ -43,7 +58,50 @@ export default function Rankings() {
   const [timeRemaining, setTimeRemaining] = useState<string>("")
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const tabsRef = useRef<HTMLDivElement>(null)
+
+  // Definir los niveles de staking con APY calculado
+  const stakingLevels: StakingLevel[] = [
+    {
+      id: "tribers",
+      name: "TRIBERS",
+      minAmount: 0,
+      maxAmount: 99999,
+      color: "#4ebd0a",
+      benefits: ["0.10% diario (tasa base)"],
+      dailyRate: 0.1,
+      apy: 36.5,
+    },
+    {
+      id: "cryptotribers",
+      name: "CRYPTOTRIBERS",
+      minAmount: 100000,
+      maxAmount: 999999,
+      color: "#C0C0C0",
+      benefits: ["0.11% diario", "Acceso a canales exclusivos"],
+      dailyRate: 0.11,
+      apy: 40.15,
+    },
+    {
+      id: "millotribers",
+      name: "MILLOTRIBERS",
+      minAmount: 1000000,
+      maxAmount: 9999999,
+      color: "#FFD700",
+      benefits: ["0.12% diario", "Acceso a grupo especial de Discord"],
+      dailyRate: 0.12,
+      apy: 43.8,
+    },
+    {
+      id: "legendarytribers",
+      name: "LEGENDARYTRIBERS",
+      minAmount: 10000000,
+      maxAmount: null,
+      color: "#B9F2FF",
+      benefits: ["0.13% diario", "Beneficios exclusivos para leyendas"],
+      dailyRate: 0.13,
+      apy: 47.45,
+    },
+  ]
 
   // Obtener el ID del usuario actual
   const currentUserId = session?.user?.walletAddress || ""
@@ -64,26 +122,6 @@ export default function Rankings() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
-
-  // Scroll horizontal suave para los tabs
-  const scrollToActiveTab = useCallback(() => {
-    if (tabsRef.current) {
-      const activeTab = tabsRef.current.querySelector(`[data-tab="${activeRanking}"]`)
-      if (activeTab) {
-        const tabsRect = tabsRef.current.getBoundingClientRect()
-        const activeTabRect = activeTab.getBoundingClientRect()
-        const scrollLeft = activeTabRect.left - tabsRect.left - tabsRect.width / 2 + activeTabRect.width / 2
-        tabsRef.current.scrollTo({
-          left: scrollLeft + tabsRef.current.scrollLeft,
-          behavior: "smooth",
-        })
-      }
-    }
-  }, [activeRanking])
-
-  useEffect(() => {
-    scrollToActiveTab()
-  }, [scrollToActiveTab])
 
   // Intentar obtener el país del usuario actual
   useEffect(() => {
@@ -139,61 +177,61 @@ export default function Rankings() {
     return () => clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    const fetchRankings = async () => {
-      setIsLoading(true)
-      setError(null)
+  const fetchRankings = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
 
-      try {
-        // Si es ranking de países, usar el endpoint de country-stats
-        if (activeRanking === "countries") {
-          const response = await fetch(`/api/country-stats?type=ranking`)
+    try {
+      // Si es ranking de países, usar el endpoint de country-stats
+      if (activeRanking === "countries") {
+        const response = await fetch(`/api/country-stats?type=ranking`)
 
-          if (!response.ok) {
-            throw new Error("Error al cargar rankings de países")
-          }
-
-          const data = await response.json()
-
-          if (data.success && data.rankings) {
-            setCountryRankings(data.rankings)
-          } else {
-            throw new Error("Formato de respuesta inválido")
-          }
+        if (!response.ok) {
+          throw new Error("Error al cargar rankings de países")
         }
-        // Para otros tipos de ranking, usar el endpoint de rankings
-        else if (activeRanking !== "levels") {
-          const response = await fetch(`/api/rankings?type=${activeRanking}`)
 
-          if (!response.ok) {
-            throw new Error("Error al cargar rankings")
-          }
+        const data = await response.json()
 
-          const data = await response.json()
-
-          // Marcar al usuario actual en los rankings
-          const rankingsWithCurrentUser = data.rankings.map((user: RankingUser) => ({
-            ...user,
-            isCurrentUser: user.id === currentUserId,
-          }))
-
-          // Limitar a 25 elementos
-          const limitedRankings = rankingsWithCurrentUser.slice(0, 25)
-          setRankings(limitedRankings)
+        if (data.success && data.rankings) {
+          setCountryRankings(data.rankings)
         } else {
-          // Para la sección "Coming Soon" de niveles, no cargamos datos
-          setRankings([])
+          throw new Error("Formato de respuesta inválido")
         }
-      } catch (err) {
-        console.error("Error fetching rankings:", err)
-        setError(t("error_loading_rankings"))
-      } finally {
-        setIsLoading(false)
       }
-    }
+      // Para otros tipos de ranking, usar el endpoint de rankings
+      else if (activeRanking !== "levels") {
+        const response = await fetch(`/api/rankings?type=${activeRanking}`)
 
-    fetchRankings()
+        if (!response.ok) {
+          throw new Error("Error al cargar rankings")
+        }
+
+        const data = await response.json()
+
+        // Marcar al usuario actual en los rankings
+        const rankingsWithCurrentUser = data.rankings.map((user: RankingUser) => ({
+          ...user,
+          isCurrentUser: user.id === currentUserId,
+        }))
+
+        // Limitar a 25 elementos
+        const limitedRankings = rankingsWithCurrentUser.slice(0, 25)
+        setRankings(limitedRankings)
+      } else {
+        // Para la sección "Coming Soon" de niveles, no cargamos datos
+        setRankings([])
+      }
+    } catch (err) {
+      console.error("Error fetching rankings:", err)
+      setError(t("error_loading_rankings"))
+    } finally {
+      setIsLoading(false)
+    }
   }, [activeRanking, currentUserId, t])
+
+  useEffect(() => {
+    fetchRankings()
+  }, [fetchRankings])
 
   // Función para formatear números grandes
   const formatLargeNumber = (num: number): string => {
@@ -232,6 +270,8 @@ export default function Rankings() {
         return t("rankings")
     }
   }
+
+  // (handleSubscribe removed because it was unused)
 
   return (
     <main className="min-h-screen bg-black text-white pb-20 font-['Helvetica Neue']">
@@ -329,6 +369,9 @@ export default function Rankings() {
                 </svg>
               )}
               {getCurrentRankingName()}
+              {activeRanking === "levels" && (
+                <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">Próximamente</span>
+              )}
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -476,61 +519,6 @@ export default function Rankings() {
           )}
         </div>
 
-        {/* Tabs alternativos para navegación rápida */}
-        <div
-          ref={tabsRef}
-          className="flex bg-gray-900 rounded-xl p-1 mb-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
-        >
-          <button
-            data-tab="holders"
-            onClick={() => setActiveRanking("holders")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors snap-start ${
-              activeRanking === "holders" ? "bg-[#4ebd0a] text-black" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            {t("holders")}
-          </button>
-          <button
-            data-tab="stakers"
-            onClick={() => setActiveRanking("stakers")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors snap-start ${
-              activeRanking === "stakers" ? "bg-[#4ebd0a] text-black" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            {t("stakers")}
-          </button>
-          <button
-            data-tab="referrals"
-            onClick={() => setActiveRanking("referrals")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors snap-start ${
-              activeRanking === "referrals" ? "bg-[#4ebd0a] text-black" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            {t("referrals_ranking")}
-          </button>
-          <button
-            data-tab="countries"
-            onClick={() => setActiveRanking("countries")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors snap-start ${
-              activeRanking === "countries" ? "bg-[#4ebd0a] text-black" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Países
-          </button>
-          <button
-            data-tab="levels"
-            onClick={() => setActiveRanking("levels")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors snap-start ${
-              activeRanking === "levels" ? "bg-[#4ebd0a] text-black" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Niveles
-            <span className="ml-1 text-[0.65rem] bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full inline-block">
-              Soon
-            </span>
-          </button>
-        </div>
-
         {/* Banner de premio para referidos */}
         {activeRanking === "referrals" && (
           <div className="bg-gradient-to-r from-[#4ebd0a]/30 to-[#4ebd0a]/10 rounded-xl p-4 mb-6 border border-[#4ebd0a]/50 transform transition-all hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(78,189,10,0.3)]">
@@ -577,10 +565,10 @@ export default function Rankings() {
           </div>
         )}
 
-        {/* Banner Coming Soon para niveles */}
+        {/* Banner Coming Soon para niveles - Mejorado con APY */}
         {activeRanking === "levels" && (
           <div className="bg-gradient-to-br from-[#4ebd0a]/30 via-[#4ebd0a]/20 to-[#4ebd0a]/5 rounded-xl p-6 mb-6 border border-[#4ebd0a]/50 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('/placeholder.svg?key=xjyw1')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
+            <div className="absolute inset-0 bg-[url('/abstract-green-gradient.png')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
             <div className="relative z-10">
               <div className="inline-block bg-[#4ebd0a] text-black px-3 py-1 rounded-full text-sm font-bold mb-4 animate-pulse">
                 Próximamente
@@ -588,33 +576,86 @@ export default function Rankings() {
               <h3 className="text-[#4ebd0a] font-bold text-2xl mb-3">Niveles de Staking</h3>
               <p className="text-white text-sm mb-6 max-w-xs mx-auto">
                 Una nueva forma de competir y ganar recompensas basada en tu nivel de staking. ¡Prepárate para
-                desbloquear beneficios exclusivos!
+                desbloquear beneficios exclusivos y mayores APY!
               </p>
 
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-black/30 rounded-lg p-3 transform transition-all hover:bg-black/50 hover:scale-105">
-                  <div className="w-10 h-10 rounded-full bg-[#4ebd0a]/20 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-[#4ebd0a] font-bold">1</span>
+              {/* Sección de niveles mejorada con APY */}
+              <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
+                {stakingLevels.map((level) => (
+                  <div
+                    key={level.id}
+                    className="bg-black/30 rounded-lg p-3 transform transition-all hover:bg-black/50 hover:scale-105 border border-gray-800"
+                    style={{ borderLeft: `3px solid ${level.color}` }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
+                      style={{ backgroundColor: `${level.color}30` }}
+                    >
+                      <span style={{ color: level.color }} className="font-bold text-xs">
+                        {level.name.charAt(0)}
+                      </span>
+                    </div>
+                    <p className="text-white text-xs font-medium text-center">{level.name}</p>
+                    <div className="flex flex-col items-center mt-1">
+                      <p className="text-[#4ebd0a] text-xs font-bold">+{level.dailyRate}% diario</p>
+                      <p className="text-yellow-400 text-[10px] font-medium">{level.apy}% APY</p>
+                    </div>
+                    <p className="text-gray-400 text-[10px] mt-1 text-center">
+                      {level.maxAmount
+                        ? `${formatLargeNumber(level.minAmount)}-${formatLargeNumber(level.maxAmount)} CDT`
+                        : `${formatLargeNumber(level.minAmount)}+ CDT`}
+                    </p>
                   </div>
-                  <p className="text-white text-xs">Bronce</p>
-                </div>
-                <div className="bg-black/30 rounded-lg p-3 transform transition-all hover:bg-black/50 hover:scale-105">
-                  <div className="w-10 h-10 rounded-full bg-[#4ebd0a]/30 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-[#4ebd0a] font-bold">2</span>
-                  </div>
-                  <p className="text-white text-xs">Plata</p>
-                </div>
-                <div className="bg-black/30 rounded-lg p-3 transform transition-all hover:bg-black/50 hover:scale-105">
-                  <div className="w-10 h-10 rounded-full bg-[#4ebd0a]/40 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-[#4ebd0a] font-bold">3</span>
-                  </div>
-                  <p className="text-white text-xs">Oro</p>
-                </div>
+                ))}
               </div>
 
-              <button className="bg-[#4ebd0a]/20 hover:bg-[#4ebd0a]/30 text-[#4ebd0a] border border-[#4ebd0a]/50 rounded-full px-6 py-2 text-sm font-medium transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#4ebd0a]/50 focus:ring-offset-2 focus:ring-offset-black">
-                Recibir notificación cuando esté disponible
-              </button>
+              {/* Sección de Boost */}
+              <div className="bg-gradient-to-r from-[#4ebd0a]/20 to-yellow-500/20 rounded-lg p-4 mt-4 border border-yellow-500/30">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-yellow-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m8 13.5 4 4.5 4-4.5"></path>
+                    <path d="m8 4.5 4 4.5 4-4.5"></path>
+                    <line x1="12" y1="9" x2="12" y2="18"></line>
+                  </svg>
+                  <h4 className="text-yellow-400 font-bold">BOOST</h4>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-yellow-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m8 13.5 4 4.5 4-4.5"></path>
+                    <path d="m8 4.5 4 4.5 4-4.5"></path>
+                    <line x1="12" y1="9" x2="12" y2="18"></line>
+                  </svg>
+                </div>
+                <p className="text-white text-sm">
+                  Próximamente: Aumenta tu tasa diaria hasta <span className="text-yellow-400 font-bold">0.2%</span> con
+                  nuestro sistema de boost
+                </p>
+                <p className="text-yellow-400 font-bold text-lg mt-1">¡Hasta 73% APY!</p>
+              </div>
+
+              {/* Botón para volver al dashboard */}
+              <Link
+                href="/dashboard"
+                className="mt-6 inline-block bg-[#4ebd0a] hover:bg-[#3da008] text-black font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105"
+              >
+                Volver al Dashboard
+              </Link>
             </div>
           </div>
         )}
@@ -1028,18 +1069,8 @@ export default function Rankings() {
                     {rankings.find((user) => user.isCurrentUser)?.position || 0}
                   </div>
                   <div className="flex-1 ml-4 min-w-0">
-                    {/* En la sección "Tu posición" */}
-                    <p
-                      className="font-medium text-white truncate"
-                      title={`@${rankings.find((user) => user.isCurrentUser)?.username}`}
-                    >
-                      {rankings.find((user) => user.isCurrentUser)?.country && (
-                        <CountryFlag
-                          countryCode={rankings.find((user) => user.isCurrentUser)?.country || ""}
-                          className="mr-1 inline-block"
-                        />
-                      )}
-                      @{rankings.find((user) => user.isCurrentUser)?.username}
+                    <p className="font-medium text-white truncate">
+                      @{rankings.find((user) => user.isCurrentUser)?.username || ""}
                     </p>
                   </div>
                   <div className="text-right flex items-center justify-end flex-shrink-0">
@@ -1052,22 +1083,6 @@ export default function Rankings() {
                       <span className="ml-1 text-[#4ebd0a]">{t("friends")}</span>
                     )}
                   </div>
-                  {activeRanking === "referrals" &&
-                    rankings.find((user) => user.isCurrentUser)?.position &&
-                    (rankings.find((user) => user.isCurrentUser)?.position || 0) <= 13 && (
-                      <div className="ml-2 bg-black/30 rounded px-2 py-1 text-xs flex-shrink-0">
-                        <span className="text-[#4ebd0a]">
-                          {(rankings.find((user) => user.isCurrentUser)?.position || 0) === 1
-                            ? "5,000"
-                            : (rankings.find((user) => user.isCurrentUser)?.position || 0) === 2
-                              ? "3,000"
-                              : (rankings.find((user) => user.isCurrentUser)?.position || 0) === 3
-                                ? "1,000"
-                                : "100"}{" "}
-                          CDT
-                        </span>
-                      </div>
-                    )}
                 </div>
               </div>
             )}
