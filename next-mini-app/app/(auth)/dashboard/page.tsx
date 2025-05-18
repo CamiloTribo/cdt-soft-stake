@@ -1001,9 +1001,7 @@ export default function Dashboard() {
         {/* Banner de concurso de referidos - Mejorado con transiciones más suaves */}
         <Link
           href="/rankings?tab=referrals"
-          className={`block mb-6 bg-gradient-to-r from-primary to-primary-hover rounded-xl p-4 shadow-lg border border-primary/30 transition-all duration-300 ${
-            isReferralBannerHovered ? "transform -translate-y-1 shadow-xl" : ""
-          }`}
+          className="block mb-6 bg-primary text-black rounded-xl p-4 shadow-lg border border-primary/30 transition-all duration-300"
           onMouseEnter={() => setIsReferralBannerHovered(true)}
           onMouseLeave={() => setIsReferralBannerHovered(false)}
           onTouchStart={() => setIsReferralBannerHovered(true)}
@@ -1224,15 +1222,40 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Enlace a la sección de niveles - NUEVO */}
+        <div className="mb-6">
+          <Link
+            href="/rankings?tab=levels"
+            className="block w-full bg-gradient-to-r from-[#4ebd0a] to-yellow-500 text-black font-bold py-4 px-6 rounded-xl text-center relative overflow-hidden shadow-md"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#4ebd0a]/20 to-yellow-500/20 animate-pulse"></div>
+            <div className="relative z-10 flex items-center justify-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 20v-6M6 20V10M18 20V4"></path>
+              </svg>
+              <span className="text-lg">¡Descubre los niveles de staking!</span>
+              <span className="ml-1 text-sm bg-black/20 px-2 py-0.5 rounded-full">Hasta 73% APY</span>
+            </div>
+          </Link>
+        </div>
+
         {/* Botón para conocer TRIBO - Mejorado */}
         <div className="mb-6">
           <Link
             href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cryptodigitaltribe.com/"}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-primary to-primary-hover text-white transition-all duration-300 shadow-md ${
-              isWebsiteHovered ? "transform -translate-y-1 shadow-lg" : ""
-            }`}
+            className="flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold bg-gradient-to-r from-primary to-primary-hover text-black transition-all duration-300 shadow-md"
             onMouseEnter={() => setIsWebsiteHovered(true)}
             onMouseLeave={() => setIsWebsiteHovered(false)}
             onTouchStart={() => setIsWebsiteHovered(true)}
@@ -1283,11 +1306,7 @@ export default function Dashboard() {
             {/* Botón para ir a la página de perfil - Mejorado */}
             <Link
               href="/profile"
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                isProfileHovered
-                  ? "bg-primary text-black shadow-lg transform -translate-y-0.5 primary-button"
-                  : "bg-gray-800 text-white hover:bg-gray-700 border border-gray-700 shadow"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-primary text-black shadow-md"
               onMouseEnter={() => setIsProfileHovered(true)}
               onMouseLeave={() => setIsProfileHovered(false)}
               onTouchStart={() => setIsProfileHovered(true)}
@@ -1339,11 +1358,7 @@ export default function Dashboard() {
           <button
             onClick={handleUpdateStake}
             disabled={isUpdating}
-            className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
-              isUpdating
-                ? "bg-gray-700 cursor-not-allowed"
-                : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5 primary-button"
-            } font-medium`}
+            className="w-full px-4 py-3 rounded-full transition-all duration-300 bg-primary text-black font-medium shadow-md"
             aria-live="polite"
           >
             {isUpdating ? (
@@ -1446,11 +1461,7 @@ export default function Dashboard() {
               href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/BaYaaUsUuN"}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-                isDiscordHovered
-                  ? "bg-[#5865F2] shadow-lg transform -translate-y-1"
-                  : "bg-[#5865F2] hover:bg-[#5865F2] shadow"
-              }`}
+              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 bg-[#5865F2] shadow-md"
               onMouseEnter={() => setIsDiscordHovered(true)}
               onMouseLeave={() => setIsDiscordHovered(false)}
               onTouchStart={() => setIsDiscordHovered(true)}
@@ -1493,11 +1504,7 @@ export default function Dashboard() {
               href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/cryptodigitaltribe"}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-                isTelegramHovered
-                  ? "bg-[#0088cc] shadow-lg transform -translate-y-1"
-                  : "bg-[#0088cc] hover:bg-[#0088cc] shadow"
-              }`}
+              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 bg-[#0088cc] shadow-md"
               onMouseEnter={() => setIsTelegramHovered(true)}
               onMouseLeave={() => setIsTelegramHovered(false)}
               onTouchStart={() => setIsTelegramHovered(true)}
@@ -1533,11 +1540,7 @@ export default function Dashboard() {
               href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://x.com/TriboCDT"}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 ${
-                isTwitterHovered
-                  ? "bg-gray-900 shadow-lg transform -translate-y-1"
-                  : "bg-gray-800 hover:bg-gray-900 shadow"
-              }`}
+              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 bg-gray-900 shadow-md"
               onMouseEnter={() => setIsTwitterHovered(true)}
               onMouseLeave={() => setIsTwitterHovered(false)}
               onTouchStart={() => setIsTwitterHovered(true)}
@@ -1568,9 +1571,7 @@ export default function Dashboard() {
           href={telegramGiveawayUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={`block mb-6 bg-gradient-to-r from-secondary to-secondary-hover rounded-xl p-4 shadow-lg border border-secondary/30 transition-all duration-300 relative overflow-hidden ${
-            isDailyGiveawayHovered ? "transform -translate-y-1 shadow-xl" : ""
-          }`}
+          className="block mb-6 bg-secondary rounded-xl p-4 shadow-lg border border-secondary/30 transition-all duration-300 relative overflow-hidden"
           onMouseEnter={() => setIsDailyGiveawayHovered(true)}
           onMouseLeave={() => setIsDailyGiveawayHovered(false)}
           onTouchStart={() => setIsDailyGiveawayHovered(true)}
@@ -1611,11 +1612,7 @@ export default function Dashboard() {
             <button
               onClick={handleSendCDT}
               disabled={isSendingCDT}
-              className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
-                isSendingCDT
-                  ? "bg-gray-700 cursor-not-allowed"
-                  : "bg-secondary hover:bg-secondary-hover hover:shadow-md hover:-translate-y-0.5 secondary-button"
-              } text-white font-medium`}
+              className="w-full px-4 py-3 rounded-full transition-all duration-300 bg-secondary text-white font-medium shadow-md"
               aria-live="polite"
             >
               {isSendingCDT ? t("processing") : t("support_with").replace("0.023", "0.23")}
@@ -1658,11 +1655,7 @@ export default function Dashboard() {
               <button
                 onClick={handleClaimWelcomeGift}
                 disabled={isClaimingWelcomeGift}
-                className={`w-full px-4 py-3 rounded-full transition-all duration-300 ${
-                  isClaimingWelcomeGift
-                    ? "bg-gray-700 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary-hover text-black hover:shadow-md hover:-translate-y-0.5 primary-button"
-                } font-medium`}
+                className="w-full px-4 py-3 rounded-full transition-all duration-300 bg-primary text-black font-medium shadow-md"
                 aria-live="polite"
               >
                 {isClaimingWelcomeGift ? t("claiming_welcome_gift") : t("claim_welcome_gift")}
@@ -1709,11 +1702,7 @@ export default function Dashboard() {
                     setShowCountryModal(false)
                   }}
                   disabled={isUpdatingCountry}
-                  className={`flex-1 px-4 py-3 rounded-full transition-all duration-300 ${
-                    isUpdatingCountry
-                      ? "bg-gray-600 cursor-not-allowed"
-                      : "bg-gray-800 hover:bg-gray-700 hover:-translate-y-0.5"
-                  } text-white font-medium`}
+                  className="flex-1 px-4 py-3 rounded-full transition-all duration-300 bg-gray-800 text-white font-medium shadow-md"
                 >
                   {t("remind_later")}
                 </button>
