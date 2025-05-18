@@ -17,14 +17,14 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-          hover: "#3fa008", // Overriding shadcn primary
+          DEFAULT: "#4ebd0a", // Color principal directo en lugar de usar hsl
+          foreground: "#ffffff",
+          hover: "#3fa008",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-          hover: "#ff2954", // Overriding shadcn secondary
+          DEFAULT: "#ff1744", // Color secundario directo
+          foreground: "#ffffff",
+          hover: "#ff2954",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -58,7 +58,7 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "Arial", "Helvetica", "sans-serif"],
+        sans: ["Helvetica Neue", "Arial", "Helvetica", "sans-serif"],
       },
       animation: {
         fadeIn: "fadeIn 0.5s ease-out forwards",

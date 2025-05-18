@@ -24,6 +24,13 @@
   --text-muted: #666666;
 }
 
+/* Fix para el scroll bounce en iOS - recomendado por World App guidelines */
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

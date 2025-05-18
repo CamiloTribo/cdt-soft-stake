@@ -14,9 +14,9 @@ export default function Navbar() {
           {/* Dashboard - Usando el logo de TRIBO Vault */}
           <Link href="/dashboard" className="group flex flex-col items-center py-2" aria-label="Dashboard">
             <div
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/dashboard")
-                  ? "bg-[#4ebd0a] shadow-lg shadow-[#4ebd0a]/20"
+                  ? "bg-primary shadow-lg shadow-primary/20"
                   : "bg-gray-800 group-hover:bg-gray-700"
               }`}
             >
@@ -28,14 +28,17 @@ export default function Navbar() {
                 className="transition-transform group-hover:scale-110"
               />
             </div>
+            <span className={`mt-1 text-xs ${pathname.includes("/dashboard") ? "text-primary" : "text-gray-400"}`}>
+              Inicio
+            </span>
           </Link>
 
-          {/* Proyecto TRIBO (reemplaza Transactions) */}
+          {/* Proyecto TRIBO */}
           <Link href="/proyecto-tribo" className="group flex flex-col items-center py-2" aria-label="Proyecto TRIBO">
             <div
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/proyecto-tribo")
-                  ? "bg-[#4ebd0a] shadow-lg shadow-[#4ebd0a]/20"
+                  ? "bg-primary shadow-lg shadow-primary/20"
                   : "bg-gray-800 group-hover:bg-gray-700"
               }`}
             >
@@ -56,14 +59,17 @@ export default function Navbar() {
                 <path d="M2 12h20"></path>
               </svg>
             </div>
+            <span className={`mt-1 text-xs ${pathname.includes("/proyecto-tribo") ? "text-primary" : "text-gray-400"}`}>
+              Proyecto
+            </span>
           </Link>
 
           {/* Rankings */}
           <Link href="/rankings" className="group flex flex-col items-center py-2" aria-label="Rankings">
             <div
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/rankings")
-                  ? "bg-[#4ebd0a] shadow-lg shadow-[#4ebd0a]/20"
+                  ? "bg-primary shadow-lg shadow-primary/20"
                   : "bg-gray-800 group-hover:bg-gray-700"
               }`}
             >
@@ -83,14 +89,17 @@ export default function Navbar() {
                 <path d="M18 3v4M12 3v2M6 3v8"></path>
               </svg>
             </div>
+            <span className={`mt-1 text-xs ${pathname.includes("/rankings") ? "text-primary" : "text-gray-400"}`}>
+              Rankings
+            </span>
           </Link>
 
           {/* Profile/Wallet */}
           <Link href="/profile" className="group flex flex-col items-center py-2" aria-label="TRIBO Wallet">
             <div
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/profile")
-                  ? "bg-[#4ebd0a] shadow-lg shadow-[#4ebd0a]/20"
+                  ? "bg-primary shadow-lg shadow-primary/20"
                   : "bg-gray-800 group-hover:bg-gray-700"
               }`}
             >
@@ -111,6 +120,9 @@ export default function Navbar() {
                 <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
               </svg>
             </div>
+            <span className={`mt-1 text-xs ${pathname.includes("/profile") ? "text-primary" : "text-gray-400"}`}>
+              Wallet
+            </span>
           </Link>
         </div>
       </div>
