@@ -270,3 +270,9 @@ export type TranslationKey =
   | "global_expansion"
   | "view_full_roadmap"
   | "full_roadmap_description"
+  // Nuevas claves para los componentes recientes
+  | "discover_staking_levels"
+  | "up_to_apy"
+  | "know_tribo"
+  | "transaction_rejected"
+  | "transaction_cancelled"

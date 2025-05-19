@@ -362,9 +362,9 @@ export default function Dashboard() {
           }
         }
       } else if (result && result.success === false) {
-        setTxError("Transacción rechazada")
+        setTxError(t("transaction_rejected"))
       } else {
-        setTxError("Transacción cancelada o no completada")
+        setTxError(t("transaction_cancelled"))
       }
     } catch (error) {
       console.error("Error al enviar propina:", error)
@@ -647,8 +647,8 @@ export default function Dashboard() {
               >
                 <path d="M12 20v-6M6 20V10M18 20V4"></path>
               </svg>
-              <span className="text-lg">¡Descubre los niveles de staking!</span>
-              <span className="ml-1 text-sm bg-black/20 px-2 py-0.5 rounded-full">Hasta 73% APY</span>
+              <span className="text-lg">{t("discover_staking_levels")}</span>
+              <span className="ml-1 text-sm bg-black/20 px-2 py-0.5 rounded-full">{t("up_to_apy")}</span>
             </div>
           </Link>
         </div>
@@ -681,7 +681,7 @@ export default function Dashboard() {
               <line x1="2" y1="12" x2="22" y2="12"></line>
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
             </svg>
-            <span className="whitespace-nowrap">Conoce TRIBO</span>
+            <span className="whitespace-nowrap">{t("know_tribo")}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"

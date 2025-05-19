@@ -227,5 +227,11 @@
   "new_integrations": "Nuevas integraciones y colaboraciones",
   "global_expansion": "Expansión global de la comunidad",
   "view_full_roadmap": "Ver roadmaps completos",
-  "full_roadmap_description": "Consulta nuestros roadmaps detallados en nuestra web oficial"
+  "full_roadmap_description": "Consulta nuestros roadmaps detallados en nuestra web oficial",
+
+  "discover_staking_levels": "¡Descubre los niveles de staking!",
+  "up_to_apy": "Hasta 73% APY",
+  "know_tribo": "Conoce TRIBO",
+  "transaction_rejected": "Transacción rechazada",
+  "transaction_cancelled": "Transacción cancelada o no completada"
 }
