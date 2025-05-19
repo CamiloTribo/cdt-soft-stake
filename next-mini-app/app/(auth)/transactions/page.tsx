@@ -123,10 +123,9 @@ export default function Transactions() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="relative">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ebd0a]"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-6 w-6 rounded-full bg-black"></div>
-          </div>
+          <div className="absolute inset-0 rounded-full border-t-2 border-r-2 border-[#4ebd0a] animate-spin"></div>
+          <div className="absolute inset-3 rounded-full border-t-2 border-r-2 border-[#4ebd0a]/70 animate-spin animation-delay-150"></div>
+          <div className="absolute inset-6 rounded-full border-t-2 border-r-2 border-[#4ebd0a]/40 animate-spin animation-delay-300"></div>
         </div>
       </div>
     )

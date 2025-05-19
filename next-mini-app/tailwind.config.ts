@@ -1,17 +1,25 @@
 import type { Config } from "tailwindcss"
 import { fontFamily } from "tailwindcss/defaultTheme"
-import plugin from "tailwindcss/plugin"
+import animate from "tailwindcss-animate"
 
 const config: Config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
     "*.{js,ts,jsx,tsx,mdx}",
   ],
+  prefix: "",
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -19,7 +27,16 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        // Eliminamos las definiciones duplicadas de primary y secondary
+        primary: {
+          DEFAULT: "#4ebd0a",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        "primary-hover": "#3da008",
+        secondary: {
+          DEFAULT: "#ff1744",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        "secondary-hover": "#e3002c",
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -40,20 +57,6 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Definimos los colores personalizados
-        "tribo-green": {
-          DEFAULT: "#4ebd0a",
-          hover: "#3fa008",
-        },
-        "tribo-red": {
-          DEFAULT: "#ff1744",
-          hover: "#e5002f",
-        },
-        text: {
-          primary: "#ffffff",
-          secondary: "#aaaaaa",
-          muted: "#666666",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -61,43 +64,53 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Helvetica Neue", "Arial", "Helvetica", ...fontFamily.sans],
-      },
-      animation: {
-        "bounce-slow": "bounce 3s infinite",
-        "ping-slow": "ping 3s cubic-bezier(0, 0, 0.2, 1) infinite",
-        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        float: "float 6s ease-in-out infinite",
-        fadeIn: "fadeIn 0.5s ease-in-out",
+        sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
         fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        spin: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "spin-reverse": {
+          from: { transform: "rotate(360deg)" },
+          to: { transform: "rotate(0deg)" },
         },
       },
-      transitionDelay: {
-        "0": "0ms",
-        "150": "150ms",
-        "300": "300ms",
-        "450": "450ms",
-        "600": "600ms",
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        float: "float 3s ease-in-out infinite",
+        fadeIn: "fadeIn 0.5s ease-in-out",
+        pulse: "pulse 2s ease-in-out infinite",
+        spin: "spin 1s linear infinite",
+        "spin-reverse": "spin-reverse 1s linear infinite",
+        "spin-slow": "spin 3s linear infinite",
+        "delay-150": "delay-150 1s linear infinite",
+        "delay-300": "delay-300 1s linear infinite",
       },
     },
   },
-  plugins: [
-    plugin(({ addUtilities }) => {
-      addUtilities({
-        ".animate-pause": {
-          "animation-play-state": "paused",
-        },
-      })
-    }),
-  ],
+  plugins: [animate],
 }
 
 export default config
