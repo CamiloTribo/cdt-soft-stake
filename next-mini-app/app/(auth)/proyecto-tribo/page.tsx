@@ -264,25 +264,50 @@ export default function ProyectoTriboPage() {
               <div className="flex-1">
                 <p className="text-white whitespace-pre-line leading-relaxed text-lg">{t("cdt_description")}</p>
 
-                {/* Características del token con mejor contraste */}
+                {/* Características del token con mejor contraste - Staking en una sola línea */}
                 <div className="mt-6 space-y-3">
-                  {[
-                    { label: t("staking"), value: "0.2% " + t("daily") + " (73% APY)" },
-                    { label: t("monthly"), value: "6%" },
-                    { label: t("blockchain"), value: "World Chain" },
-                    { label: t("supply"), value: "100,000,000 CDT" },
-                    {
-                      /* Corregido a 100M */
-                    },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700"
-                    >
-                      <span className="text-white font-medium">{item.label}</span>
-                      <span className="text-tribo-green-DEFAULT font-semibold">{item.value}</span>
-                    </div>
-                  ))}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#1f2937",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      border: "1px solid #374151",
+                    }}
+                  >
+                    <span style={{ color: "white", fontWeight: "500" }}>{t("staking")}</span>
+                    <span style={{ color: "#4ebd0a", fontWeight: "600" }}>0.2% {t("daily")} (73% APY)</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#1f2937",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      border: "1px solid #374151",
+                    }}
+                  >
+                    <span style={{ color: "white", fontWeight: "500" }}>{t("blockchain")}</span>
+                    <span style={{ color: "#4ebd0a", fontWeight: "600" }}>World Chain</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: "#1f2937",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      border: "1px solid #374151",
+                    }}
+                  >
+                    <span style={{ color: "white", fontWeight: "500" }}>{t("supply")}</span>
+                    <span style={{ color: "#4ebd0a", fontWeight: "600" }}>100,000,000 CDT</span>
+                  </div>
                 </div>
               </div>
               <div className="flex-shrink-0 relative">
@@ -314,15 +339,29 @@ export default function ProyectoTriboPage() {
               <RoadmapTimeline />
             </div>
 
-            {/* Nuevo apartado para roadmaps completos - Mejorado */}
-            <div className="mt-10 p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-gray-700 shadow-lg transform transition-all duration-500 hover:shadow-[0_0_25px_rgba(78,189,10,0.2)] hover:border-tribo-green-DEFAULT/30">
+            {/* Nuevo apartado para roadmaps completos - Mejorado con botón visible */}
+            <div className="mt-10 p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-gray-700 shadow-lg">
               <h3 className="text-2xl font-bold text-tribo-green-DEFAULT mb-4">{t("view_full_roadmap")}</h3>
               <p className="text-white mb-6 text-lg">{t("full_roadmap_description")}</p>
               <a
                 href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribocdt.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center gap-3 bg-tribo-green-DEFAULT hover:bg-tribo-green-hover text-black font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
+                style={{
+                  backgroundColor: "#4ebd0a",
+                  color: "black",
+                  padding: "12px 20px",
+                  borderRadius: "9999px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  fontSize: "18px",
+                  textDecoration: "none",
+                  width: "100%",
+                  maxWidth: "300px",
+                  margin: "0 auto",
+                }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -334,28 +373,13 @@ export default function ProyectoTriboPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:rotate-12"
+                  style={{ marginRight: "8px" }}
                 >
                   <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
                   <path d="M12 8v8" />
                   <path d="M8 12h8" />
                 </svg>
-                <span className="text-xl">tribocdt.com</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                >
-                  <path d="M7 7h10v10" />
-                  <path d="M7 17 17 7" />
-                </svg>
+                tribocdt.com
               </a>
             </div>
           </ProjectSection>
@@ -387,7 +411,7 @@ export default function ProyectoTriboPage() {
           </div>
         </div>
 
-        {/* Comunidad TRIBO - Mejorada */}
+        {/* Comunidad TRIBO - Mejorada con botones visibles y en línea */}
         <div ref={(ref) => registerSectionRef("community", ref)} id="community" className="scroll-mt-16">
           <ProjectSection
             title={t("join_tribe")}
@@ -396,15 +420,38 @@ export default function ProyectoTriboPage() {
           >
             <p className="text-white mb-8 text-lg">{t("community_text")}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Redes sociales en línea */}
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
               {/* Telegram */}
               <a
                 href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/tribocdt"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/20 border border-gray-700 hover:border-tribo-green-DEFAULT/30"
+                style={{
+                  backgroundColor: "#1f2937",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  width: "180px",
+                  border: "1px solid #374151",
+                }}
               >
-                <div className="w-16 h-16 rounded-full bg-[#0088cc]/20 flex items-center justify-center text-[#0088cc] group-hover:scale-110 transition-transform duration-300">
+                <div
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(0, 136, 204, 0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#0088cc",
+                    marginBottom: "12px",
+                  }}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="32"
@@ -420,9 +467,19 @@ export default function ProyectoTriboPage() {
                     <path d="M22 2 11 13" />
                   </svg>
                 </div>
-                <span className="text-xl font-medium text-white">Telegram</span>
-                <span className="text-sm text-gray-300 text-center">{t("telegram_desc")}</span>
-                <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT text-black text-sm font-medium">
+                <span style={{ color: "white", fontSize: "18px", fontWeight: "500", marginBottom: "8px" }}>
+                  Telegram
+                </span>
+                <div
+                  style={{
+                    backgroundColor: "#4ebd0a",
+                    color: "black",
+                    padding: "8px 16px",
+                    borderRadius: "9999px",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                  }}
+                >
                   {t("join_now")}
                 </div>
               </a>
@@ -432,9 +489,31 @@ export default function ProyectoTriboPage() {
                 href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/tribocdt"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/20 border border-gray-700 hover:border-tribo-green-DEFAULT/30"
+                style={{
+                  backgroundColor: "#1f2937",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  width: "180px",
+                  border: "1px solid #374151",
+                }}
               >
-                <div className="w-16 h-16 rounded-full bg-[#1DA1F2]/20 flex items-center justify-center text-[#1DA1F2] group-hover:scale-110 transition-transform duration-300">
+                <div
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(29, 161, 242, 0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#1DA1F2",
+                    marginBottom: "12px",
+                  }}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="32"
@@ -449,9 +528,19 @@ export default function ProyectoTriboPage() {
                     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
                   </svg>
                 </div>
-                <span className="text-xl font-medium text-white">Twitter</span>
-                <span className="text-sm text-gray-300 text-center">{t("twitter_desc")}</span>
-                <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT text-black text-sm font-medium">
+                <span style={{ color: "white", fontSize: "18px", fontWeight: "500", marginBottom: "8px" }}>
+                  Twitter
+                </span>
+                <div
+                  style={{
+                    backgroundColor: "#4ebd0a",
+                    color: "black",
+                    padding: "8px 16px",
+                    borderRadius: "9999px",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                  }}
+                >
                   {t("follow_now")}
                 </div>
               </a>
@@ -461,9 +550,31 @@ export default function ProyectoTriboPage() {
                 href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/tribocdt"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/20 border border-gray-700 hover:border-tribo-green-DEFAULT/30"
+                style={{
+                  backgroundColor: "#1f2937",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  width: "180px",
+                  border: "1px solid #374151",
+                }}
               >
-                <div className="w-16 h-16 rounded-full bg-[#5865F2]/20 flex items-center justify-center text-[#5865F2] group-hover:scale-110 transition-transform duration-300">
+                <div
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(88, 101, 242, 0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#5865F2",
+                    marginBottom: "12px",
+                  }}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="32"
@@ -483,9 +594,19 @@ export default function ProyectoTriboPage() {
                     <path d="M8.5 17c0 1-1.356 3-1.832 3-1.429 0-2.698-1.667-3.333-3-.635-1.667-.48-5.833 1.428-11.5C6.151 4.485 7.545 4.16 9 4l1 2.5" />
                   </svg>
                 </div>
-                <span className="text-xl font-medium text-white">Discord</span>
-                <span className="text-sm text-gray-300 text-center">{t("discord_desc")}</span>
-                <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT text-black text-sm font-medium">
+                <span style={{ color: "white", fontSize: "18px", fontWeight: "500", marginBottom: "8px" }}>
+                  Discord
+                </span>
+                <div
+                  style={{
+                    backgroundColor: "#4ebd0a",
+                    color: "black",
+                    padding: "8px 16px",
+                    borderRadius: "9999px",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                  }}
+                >
                   {t("join_now")}
                 </div>
               </a>
@@ -517,7 +638,7 @@ export default function ProyectoTriboPage() {
           </ProjectSection>
         </div>
 
-        {/* Próximos Pasos - Mejorado */}
+        {/* Próximos Pasos - Mejorado con colores para los estados */}
         <div ref={(ref) => registerSectionRef("next_steps", ref)} id="next_steps" className="scroll-mt-16">
           <ProjectSection
             title={t("next_steps")}
@@ -528,7 +649,7 @@ export default function ProyectoTriboPage() {
               <div className="flex-1">
                 <p className="text-white leading-relaxed text-lg mb-6">{t("contract_upgrade")}</p>
 
-                {/* Roadmap de próximos pasos mejorado */}
+                {/* Roadmap de próximos pasos mejorado con colores para los estados */}
                 <div className="space-y-4">
                   {[
                     {
@@ -547,20 +668,46 @@ export default function ProyectoTriboPage() {
                       status: t("planned"),
                     },
                   ].map((item, i) => (
-                    <div key={i} className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center">
-                      <div className="w-12 h-12 rounded-full bg-tribo-green-DEFAULT/30 flex items-center justify-center text-tribo-green-DEFAULT mr-4 flex-shrink-0">
-                        <span className="font-bold">{i + 1}</span>
+                    <div
+                      key={i}
+                      style={{
+                        backgroundColor: "#1f2937",
+                        borderRadius: "8px",
+                        padding: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        border: "1px solid #374151",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "48px",
+                          height: "48px",
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(78, 189, 10, 0.3)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#4ebd0a",
+                          marginRight: "16px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span style={{ fontWeight: "bold" }}>{i + 1}</span>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-white font-medium">{item.title}</h4>
-                        <p className="text-gray-300 text-sm">{item.desc}</p>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ color: "white", fontWeight: "500" }}>{item.title}</h4>
+                        <p style={{ color: "#d1d5db", fontSize: "14px" }}>{item.desc}</p>
                       </div>
                       <div
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          item.status === t("in_progress")
-                            ? "bg-tribo-green-DEFAULT text-black"
-                            : "bg-gray-700 text-white"
-                        }`}
+                        style={{
+                          padding: "4px 12px",
+                          borderRadius: "9999px",
+                          fontSize: "12px",
+                          fontWeight: "500",
+                          backgroundColor: item.status === t("in_progress") ? "#4ebd0a" : "#3b82f6",
+                          color: item.status === t("in_progress") ? "black" : "white",
+                        }}
                       >
                         {item.status}
                       </div>
