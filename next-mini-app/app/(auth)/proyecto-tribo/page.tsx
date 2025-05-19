@@ -600,30 +600,49 @@ export default function ProyectoTriboPage() {
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold mb-4 text-white">{t("ready_to_join")}</h2>
               <p className="text-white mb-8 max-w-2xl text-lg">{t("join_earn_daily")}</p>
-              <a
-                href={swapLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-tribo-green-DEFAULT text-black font-bold py-5 px-10 rounded-full text-center text-xl"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+
+              {/* Botón de SWAP - Estilo exactamente igual que en la app */}
+              <div className="w-full max-w-md">
+                <a
+                  href={swapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: "#4ebd0a",
+                    color: "black",
+                    padding: "12px 20px",
+                    borderRadius: "9999px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                    textTransform: "uppercase",
+                    textDecoration: "none",
+                    width: "100%",
+                  }}
                 >
-                  <path d="M16 3h5v5"></path>
-                  <path d="M4 20 21 3"></path>
-                  <path d="M21 16v5h-5"></path>
-                  <path d="M15 15 3 3"></path>
-                </svg>
-                <span className="uppercase font-bold">SWAP WLD/CDT</span>
-              </a>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ marginRight: "8px" }}
+                  >
+                    <path d="M16 3h5v5"></path>
+                    <path d="M4 20 21 3"></path>
+                    <path d="M21 16v5h-5"></path>
+                    <path d="M15 15 3 3"></path>
+                  </svg>
+                  SWAP WLD/CDT
+                </a>
+              </div>
+
               <p className="text-center text-gray-300 mt-4 text-sm">{t("invest_future")}</p>
             </div>
           </div>
