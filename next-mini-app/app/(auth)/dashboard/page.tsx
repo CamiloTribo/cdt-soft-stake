@@ -1086,7 +1086,7 @@ export default function Dashboard() {
             aria-live="polite"
           >
             {isClaiming ? (
-              <span className="flex items-center justify-center">
+              <span className="flex items-center justify-center font-mono text-2xl text-white">{timeRemaining}
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                   xmlns="http://www.w3.org/2000/svg"
