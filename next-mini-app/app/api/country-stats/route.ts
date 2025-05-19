@@ -108,15 +108,14 @@ export async function GET(request: Request) {
 
         // Convertir a array y ordenar
         const countryRankings: CountryRanking[] = Object.entries(countryTotals)
-          .map(([country, stats], index) => ({
+          .map(([country, stats]) => ({
             country,
             totalCDT: stats.totalCDT,
             userCount: stats.userCount,
-            position: index + 1,
+            position: 0, // Se asignará después de ordenar
           }))
-          .sort((a, b) => b.totalCDT - a.totalCDT)
-          .map((item, index) => ({ ...item, position: index + 1 }))
-          .slice(0, 25)
+          .sort((a, b) => b.userCount - a.userCount) // Ordenar por cantidad de usuarios
+          .map((item, index) => ({ ...item, position: index + 1 })) // Asignar posiciones después de ordenar
 
         return NextResponse.json({
           success: true,
@@ -125,12 +124,15 @@ export async function GET(request: Request) {
       }
 
       // Si la función RPC funciona, usamos esos datos
-      const countryRankings: CountryRanking[] = (cdtByCountry as CountryStatsResult[]).map((item, index) => ({
-        country: item.country,
-        totalCDT: Number.parseFloat(String(item.total_cdt)) || 0,
-        userCount: Number.parseInt(String(item.user_count)) || 0,
-        position: index + 1,
-      }))
+      const countryRankings: CountryRanking[] = (cdtByCountry as CountryStatsResult[])
+        .map((item) => ({
+          country: item.country,
+          totalCDT: Number.parseFloat(String(item.total_cdt)) || 0,
+          userCount: Number.parseInt(String(item.user_count)) || 0,
+          position: 0, // Se asignará después de ordenar
+        }))
+        .sort((a, b) => b.userCount - a.userCount) // Ordenar por cantidad de usuarios
+        .map((item, index) => ({ ...item, position: index + 1 })) // Asignar posiciones después de ordenar
 
       return NextResponse.json({
         success: true,
