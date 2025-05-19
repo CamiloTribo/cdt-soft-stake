@@ -598,13 +598,13 @@ export default function ProyectoTriboPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rounded-xl blur-xl"></div>
           <div className="relative z-10 bg-gradient-to-br from-gray-900 to-black rounded-xl p-8 border border-tribo-green-DEFAULT/30 shadow-lg">
             <div className="flex flex-col items-center text-center">
-              <h2 className="text-3xl font-bold mb-4 text-tribo-green-DEFAULT">{t("ready_to_join")}</h2>
+              <h2 className="text-3xl font-bold mb-4 text-white">{t("ready_to_join")}</h2>
               <p className="text-white mb-8 max-w-2xl text-lg">{t("join_earn_daily")}</p>
               <a
                 href={swapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-tribo-green-DEFAULT hover:bg-tribo-green-hover text-black font-bold py-4 px-8 rounded-xl text-center text-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
+                className="flex items-center justify-center gap-3 bg-tribo-green-DEFAULT hover:bg-tribo-green-hover text-black font-bold py-5 px-10 rounded-xl text-center text-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -616,14 +616,13 @@ export default function ProyectoTriboPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:rotate-12"
                 >
                   <path d="M16 3h5v5"></path>
                   <path d="M4 20 21 3"></path>
                   <path d="M21 16v5h-5"></path>
                   <path d="M15 15 3 3"></path>
                 </svg>
-                {t("swap_wld_cdt")}
+                <span>{t("swap_wld_cdt")}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -634,7 +633,6 @@ export default function ProyectoTriboPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:translate-x-1"
                 >
                   <path d="M5 12h14"></path>
                   <path d="m12 5 7 7-7 7"></path>
