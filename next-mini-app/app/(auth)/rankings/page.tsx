@@ -61,41 +61,41 @@ export default function Rankings() {
   const stakingLevels: StakingLevel[] = [
     {
       id: "tribers",
-      name: "TRIBERS",
+      name: t("tribers"),
       minAmount: 0,
       maxAmount: 99999,
       color: "#4ebd0a",
-      benefits: ["0.10% diario (tasa base)"],
+      benefits: [t("base_rate_daily")],
       dailyRate: 0.1,
       apy: 36.5,
     },
     {
       id: "cryptotribers",
-      name: "CRYPTOTRIBERS",
+      name: t("cryptotribers"),
       minAmount: 100000,
       maxAmount: 999999,
       color: "#C0C0C0",
-      benefits: ["0.11% diario", "Acceso a canales exclusivos"],
+      benefits: [t("daily_rate_011"), t("access_exclusive_channels")],
       dailyRate: 0.11,
       apy: 40.15,
     },
     {
       id: "millotribers",
-      name: "MILLOTRIBERS",
+      name: t("millotribers"),
       minAmount: 1000000,
       maxAmount: 9999999,
       color: "#FFD700",
-      benefits: ["0.12% diario", "Acceso a grupo especial de Discord"],
+      benefits: [t("daily_rate_012"), t("access_special_discord")],
       dailyRate: 0.12,
       apy: 43.8,
     },
     {
       id: "legendarytribers",
-      name: "LEGENDARYTRIBERS",
+      name: t("legendarytribers"),
       minAmount: 10000000,
       maxAmount: null,
       color: "#B9F2FF",
-      benefits: ["0.13% diario", "Beneficios exclusivos para leyendas"],
+      benefits: [t("daily_rate_013"), t("exclusive_legend_benefits")],
       dailyRate: 0.13,
       apy: 47.45,
     },
@@ -152,7 +152,7 @@ export default function Rankings() {
       const diff = target.getTime() - now.getTime()
 
       if (diff <= 0) {
-        return "Contest ended"
+        return t("contest_ended")
       }
 
       // Convertir a días, horas, minutos, segundos
@@ -173,7 +173,7 @@ export default function Rankings() {
     setTimeRemaining(calculateTimeRemaining())
 
     return () => clearInterval(timer)
-  }, [])
+  }, [t])
 
   const fetchRankings = useCallback(async () => {
     setIsLoading(true)
@@ -185,7 +185,7 @@ export default function Rankings() {
         const response = await fetch(`/api/country-stats?type=ranking`)
 
         if (!response.ok) {
-          throw new Error("Error al cargar rankings de países")
+          throw new Error(t("error_loading_country_rankings"))
         }
 
         const data = await response.json()
@@ -193,7 +193,7 @@ export default function Rankings() {
         if (data.success && data.rankings) {
           setCountryRankings(data.rankings)
         } else {
-          throw new Error("Formato de respuesta inválido")
+          throw new Error(t("invalid_response_format"))
         }
       }
       // Para otros tipos de ranking, usar el endpoint de rankings
@@ -201,7 +201,7 @@ export default function Rankings() {
         const response = await fetch(`/api/rankings?type=${activeRanking}`)
 
         if (!response.ok) {
-          throw new Error("Error al cargar rankings")
+          throw new Error(t("error_loading_rankings"))
         }
 
         const data = await response.json()
@@ -261,15 +261,13 @@ export default function Rankings() {
       case "referrals":
         return t("referrals_ranking")
       case "countries":
-        return "Países"
+        return t("countries")
       case "levels":
-        return "Niveles"
+        return t("levels")
       default:
         return t("rankings")
     }
   }
-
-  // (handleSubscribe removed because it was unused)
 
   return (
     <main className="min-h-screen bg-black text-white pb-20 font-['Helvetica Neue']">
@@ -368,7 +366,9 @@ export default function Rankings() {
               )}
               {getCurrentRankingName()}
               {activeRanking === "levels" && (
-                <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">Próximamente</span>
+                <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">
+                  {t("coming_soon")}
+                </span>
               )}
             </span>
             <svg
@@ -488,7 +488,7 @@ export default function Rankings() {
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                   <path d="M2 12h20"></path>
                 </svg>
-                Países
+                {t("countries")}
               </button>
               <button
                 onClick={() => handleRankingChange("levels")}
@@ -510,8 +510,10 @@ export default function Rankings() {
                 >
                   <path d="M12 20v-6M6 20V10M18 20V4"></path>
                 </svg>
-                Niveles
-                <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">Próximamente</span>
+                {t("levels")}
+                <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">
+                  {t("coming_soon")}
+                </span>
               </button>
             </div>
           )}
@@ -556,10 +558,10 @@ export default function Rankings() {
           <div className="bg-gradient-to-r from-[#4ebd0a]/30 to-[#4ebd0a]/10 rounded-xl p-4 mb-6 border border-[#4ebd0a]/50 transform transition-all hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(78,189,10,0.3)]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[#4ebd0a] font-bold text-lg flex items-center">
-                <span className="inline-block mr-1">🌎</span> Estadísticas Globales
+                <span className="inline-block mr-1">🌎</span> {t("global_stats")}
               </h3>
             </div>
-            <p className="text-white text-sm mb-2">Ranking de países por cantidad total de CDT y usuarios.</p>
+            <p className="text-white text-sm mb-2">{t("country_ranking_description")}</p>
           </div>
         )}
 
@@ -569,13 +571,10 @@ export default function Rankings() {
             <div className="absolute inset-0 bg-[url('/abstract-green-gradient.png')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
             <div className="relative z-10">
               <div className="inline-block bg-[#4ebd0a] text-black px-3 py-1 rounded-full text-sm font-bold mb-4 animate-pulse">
-                Próximamente
+                {t("coming_soon")}
               </div>
-              <h3 className="text-[#4ebd0a] font-bold text-2xl mb-3">Niveles de Staking</h3>
-              <p className="text-white text-sm mb-6 max-w-xs mx-auto">
-                Una nueva forma de competir y ganar recompensas basada en tu nivel de staking. ¡Prepárate para
-                desbloquear beneficios exclusivos y mayores APY!
-              </p>
+              <h3 className="text-[#4ebd0a] font-bold text-2xl mb-3">{t("staking_levels")}</h3>
+              <p className="text-white text-sm mb-6 max-w-xs mx-auto">{t("staking_levels_description")}</p>
 
               {/* Sección de niveles mejorada con APY */}
               <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
@@ -595,7 +594,9 @@ export default function Rankings() {
                     </div>
                     <p className="text-white text-xs font-medium text-center">{level.name}</p>
                     <div className="flex flex-col items-center mt-1">
-                      <p className="text-[#4ebd0a] text-xs font-bold">+{level.dailyRate}% diario</p>
+                      <p className="text-[#4ebd0a] text-xs font-bold">
+                        +{level.dailyRate}% {t("daily")}
+                      </p>
                       <p className="text-yellow-400 text-[10px] font-medium">{level.apy}% APY</p>
                     </div>
                     <p className="text-gray-400 text-[10px] mt-1 text-center">
@@ -641,10 +642,10 @@ export default function Rankings() {
                   </svg>
                 </div>
                 <p className="text-white text-sm">
-                  Próximamente: Aumenta tu tasa diaria hasta <span className="text-yellow-400 font-bold">0.2%</span> con
-                  nuestro sistema de boost
+                  {t("coming_soon_boost")} <span className="text-yellow-400 font-bold">0.2%</span>{" "}
+                  {t("with_boost_system")}
                 </p>
-                <p className="text-yellow-400 font-bold text-lg mt-1">¡Hasta 73% APY!</p>
+                <p className="text-yellow-400 font-bold text-lg mt-1">{t("up_to_73_apy")}</p>
               </div>
 
               {/* Botón para volver al dashboard */}
@@ -652,7 +653,7 @@ export default function Rankings() {
                 href="/dashboard"
                 className="mt-6 inline-block bg-[#4ebd0a] hover:bg-[#3da008] text-black font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105"
               >
-                Volver al Dashboard
+                {t("back_to_dashboard")}
               </Link>
             </div>
           </div>
@@ -724,7 +725,9 @@ export default function Rankings() {
                             className="ml-1"
                             priority={true}
                           />
-                          <span className="ml-2 text-gray-400 text-sm">{countryRankings[0].userCount} usuarios</span>
+                          <span className="ml-2 text-gray-400 text-sm">
+                            {countryRankings[0].userCount} {t("users")}
+                          </span>
                         </div>
                       </div>
                       <div className="bg-[#4ebd0a] rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
@@ -764,7 +767,7 @@ export default function Rankings() {
                         <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
                       </div>
                       <div className="text-center mt-1 text-xs text-gray-400">
-                        {countryRankings[1].userCount} usuarios
+                        {countryRankings[1].userCount} {t("users")}
                       </div>
                     </div>
                   )}
@@ -785,7 +788,7 @@ export default function Rankings() {
                         <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
                       </div>
                       <div className="text-center mt-1 text-xs text-gray-400">
-                        {countryRankings[2].userCount} usuarios
+                        {countryRankings[2].userCount} {t("users")}
                       </div>
                     </div>
                   )}
@@ -816,7 +819,9 @@ export default function Rankings() {
                           <p className="font-mono font-bold text-[#4ebd0a]">{formatLargeNumber(country.totalCDT)}</p>
                           <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
                         </div>
-                        <p className="text-xs text-gray-400">{country.userCount} usuarios</p>
+                        <p className="text-xs text-gray-400">
+                          {country.userCount} {t("users")}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -826,7 +831,7 @@ export default function Rankings() {
               {/* Tu país - si el usuario tiene un país asignado y está en el ranking */}
               {userCountry && countryRankings.some((c) => c.country === userCountry) && (
                 <div className="mt-6 bg-[#4ebd0a]/20 rounded-xl p-4 border border-[#4ebd0a] transform transition-all hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(78,189,10,0.3)]">
-                  <p className="text-sm text-gray-300 mb-1">Tu país</p>
+                  <p className="text-sm text-gray-300 mb-1">{t("your_country")}</p>
                   <div className="flex items-center">
                     <div className="w-8 text-center font-bold text-[#4ebd0a] flex-shrink-0">
                       {countryRankings.find((c) => c.country === userCountry)?.position || 0}
@@ -845,7 +850,7 @@ export default function Rankings() {
                         <Image src="/TOKEN CDT.png" alt="CDT" width={16} height={16} className="ml-1" />
                       </div>
                       <p className="text-xs text-gray-400">
-                        {countryRankings.find((c) => c.country === userCountry)?.userCount || 0} usuarios
+                        {countryRankings.find((c) => c.country === userCountry)?.userCount || 0} {t("users")}
                       </p>
                     </div>
                   </div>
@@ -876,7 +881,9 @@ export default function Rankings() {
                         )}
                         @{rankings[0].username}
                         {rankings[0].isCurrentUser && (
-                          <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">Tú</span>
+                          <span className="ml-2 text-xs bg-[#4ebd0a] text-black px-2 py-0.5 rounded-full">
+                            {t("you")}
+                          </span>
                         )}
                       </p>
                       <div className="flex items-center">
@@ -943,7 +950,9 @@ export default function Rankings() {
                         )}
                         @{rankings[1].username}
                         {rankings[1].isCurrentUser && (
-                          <span className="ml-1 text-xs bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full">Tú</span>
+                          <span className="ml-1 text-xs bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full">
+                            {t("you")}
+                          </span>
                         )}
                       </p>
                     </div>
@@ -985,7 +994,9 @@ export default function Rankings() {
                         )}
                         @{rankings[2].username}
                         {rankings[2].isCurrentUser && (
-                          <span className="ml-1 text-xs bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full">Tú</span>
+                          <span className="ml-1 text-xs bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full">
+                            {t("you")}
+                          </span>
                         )}
                       </p>
                     </div>
@@ -1027,7 +1038,9 @@ export default function Rankings() {
                         {user.country && <CountryFlag countryCode={user.country} className="mr-1 inline-block" />}@
                         {user.username}
                         {user.isCurrentUser && (
-                          <span className="ml-1 text-xs bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full">Tú</span>
+                          <span className="ml-1 text-xs bg-[#4ebd0a] text-black px-1 py-0.5 rounded-full">
+                            {t("you")}
+                          </span>
                         )}
                       </p>
                     </div>

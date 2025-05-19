@@ -74,7 +74,7 @@ export const ClaimSection: React.FC<ClaimSectionProps> = ({
         <div className="flex flex-col items-center mb-5">
           {/* Fecha del próximo claim */}
           <div className="text-sm text-gray-400 mb-3">
-            {nextClaimTime ? formatDateAction(nextClaimTime) : "Fecha no disponible"}
+            {nextClaimTime ? formatDateAction(nextClaimTime) : t("date_not_available")}
           </div>
 
           <div className="w-full bg-gray-800 rounded-full h-3 mb-6 overflow-hidden">

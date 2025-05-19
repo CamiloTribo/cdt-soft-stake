@@ -3,16 +3,18 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import { useTranslation } from "./TranslationProvider"
 
 export default function Navbar() {
   const pathname = usePathname()
+  const { t } = useTranslation()
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-md border-t border-gray-800 z-40 py-1">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-around items-center">
           {/* Dashboard - Usando el logo de TRIBO Vault */}
-          <Link href="/dashboard" className="group flex flex-col items-center py-2" aria-label="Dashboard">
+          <Link href="/dashboard" className="group flex flex-col items-center py-2" aria-label={t("dashboard")}>
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/dashboard")
@@ -22,19 +24,23 @@ export default function Navbar() {
             >
               <Image
                 src="/LOGO TRIBO Vault- sin fondo.png"
-                alt="Dashboard"
+                alt={t("dashboard")}
                 width={28}
                 height={28}
                 className="transition-transform group-hover:scale-110"
               />
             </div>
             <span className={`mt-1 text-xs ${pathname.includes("/dashboard") ? "text-primary" : "text-gray-400"}`}>
-              Inicio
+              {t("home")}
             </span>
           </Link>
 
           {/* Proyecto TRIBO */}
-          <Link href="/proyecto-tribo" className="group flex flex-col items-center py-2" aria-label="Proyecto TRIBO">
+          <Link
+            href="/proyecto-tribo"
+            className="group flex flex-col items-center py-2"
+            aria-label={t("project_tribo")}
+          >
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/proyecto-tribo")
@@ -60,12 +66,12 @@ export default function Navbar() {
               </svg>
             </div>
             <span className={`mt-1 text-xs ${pathname.includes("/proyecto-tribo") ? "text-primary" : "text-gray-400"}`}>
-              Proyecto
+              {t("project")}
             </span>
           </Link>
 
           {/* Rankings */}
-          <Link href="/rankings" className="group flex flex-col items-center py-2" aria-label="Rankings">
+          <Link href="/rankings" className="group flex flex-col items-center py-2" aria-label={t("rankings")}>
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/rankings")
@@ -90,12 +96,12 @@ export default function Navbar() {
               </svg>
             </div>
             <span className={`mt-1 text-xs ${pathname.includes("/rankings") ? "text-primary" : "text-gray-400"}`}>
-              Rankings
+              {t("rankings")}
             </span>
           </Link>
 
           {/* Profile/Wallet */}
-          <Link href="/profile" className="group flex flex-col items-center py-2" aria-label="TRIBO Wallet">
+          <Link href="/profile" className="group flex flex-col items-center py-2" aria-label={t("tribo_wallet")}>
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
                 pathname.includes("/profile")
@@ -121,7 +127,7 @@ export default function Navbar() {
               </svg>
             </div>
             <span className={`mt-1 text-xs ${pathname.includes("/profile") ? "text-primary" : "text-gray-400"}`}>
-              Wallet
+              {t("wallet")}
             </span>
           </Link>
         </div>

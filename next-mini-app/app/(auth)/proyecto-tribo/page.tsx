@@ -131,9 +131,7 @@ export default function ProyectoTriboPage() {
           <h1 className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
             {t("project_tribo")}
           </h1>
-          <p className="text-gray-400 max-w-2xl text-lg leading-relaxed">
-            Revolucionando las finanzas digitales a través de la comunidad
-          </p>
+          <p className="text-gray-400 max-w-2xl text-lg leading-relaxed">{t("project_tribo_subtitle")}</p>
 
           {/* Navegación rápida */}
           <div className="flex flex-wrap justify-center gap-3 mt-8">
@@ -196,8 +194,8 @@ export default function ProyectoTriboPage() {
                       <path d="m9 12 2 2 4-4"></path>
                     </svg>
                   ),
-                  title: "Transparencia",
-                  desc: "Operamos con total transparencia en cada aspecto de nuestro proyecto.",
+                  title: t("transparency"),
+                  desc: t("transparency_desc"),
                 },
                 {
                   icon: (
@@ -216,8 +214,8 @@ export default function ProyectoTriboPage() {
                       <path d="M12 8v4l3 3"></path>
                     </svg>
                   ),
-                  title: "Sostenibilidad",
-                  desc: "Construimos un ecosistema financiero sostenible a largo plazo.",
+                  title: t("sustainability"),
+                  desc: t("sustainability_desc"),
                 },
                 {
                   icon: (
@@ -238,8 +236,8 @@ export default function ProyectoTriboPage() {
                       <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                   ),
-                  title: "Comunidad",
-                  desc: "Priorizamos el crecimiento y bienestar de nuestra comunidad.",
+                  title: t("community"),
+                  desc: t("community_desc"),
                 },
               ].map((item, i) => (
                 <div
@@ -263,7 +261,7 @@ export default function ProyectoTriboPage() {
             <div className="absolute -inset-4 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-full blur-xl animate-pulse"></div>
             <Image
               src="/BEBE TRIBO EN COHETE DESPEGUE.png"
-              alt="Bebé TRIBO en cohete"
+              alt={t("baby_tribo_rocket")}
               width={200}
               height={200}
               className="drop-shadow-[0_0_12px_rgba(255,165,0,0.6)] relative z-10"
@@ -295,9 +293,9 @@ export default function ProyectoTriboPage() {
                 {/* Características del token */}
                 <div className="mt-6 space-y-3">
                   {[
-                    { label: "Staking", value: "0.1% diario (36.5% APY)" },
-                    { label: "Blockchain", value: "World Chain" },
-                    { label: "Suministro", value: "1,000,000,000 CDT" },
+                    { label: t("staking"), value: "0.1% " + t("daily") + " (36.5% APY)" },
+                    { label: t("blockchain"), value: "World Chain" },
+                    { label: t("supply"), value: "1,000,000,000 CDT" },
                   ].map((item, i) => (
                     <div key={i} className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg">
                       <span className="text-gray-300">{item.label}</span>
@@ -399,9 +397,9 @@ export default function ProyectoTriboPage() {
             ></div>
 
             <div className="relative z-10 text-center p-6">
-              <p className="text-gray-400 text-lg mb-2">Aquí irá el mapa de países TRIBO</p>
+              <p className="text-gray-400 text-lg mb-2">{t("countries_map_coming")}</p>
               <p className="text-tribo-green-DEFAULT text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                Próximamente
+                {t("coming_soon")}
               </p>
             </div>
           </div>
@@ -440,11 +438,9 @@ export default function ProyectoTriboPage() {
                   </svg>
                 </div>
                 <span className="text-xl font-medium text-white">Telegram</span>
-                <span className="text-sm text-gray-400 text-center">
-                  Únete a nuestro canal oficial para noticias y actualizaciones
-                </span>
+                <span className="text-sm text-gray-400 text-center">{t("telegram_desc")}</span>
                 <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT/20 text-tribo-green-DEFAULT text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  Unirse ahora
+                  {t("join_now")}
                 </div>
               </a>
 
@@ -471,11 +467,9 @@ export default function ProyectoTriboPage() {
                   </svg>
                 </div>
                 <span className="text-xl font-medium text-white">Twitter</span>
-                <span className="text-sm text-gray-400 text-center">
-                  Síguenos para estar al día de todas las novedades
-                </span>
+                <span className="text-sm text-gray-400 text-center">{t("twitter_desc")}</span>
                 <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT/20 text-tribo-green-DEFAULT text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  Seguir ahora
+                  {t("follow_now")}
                 </div>
               </a>
 
@@ -507,9 +501,9 @@ export default function ProyectoTriboPage() {
                   </svg>
                 </div>
                 <span className="text-xl font-medium text-white">Discord</span>
-                <span className="text-sm text-gray-400 text-center">Forma parte de nuestra comunidad más activa</span>
+                <span className="text-sm text-gray-400 text-center">{t("discord_desc")}</span>
                 <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT/20 text-tribo-green-DEFAULT text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  Unirse ahora
+                  {t("join_now")}
                 </div>
               </a>
             </div>
@@ -518,21 +512,21 @@ export default function ProyectoTriboPage() {
             <div className="mt-10 bg-gray-800/50 rounded-xl p-6 border border-gray-700">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="text-center md:text-left">
-                  <h4 className="text-xl font-semibold text-white mb-2">Comunidad en crecimiento</h4>
-                  <p className="text-gray-400">Únete a miles de personas que ya forman parte de TRIBO</p>
+                  <h4 className="text-xl font-semibold text-white mb-2">{t("growing_community")}</h4>
+                  <p className="text-gray-400">{t("join_thousands")}</p>
                 </div>
                 <div className="flex gap-6">
                   <div className="text-center">
                     <p className="text-3xl font-bold text-tribo-green-DEFAULT">10K+</p>
-                    <p className="text-sm text-gray-400">Miembros</p>
+                    <p className="text-sm text-gray-400">{t("members")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-3xl font-bold text-tribo-green-DEFAULT">50+</p>
-                    <p className="text-sm text-gray-400">Países</p>
+                    <p className="text-sm text-gray-400">{t("countries")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-3xl font-bold text-tribo-green-DEFAULT">24/7</p>
-                    <p className="text-sm text-gray-400">Soporte</p>
+                    <p className="text-sm text-gray-400">{t("support")}</p>
                   </div>
                 </div>
               </div>
@@ -554,19 +548,19 @@ export default function ProyectoTriboPage() {
                 <div className="space-y-4">
                   {[
                     {
-                      title: "Q2 2025",
-                      desc: "Actualización del contrato y mejoras en el sistema de staking",
-                      status: "En progreso",
+                      title: t("q2_2025"),
+                      desc: t("contract_redeploy"),
+                      status: t("in_progress"),
                     },
                     {
-                      title: "Q3 2025",
-                      desc: "Lanzamiento de la plataforma de gobernanza comunitaria",
-                      status: "Planificado",
+                      title: t("q3_2025"),
+                      desc: t("governance_platform"),
+                      status: t("planned"),
                     },
                     {
-                      title: "Q4 2025",
-                      desc: "Expansión a nuevos mercados y ecosistemas blockchain",
-                      status: "Planificado",
+                      title: t("q4_2025"),
+                      desc: t("market_expansion"),
+                      status: t("planned"),
                     },
                   ].map((item, i) => (
                     <div key={i} className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex items-center">
@@ -579,7 +573,7 @@ export default function ProyectoTriboPage() {
                       </div>
                       <div
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          item.status === "En progreso"
+                          item.status === t("in_progress")
                             ? "bg-tribo-green-DEFAULT/20 text-tribo-green-DEFAULT"
                             : "bg-gray-700/50 text-gray-300"
                         }`}
@@ -621,11 +615,9 @@ export default function ProyectoTriboPage() {
           <div className="relative z-10 bg-gradient-to-br from-gray-900/90 to-black/90 rounded-xl p-8 border border-tribo-green-DEFAULT/30 shadow-lg">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-tribo-green-DEFAULT to-green-400">
-                ¿Listo para unirte a la revolución?
+                {t("ready_to_join")}
               </h2>
-              <p className="text-gray-300 mb-8 max-w-2xl">
-                Forma parte de TRIBO y comienza a generar rendimientos diarios con tu inversión en CDT.
-              </p>
+              <p className="text-gray-300 mb-8 max-w-2xl">{t("join_earn_daily")}</p>
               <a
                 href={unoSwapLink}
                 target="_blank"
