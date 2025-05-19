@@ -1,198 +1,81 @@
 "use client"
 
-import React from "react"
-
+import React, { useState, useCallback } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
-import { useState, useEffect, useCallback, useMemo } from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
-import Link from "next/link"
-
-// Corregir la ruta de importación para que apunte a src/components
 import CdtRain from "../../../src/components/CdtRain"
 import CdtButtonRain from "../../../src/components/CdtButtonRain"
 import { CountryFlag } from "../../../src/components/CountryFlag"
-import { CountrySelector } from "../../../src/components/CountrySelector"
+import { useDashboardData } from "../../../src/hooks/useDashboardData"
 
-// Función para obtener la URL de la mini-app de World.org
-function getUnoDeeplinkUrl() {
-  return "https://world.org/mini-app?app_id=app_25cf6ee1d9660721e651d43cf126953a"
+// Componentes optimizados
+import { ClaimSection } from "../../../src/components/dashboard/ClaimSection"
+import { WalletCard } from "../../../src/components/dashboard/WalletCard"
+import { SocialLinks } from "../../../src/components/dashboard/SocialLinks"
+import { SupportSection } from "../../../src/components/dashboard/SupportSection"
+import { CountryModal } from "../../../src/components/dashboard/CountryModal"
+import { WelcomeGiftModal } from "../../../src/components/dashboard/WelcomeGiftModal"
+
+// Función para obtener la URL de swap
+function getSwapUrl() {
+  return process.env.NEXT_PUBLIC_BUY_CDT_URL || "https://app.uniswap.org/#/swap"
 }
 
-// Vamos a mejorar varios aspectos del dashboard para hacerlo más profesional y alineado con las guidelines
-
-// 1. Optimizar las animaciones para mejor rendimiento
-// 2. Mejorar la consistencia visual y el espaciado
-// 3. Refinar la jerarquía visual
-// 4. Añadir transiciones más suaves
-
-// Modificar el componente PriceDisplay para hacerlo más elegante
-const PriceDisplay = React.memo(
-  ({
-    initialPrice,
-    stakedAmount,
-    priceChange,
-  }: {
-    initialPrice: number | null
-    stakedAmount: number
-    priceChange: { isPositive: boolean }
-  }) => {
-    const { t } = useTranslation()
-
-    // Memoizar el valor formateado del precio
-    const formattedPrice = useMemo(() => {
-      return initialPrice !== null ? initialPrice.toFixed(9) : "0.000000000"
-    }, [initialPrice])
-
-    // Calcular el valor estimado en USD
-    const calculateUsdValue = useMemo(() => {
-      if (initialPrice && stakedAmount) {
-        return (initialPrice * stakedAmount).toFixed(2)
-      }
-      return "0.00"
-    }, [initialPrice, stakedAmount])
-
-    // Calcular las ganancias anuales estimadas
-    const yearlyEarnings = useMemo(() => {
-      return Math.round(stakedAmount * 0.44)
-    }, [stakedAmount])
-
-    return (
-      <>
-        {/* Estadísticas adicionales con diseño mejorado */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700 hover:bg-black/70">
-            <p className="text-xs text-gray-400 mb-1">{t("estimated_value")}</p>
-            <p className="text-lg font-semibold text-white">
-              <span className="text-primary">$</span>
-              {calculateUsdValue} <span className="text-xs text-gray-400">USD</span>
-            </p>
-          </div>
-          <div className="bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700 hover:bg-black/70">
-            <p className="text-xs text-gray-400 mb-1">{t("yearly_earnings")}</p>
-            <p className="text-lg font-semibold text-white">
-              <span className="text-primary">+</span>
-              {yearlyEarnings.toLocaleString()} <span className="text-xs text-gray-400">CDT</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Sección de precio con diseño mejorado */}
-        <div className="flex items-center justify-between mb-6 bg-black/60 p-4 rounded-xl border border-gray-800 transition-all hover:border-gray-700 hover:bg-black/70">
-          <div>
-            <p className="text-xs text-gray-400 mb-1">{t("current_price")}</p>
-            <div className="flex items-center">
-              <p className="text-lg font-semibold text-white" style={{ fontFamily: "Helvetica Neue, sans-serif" }}>
-                <span className="text-primary">$</span>
-                <span>{formattedPrice}</span>
-              </p>
-              <span className={`ml-2 ${priceChange.isPositive ? "text-green-500" : "text-red-500"}`}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {priceChange.isPositive ? (
-                    <path d="m18 15-6-6-6 6" /> // Flecha hacia arriba
-                  ) : (
-                    <path d="m6 9 6 6 6-6" /> // Flecha hacia abajo
-                  )}
-                </svg>
-              </span>
-            </div>
-          </div>
-          <div className="h-10 w-10 flex items-center justify-center">
-            <Image src="/TOKEN CDT.png" alt="CDT Token" width={24} height={24} className="rounded-full" />
-          </div>
-        </div>
-      </>
-    )
-  },
-)
-
-PriceDisplay.displayName = "PriceDisplay"
-
-// Modificar el componente principal para mejorar la estructura y el diseño
 export default function Dashboard() {
   const { t } = useTranslation()
-  const [stakedAmount, setStakedAmount] = useState(0)
-  const [pendingRewards, setPendingRewards] = useState(0)
-  const [lastClaimDate, setLastClaimDate] = useState<Date | null>(null)
-  const [nextClaimTime, setNextClaimTime] = useState<Date | null>(null)
-  const [timeRemaining, setTimeRemaining] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(true)
+  const { pay, session } = useWorldAuth()
+
+  // Estados de UI
+  const [isFirstVisit, setIsFirstVisit] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [username, setUsername] = useState("")
-  // Estado para el precio y su dirección
-  const [cdtPrice, setCdtPrice] = useState<number | null>(null)
-  const [priceChange, setPriceChange] = useState<{ isPositive: boolean }>({
-    isPositive: true,
-  })
-  // Estado para el total claimed
-  const [totalClaimed, setTotalClaimed] = useState(0)
-  // Estado para el país
-  const [country, setCountry] = useState("")
-
-  // Estado para controlar si es la primera visita
-  const [isFirstVisit, setIsFirstVisit] = useState(false)
-
-  // Estados para los botones de prueba
   const [isSendingCDT, setIsSendingCDT] = useState(false)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [txError, setTxError] = useState<string | null>(null)
-
-  // Estado para los botones con hover
-  const [isDiscordHovered, setIsDiscordHovered] = useState(false)
-  const [isProfileHovered, setIsProfileHovered] = useState(false)
-  const [isDailyGiveawayHovered, setIsDailyGiveawayHovered] = useState(false)
-  const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
-
-  // También necesitamos añadir los estados para el hover de los nuevos botones.
-  const [isTelegramHovered, setIsTelegramHovered] = useState(false)
-  const [isTwitterHovered, setIsTwitterHovered] = useState(false)
-
-  // Estados para mensajes de claim y update
   const [claimSuccess, setClaimSuccess] = useState<string | null>(null)
   const [claimError, setClaimError] = useState<string | null>(null)
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
-
-  // Estado para controlar la animación de lluvia de CDT
   const [showCdtRain, setShowCdtRain] = useState(false)
-
-  // Añadir estos estados al inicio del componente Dashboard, junto a los otros estados
   const [showWelcomeGift, setShowWelcomeGift] = useState(false)
   const [isClaimingWelcomeGift, setIsClaimingWelcomeGift] = useState(false)
   const [welcomeGiftError, setWelcomeGiftError] = useState<string | null>(null)
-
-  // Añadir este estado junto a los otros estados al inicio del componente
   const [showCountryModal, setShowCountryModal] = useState(false)
   const [isUpdatingCountry, setIsUpdatingCountry] = useState(false)
   const [countryUpdateError, setCountryUpdateError] = useState<string | null>(null)
 
-  // Estado para las recompensas en tiempo real
-  const [realtimeRewards, setRealtimeRewards] = useState(0)
+  // Estados para hover
+  const [isDiscordHovered, setIsDiscordHovered] = useState(false)
+  const [isProfileHovered, setIsProfileHovered] = useState(false)
+  const [isDailyGiveawayHovered, setIsDailyGiveawayHovered] = useState(false)
+  const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
+  const [isTelegramHovered, setIsTelegramHovered] = useState(false)
+  const [isTwitterHovered, setIsTwitterHovered] = useState(false)
 
-  const { session, pay } = useWorldAuth()
-  const translationValues = useTranslation() // Use a different name to avoid shadowing
-  const { t: translation } = translationValues
-
-  // Función para obtener un identificador único del usuario
-  const getUserIdentifier = useCallback(() => {
-    if (!session || !session.user || !session.user.walletAddress) return null
-    return session.user.walletAddress
-  }, [session])
+  // Obtener datos del dashboard usando el hook personalizado
+  const {
+    stakedAmount,
+    nextClaimTime,
+    timeRemaining,
+    isLoading,
+    username,
+    cdtPrice,
+    priceChange,
+    totalClaimed,
+    country,
+    realtimeRewards,
+    areRewardsClaimable,
+    getUserIdentifier,
+    formatDate,
+    fetchStakingData,
+    calculateUsdValue,
+  } = useDashboardData()
 
   // Verificar si es la primera visita después de registrarse
-  useEffect(() => {
+  React.useEffect(() => {
     const checkFirstVisit = async () => {
       const identifier = getUserIdentifier()
       if (!identifier || !username) return
@@ -202,7 +85,6 @@ export default function Dashboard() {
 
       if (!hasVisitedBefore) {
         setIsFirstVisit(true)
-        // Marcar como visitado para futuras sesiones
         localStorage.setItem(firstVisitKey, "true")
       }
     }
@@ -212,278 +94,16 @@ export default function Dashboard() {
     }
   }, [username, getUserIdentifier])
 
-  // Función para formatear el tiempo restante
-  const formatTimeRemaining = useCallback(
-    (targetDate: Date) => {
-      const now = new Date()
-      const diffMs = targetDate.getTime() - now.getTime()
-
-      if (diffMs <= 0) {
-        // Usar la clave "rewards_ready" para cuando las recompensas están listas
-        return translation("rewards_ready")
-      }
-
-      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60))
-      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-      const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000)
-
-      return `${diffHrs.toString().padStart(2, "0")}:${diffMins.toString().padStart(2, "0")}:${diffSecs.toString().padStart(2, "0")}`
-    },
-    [translation],
-  )
-
-  // Función para formatear fecha
-  const formatDate = (date: Date) => {
-    const day = date.toLocaleDateString("es-ES", { day: "2-digit" })
-    const month = date.toLocaleDateString("es-ES", { month: "2-digit" })
-    const year = date.toLocaleDateString("es-ES", { year: "numeric" })
-    const hour = date.toLocaleTimeString("es-ES", { hour: "2-digit", hour12: false })
-    const minute = date.toLocaleTimeString("es-ES", { minute: "2-digit" })
-
-    return `${day}/${month}/${year} ${hour}:${minute}`
-  }
-
-  // Función para calcular recompensas en tiempo real
-  const calculateRealtimeRewards = useCallback(() => {
-    if (!lastClaimDate || !stakedAmount) return 0
-
-    const now = new Date()
-    const elapsedMs = now.getTime() - lastClaimDate.getTime()
-    const dayFraction = elapsedMs / (24 * 60 * 60 * 1000)
-
-    // Si ya pasó el tiempo de claim (24h), mostrar las recompensas completas
-    if (nextClaimTime && now >= nextClaimTime) {
-      return pendingRewards
-    }
-
-    // Calcular recompensas acumuladas (0.1% diario)
-    // Añadir milisegundos para crear un efecto de incremento continuo
-    const millisecondFraction = (now.getMilliseconds() / 1000) * 0.000001 * stakedAmount
-    return stakedAmount * 0.001 * dayFraction + millisecondFraction
-  }, [lastClaimDate, stakedAmount, pendingRewards, nextClaimTime])
-
-  // Función para obtener el precio del token
-  const fetchTokenPrice = useCallback(async () => {
-    try {
-      console.log("Obteniendo precio del token en vivo...")
-      const response = await fetch("/api/token-price", {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(t("error_updating"))
-      }
-
-      const data = await response.json()
-      console.log("Respuesta de la API token-price:", data)
-
-      if (data.success) {
-        // Actualizar el precio y la dirección del cambio en una sola operación
-        const newPrice = data.price
-
-        // Actualizar en un solo paso para reducir renderizados
-        if (cdtPrice !== null) {
-          setCdtPrice(newPrice)
-          setPriceChange({
-            isPositive: newPrice >= cdtPrice,
-          })
-        } else {
-          // Primera carga
-          setCdtPrice(newPrice)
-          setPriceChange({
-            isPositive: true,
-          })
-        }
-      } else {
-        console.error("Error en la respuesta de la API:", data.error)
-      }
-    } catch (error) {
-      console.error("Error al obtener el precio del token:", error)
-    }
-  }, [t, cdtPrice])
-
-  // Función optimizada para obtener datos de staking
-  const fetchStakingData = useCallback(async () => {
-    try {
-      const identifier = getUserIdentifier()
-      if (!identifier) {
-        console.error("No se pudo obtener identificador de usuario")
-        return
-      }
-
-      // Añadir timestamp para evitar caché
-      const timestamp = Date.now()
-      const response = await fetch(`/api/staking?wallet_address=${identifier}&_t=${timestamp}`, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(t("error_loading"))
-      }
-
-      const data = await response.json()
-
-      // Actualizar siempre el balance con el valor real de la blockchain
-      setStakedAmount(data.staked_amount)
-
-      if (data.pending_rewards !== pendingRewards) {
-        setPendingRewards(data.pending_rewards)
-      }
-
-      if (data.last_claim_timestamp) {
-        const lastClaim = new Date(data.last_claim_timestamp)
-        // Solo actualizar si la fecha ha cambiado
-        if (!lastClaimDate || lastClaim.getTime() !== lastClaimDate.getTime()) {
-          setLastClaimDate(lastClaim)
-
-          // Calcular próximo claim (24h después del último)
-          const nextClaim = new Date(lastClaim)
-          nextClaim.setHours(nextClaim.getHours() + 24)
-          setNextClaimTime(nextClaim)
-        }
-      }
-
-      // Obtener el username del usuario si es necesario
-      if (!username) {
-        try {
-          const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`)
-          if (usernameResponse.ok) {
-            const usernameData = await usernameResponse.json()
-            if (usernameData.username && usernameData.username !== username) {
-              setUsername(usernameData.username)
-              // Obtener el total claimed
-              setTotalClaimed(usernameData.total_claimed || 0)
-              // Obtener el país si existe
-              if (usernameData.country) {
-                setCountry(usernameData.country)
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching username:", error)
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching staking data:", error)
-      // No mostrar error al usuario para actualizaciones automáticas
-    }
-  }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username])
-
-  // Actualizar el contador cada segundo
-  useEffect(() => {
-    if (!nextClaimTime) return
-
-    const updateTimer = () => {
-      setTimeRemaining(formatTimeRemaining(nextClaimTime))
-    }
-
-    // Actualizar inmediatamente
-    updateTimer()
-
-    // Luego actualizar cada segundo
-    const interval = setInterval(updateTimer, 1000)
-
-    return () => clearInterval(interval)
-  }, [nextClaimTime, formatTimeRemaining])
-
-  // Actualizar las recompensas en tiempo real
-  useEffect(() => {
-    if (!lastClaimDate) return
-
-    const updateRealtimeRewards = () => {
-      setRealtimeRewards(calculateRealtimeRewards())
-    }
-
-    // Actualizar inmediatamente
-    updateRealtimeRewards()
-
-    // Luego actualizar cada segundo
-    const interval = setInterval(updateRealtimeRewards, 1000)
-
-    return () => clearInterval(interval)
-  }, [lastClaimDate, calculateRealtimeRewards])
-
-  // Cargar datos iniciales y configurar actualizaciones automáticas
-  useEffect(() => {
-    let isMounted = true
-
-    // Establecer isLoading a true solo al inicio
-    setIsLoading(true)
-
-    // Función para cargar datos iniciales
-    const loadInitialData = async () => {
-      try {
-        await fetchStakingData()
-        // Añadir llamada a fetchTokenPrice
-        await fetchTokenPrice()
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    // Cargar datos iniciales
-    loadInitialData()
-
-    // Función para actualizar cuando la ventana recupera el foco
-    const handleFocus = () => {
-      console.log("Ventana enfocada, actualizando balance...")
-      fetchStakingData()
-      // Añadir llamada a fetchTokenPrice
-      fetchTokenPrice()
-    }
-
-    // Función para actualizar cuando el usuario vuelve a la pestaña
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        console.log("Pestaña visible, actualizando balance...")
-        fetchStakingData()
-        // Añadir llamada a fetchTokenPrice
-        fetchTokenPrice()
-      }
-    }
-
-    // Añadir event listeners
-    window.addEventListener("focus", handleFocus)
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-
-    // También actualizar cada 10 segundos automáticamente (más frecuente)
-    const interval = setInterval(() => {
-      console.log("Actualizando balance automáticamente...")
-      fetchStakingData()
-      fetchTokenPrice()
-    }, 10000) // 10 segundos (más frecuente)
-
-    // Limpiar
-    return () => {
-      isMounted = false
-      window.removeEventListener("focus", handleFocus)
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-      clearInterval(interval)
-    }
-  }, [fetchStakingData, fetchTokenPrice])
-
-  // Añadir este useEffect after de los otros useEffect
-  useEffect(() => {
+  // Verificar regalo de bienvenida
+  React.useEffect(() => {
     const checkWelcomeGift = async () => {
       const identifier = getUserIdentifier()
       if (!identifier) return
 
-      // Verificar en localStorage si ya verificamos
       const giftCheckKey = `tribo-welcome-gift-check-${identifier}`
       const hasCheckedGift = localStorage.getItem(giftCheckKey)
 
       if (hasCheckedGift) {
-        // Si ya verificamos antes y estaba reclamado, no mostrar nada
         const giftClaimedKey = `tribo-welcome-gift-claimed-${identifier}`
         const hasClaimedGift = localStorage.getItem(giftClaimedKey)
         if (hasClaimedGift) {
@@ -492,7 +112,6 @@ export default function Dashboard() {
       }
 
       try {
-        // Verificar en la base de datos si ya reclamó
         const response = await fetch(`/api/welcome-gift?wallet_address=${identifier}`, {
           method: "GET",
           headers: {
@@ -502,53 +121,44 @@ export default function Dashboard() {
 
         if (response.ok) {
           const data = await response.json()
-
-          // Marcar que ya verificamos
           localStorage.setItem(giftCheckKey, "true")
 
           if (data.claimed) {
-            // Ya reclamó, guardar en localStorage
             localStorage.setItem(`tribo-welcome-gift-claimed-${identifier}`, "true")
           } else {
-            // No ha reclamado, mostrar modal
             setShowWelcomeGift(true)
           }
         }
       } catch (error) {
         console.error("Error checking welcome gift:", error)
-        // Si hay error, mostrar el modal por si acaso
         setShowWelcomeGift(true)
       }
     }
 
-    // Solo verificar si el usuario está autenticado y tenemos su username
     if (session && username) {
       checkWelcomeGift()
     }
   }, [session, username, getUserIdentifier])
 
-  // MODIFICADO: Actualizado el useEffect para que siempre muestre el modal si no hay país seleccionado
-  useEffect(() => {
+  // Verificar selección de país
+  React.useEffect(() => {
     const checkCountrySelection = async () => {
       const identifier = getUserIdentifier()
       if (!identifier) return
 
-      // Si ya tiene país, no mostrar modal
       if (country) {
         return
       }
 
-      // Si no tiene país, mostrar el modal siempre (obligatorio)
       setShowCountryModal(true)
     }
 
-    // Solo verificar si el usuario está autenticado y tenemos su username
     if (session && username) {
       checkCountrySelection()
     }
   }, [session, username, country, getUserIdentifier])
 
-  // Añadir esta función para guardar el país seleccionado
+  // Handlers
   const handleSaveCountry = async (selectedCountry: string) => {
     const identifier = getUserIdentifier()
     if (!identifier) return
@@ -571,14 +181,8 @@ export default function Dashboard() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Actualizar el estado local
-        setCountry(selectedCountry)
-
-        // Marcar como visto en localStorage
         const countryModalKey = `tribo-country-modal-${identifier}`
         localStorage.setItem(countryModalKey, "true")
-
-        // Cerrar el modal
         setShowCountryModal(false)
       } else {
         setCountryUpdateError(data.error || t("error_updating_country"))
@@ -591,13 +195,11 @@ export default function Dashboard() {
     }
   }
 
-  // Modificar la función handleClaimRewards para activar la animación
   const handleClaimRewards = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) return
 
     try {
-      // Actualizar el balance antes de reclamar
       await fetchStakingData()
 
       setIsClaiming(true)
@@ -616,26 +218,19 @@ export default function Dashboard() {
 
       if (response.ok && data.success) {
         setClaimSuccess(data.message || t("rewards_claimed"))
-
-        // Activar la lluvia de CDT cuando el claim es exitoso
-        console.log("Activando lluvia de CDT")
         setShowCdtRain(true)
 
-        // Desactivar después de 5 segundos
         setTimeout(() => {
           setShowCdtRain(false)
         }, 5000)
 
-        // Actualizar el total_claimed si la API devuelve la cantidad reclamada
         if (data.amount) {
-          setTotalClaimed((prevTotal) => prevTotal + data.amount)
+          // Actualizar el total_claimed si la API devuelve la cantidad reclamada
         }
 
-        // Recargar datos después de reclamar
         fetchStakingData()
       } else {
         setClaimError(data.error || t("error_claiming"))
-        console.error("Error details:", data.details || "No details provided")
       }
     } catch (error) {
       console.error("Error claiming rewards:", error)
@@ -645,7 +240,6 @@ export default function Dashboard() {
     }
   }, [getUserIdentifier, fetchStakingData, t])
 
-  // Añadir esta función para reclamar el regalo
   const handleClaimWelcomeGift = async () => {
     const identifier = getUserIdentifier()
     if (!identifier) return
@@ -665,19 +259,14 @@ export default function Dashboard() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Marcar como reclamado en localStorage
         localStorage.setItem(`tribo-welcome-gift-claimed-${identifier}`, "true")
-
-        // Actualizar estados
         setShowWelcomeGift(false)
-
-        // Mostrar animación de celebración
         setShowCdtRain(true)
+
         setTimeout(() => {
           setShowCdtRain(false)
         }, 5000)
 
-        // Actualizar el balance después de un breve retraso
         setTimeout(() => {
           fetchStakingData()
         }, 3000)
@@ -713,8 +302,6 @@ export default function Dashboard() {
 
       if (response.ok && data.success) {
         setUpdateSuccess(data.message || t("balance_updated"))
-
-        // Recargar datos después de actualizar
         fetchStakingData()
       } else {
         setUpdateError(data.error || t("error_updating"))
@@ -727,52 +314,30 @@ export default function Dashboard() {
     }
   }, [getUserIdentifier, fetchStakingData, t])
 
-  // Función para enviar propina
   const handleSendCDT = async () => {
     setIsSendingCDT(true)
     setTxError(null)
     setTxHash(null)
 
     try {
-      console.log("Intentando enviar propina de 0.023 WLD...")
-
-      // Usar el método pay de World Auth
       const result = (await pay({
         amount: 0.23,
         token: Tokens.WLD,
         recipient: "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })) as { success?: boolean; txHash?: string; transactionHash?: string }
 
-      console.log("Resultado completo de la transacción:", JSON.stringify(result, null, 2))
-
-      // Verificación mejorada del éxito de la transacción
       const hasSuccess = result && result.success === true
       const hasHash = !!(result && (result.txHash || result.transactionHash))
 
-      console.log("Verificación de transacción:", {
-        hasSuccess,
-        hasHash,
-        resultType: typeof result,
-        resultKeys: result ? Object.keys(result) : null,
-      })
-
-      // SOLUCIÓN: Si tenemos un hash de transacción, SIEMPRE consideramos que fue exitosa
-      // independientemente del campo success
-      // La transacción tiene un hash o success=true, lo que significa que se completó en la blockchain
-      // La transacción tiene un hash o success=true, lo que significa que se completó en la blockchain
       if (hasHash || hasSuccess) {
         setTxHash(t("thanks_support"))
 
-        // Registrar la transacción en la base de datos
         const identifier = getUserIdentifier()
         if (identifier) {
           try {
             const transactionHash =
               result.txHash || result.transactionHash || "0x" + Math.random().toString(16).substring(2, 10)
 
-            console.log("Registrando transacción exitosa con hash:", transactionHash)
-
-            // IMPORTANTE: Asegurarnos de que el status sea "success" explícitamente
             const response = await fetch("/api/transactions", {
               method: "POST",
               headers: {
@@ -784,31 +349,21 @@ export default function Dashboard() {
                 amount: 0.23,
                 token_type: "WLD",
                 tx_hash: transactionHash,
-                status: "success", // Asegurarnos de que esto sea "success"
+                status: "success",
                 description: "Apoyo al proyecto Tribo Vault",
               }),
             })
 
-            console.log("Respuesta al registrar transacción:", {
-              status: response.status,
-              ok: response.ok,
-              statusText: response.statusText,
-            })
-
             if (!response.ok) {
               console.error("Error al registrar transacción:", response.statusText)
-              // No mostrar error al usuario si la transacción blockchain fue exitosa
             }
           } catch (error) {
             console.error("Error registering support transaction:", error)
-            // No mostrar error al usuario si la transacción blockchain fue exitosa
           }
         }
       } else if (result && result.success === false) {
-        // La transacción fue explícitamente rechazada
         setTxError("Transacción rechazada")
       } else {
-        // No hay hash ni éxito explícito, probablemente fue cancelada
         setTxError("Transacción cancelada o no completada")
       }
     } catch (error) {
@@ -819,13 +374,16 @@ export default function Dashboard() {
     }
   }
 
-  // Calcular el valor estimado en USD
-  const calculateUsdValue = (amount: number) => {
-    if (cdtPrice && amount) {
-      return (cdtPrice * amount).toFixed(2)
+  const handleCloseCountryModal = () => {
+    const identifier = getUserIdentifier()
+    if (identifier) {
+      localStorage.setItem(`tribo-country-modal-${identifier}`, "true")
     }
-    return "0.00"
+    setShowCountryModal(false)
   }
+
+  // URL del topic de sorteos en Telegram
+  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/5474"
 
   if (isLoading) {
     return (
@@ -835,30 +393,20 @@ export default function Dashboard() {
     )
   }
 
-  // URL del topic de sorteos en Telegram
-  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/5474"
-
-  // Verificar si las recompensas están disponibles para reclamar
-  const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
-
-  // Modificar el return para mejorar la estructura y el diseño
   return (
-    // Contenedor principal con overflow-hidden para evitar scroll horizontal
     <div className="w-full max-w-5xl mx-auto relative overflow-hidden">
-      {/* Aplicar Helvetica Neue a todo el dashboard */}
+      {/* Estilos globales */}
       <style jsx global>{`
         .dashboard-content * {
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
         
-        /* Asegurar que el contenido no cause scroll horizontal */
         body {
           overflow-x: hidden;
           width: 100%;
           position: relative;
         }
         
-        /* Asegurar que los elementos animados no causen problemas de layout */
         .cdt-rain-container {
           pointer-events: none;
           position: fixed;
@@ -954,7 +502,6 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* Contenedor con posición relativa y overflow hidden para mantener todo en su lugar */}
       <div className="dashboard-content relative p-5">
         {/* Banner de bienvenida - Solo se muestra en la primera visita */}
         {isFirstVisit && (
@@ -984,8 +531,7 @@ export default function Dashboard() {
           </div>
         )}
 
-
-        {/* Sección de usuario y saludo con detective verificador - Mejorada */}
+        {/* Sección de usuario y saludo con detective verificador */}
         <div className="mb-6 relative">
           <div className="flex items-center">
             <div className="flex-1">
@@ -999,7 +545,6 @@ export default function Dashboard() {
                 </p>
               )}
             </div>
-            {/* Ajustado para estar centrado verticalmente y a la derecha */}
             <div className="flex items-center justify-end">
               <Image
                 src="/detective-verificador.png"
@@ -1021,10 +566,10 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Botón de Swap WLD/CDT con animación de gradiente - Mejorado */}
+        {/* Botón de Swap WLD/CDT */}
         <div className="mb-6">
           <Link
-            href={getUnoDeeplinkUrl()}
+            href={getSwapUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-3 w-full px-6 py-4 rounded-full text-lg font-bold animated-gradient-button"
@@ -1068,116 +613,20 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Próximo Claim simplificada - Diseño mejorado */}
-        <div className="mb-6 dashboard-card p-6">
-          <h2 className="text-xl font-semibold mb-4 text-center text-primary">{t("next_claim")}</h2>
+        {/* Sección de reclamación */}
+        <ClaimSection
+          timeRemaining={timeRemaining}
+          nextClaimTime={nextClaimTime}
+          realtimeRewards={realtimeRewards}
+          isClaiming={isClaiming}
+          areRewardsClaimable={areRewardsClaimable}
+          claimSuccess={claimSuccess}
+          claimError={claimError}
+          handleClaimRewardsAction={handleClaimRewards}
+          formatDateAction={formatDate}
+        />
 
-          {/* Botón de reclamar - Mejorado */}
-          <button
-            onClick={handleClaimRewards}
-            disabled={isClaiming || !areRewardsClaimable}
-            className={`w-full px-4 py-4 rounded-full text-xl font-medium mb-5 transition-all duration-300 ${
-              isClaiming
-                ? "bg-gray-700 cursor-not-allowed"
-                : !areRewardsClaimable
-                  ? "bg-primary text-white primary-button"
-                  : "bg-secondary hover:bg-secondary-hover hover:shadow-lg transform hover:-translate-y-0.5 secondary-button"
-            }`}
-            aria-live="polite"
-          >
-            {isClaiming ? (
-              <span className="flex items-center justify-center font-mono text-2xl text-white">{timeRemaining}
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                {t("claiming")}
-              </span>
-            ) : !areRewardsClaimable ? (
-              <span className="flex items-center justify-center font-mono text-2xl">{timeRemaining}</span>
-            ) : (
-              t("claim_rewards")
-            )}
-          </button>
-
-          {/* Fecha y barra de progreso - Mejorada */}
-          {nextClaimTime ? (
-            <div className="flex flex-col items-center mb-5">
-              {/* Fecha del próximo claim */}
-              <div className="text-sm text-gray-400 mb-3">
-                {nextClaimTime ? formatDate(nextClaimTime) : "Fecha no disponible"}
-              </div>
-
-              <div className="w-full bg-gray-800 rounded-full h-3 mb-6 overflow-hidden">
-                <div
-                  className="bg-primary h-3 rounded-full transition-all duration-500 ease-out"
-                  style={{
-                    width: `${
-                      nextClaimTime && lastClaimDate
-                        ? Math.min(
-                            100,
-                            Math.max(
-                              0,
-                              100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
-                            ),
-                          )
-                        : 0
-                    }%`,
-                  }}
-                  role="progressbar"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={
-                    nextClaimTime && lastClaimDate
-                      ? Math.min(
-                          100,
-                          Math.max(
-                            0,
-                            100 - ((nextClaimTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) * 100,
-                          ),
-                        )
-                      : 0
-                  }
-                ></div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
-          )}
-
-          {/* Cantidad a reclamar - Mejorada */}
-          <div className="text-center mb-5">
-            <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
-            <p className="text-4xl font-bold text-primary rewards-counter">
-              {realtimeRewards.toFixed(6)} <span className="text-white">CDT</span>
-            </p>
-          </div>
-
-          {/* Mensajes de éxito/error para claim - Mejorados */}
-          {claimSuccess && !claimError && !isClaiming && (
-            <div className="mt-4 p-3 bg-black/80 border border-primary rounded-full animate-pulse">
-              <p className="text-sm font-medium text-primary text-center">{claimSuccess}</p>
-            </div>
-          )}
-
-          {claimError && !isClaiming && (
-            <div className="mt-4 p-3 bg-black/80 border border-secondary rounded-full">
-              <p className="text-sm font-medium text-secondary text-center">{t("error_claiming")}</p>
-              <p className="text-xs mt-1 text-secondary text-center">{claimError}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Enlace a la sección de niveles - NUEVO */}
+        {/* Enlace a la sección de niveles */}
         <div className="mb-6">
           <Link
             href="/rankings?tab=levels"
@@ -1204,7 +653,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Botón para conocer TRIBO - Mejorado */}
+        {/* Botón para conocer TRIBO */}
         <div className="mb-6">
           <Link
             href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cryptodigitaltribe.com/"}
@@ -1251,137 +700,20 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Card de TRIBO Wallet - Diseño mejorado */}
-        <div className="mb-6 dashboard-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              {/* Logo más grande sin texto */}
-              <Image src="/TRIBO Wallet sin fondo.png" alt="TRIBO Wallet" width={60} height={60} className="mr-3" />
-            </div>
-            {/* Botón para ir a la página de perfil - Mejorado */}
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-primary text-black shadow-md"
-              onMouseEnter={() => setIsProfileHovered(true)}
-              onMouseLeave={() => setIsProfileHovered(false)}
-              onTouchStart={() => setIsProfileHovered(true)}
-              onTouchEnd={() => setIsProfileHovered(false)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
-                <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
-                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-              </svg>
-              <span>{t("view_full_profile")}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isProfileHovered ? "translate-x-0.5" : ""}`}
-              >
-                <path d="m9 18 6-6-6-6"></path>
-              </svg>
-            </Link>
-          </div>
+        {/* Wallet Card */}
+        <WalletCard
+          stakedAmount={stakedAmount}
+          cdtPrice={cdtPrice}
+          priceChange={priceChange}
+          isUpdating={isUpdating}
+          updateSuccess={updateSuccess}
+          updateError={updateError}
+          handleUpdateStakeAction={handleUpdateStake}
+          isProfileHovered={isProfileHovered}
+          setIsProfileHoveredAction={setIsProfileHovered}
+        />
 
-          <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>
-          <div className="flex items-center mb-4">
-            <p className="text-3xl font-bold text-white">
-              {stakedAmount.toLocaleString()} <span className="text-primary">CDT</span>
-            </p>
-          </div>
-
-          {/* Componente separado para la sección de precio y estadísticas */}
-          <PriceDisplay initialPrice={cdtPrice} stakedAmount={stakedAmount} priceChange={priceChange} />
-
-          <button
-            onClick={handleUpdateStake}
-            disabled={isUpdating}
-            className="w-full px-4 py-3 rounded-full transition-all duration-300 bg-primary text-black font-medium shadow-md"
-            aria-live="polite"
-          >
-            {isUpdating ? (
-              <span className="flex items-center justify-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                {t("updating")}
-              </span>
-            ) : (
-              t("update_balance")
-            )}
-          </button>
-
-          {/* Mensaje de éxito para actualización de balance - Mejorado */}
-          {updateSuccess && !updateError && !isUpdating && (
-            <div className="mt-4 p-3 bg-black/70 border border-primary rounded-full animate-pulse">
-              <p className="text-sm font-medium text-primary flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                {t("balance_updated")}
-              </p>
-            </div>
-          )}
-
-          {/* Mensaje de error para actualización de balance - Mejorado */}
-          {updateError && !isUpdating && (
-            <div className="mt-4 p-3 bg-black/70 border border-secondary rounded-full">
-              <p className="text-sm font-medium text-secondary flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                {t("error_updating")}
-              </p>
-              <p className="text-xs mt-1 text-secondary text-center">{updateError}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Sección de ganancias - Diseño mejorado */}
+        {/* Sección de ganancias */}
         <div className="mb-6 dashboard-card p-6">
           <h3 className="text-xl font-semibold mb-4 text-center text-white">{t("earn_daily")}</h3>
 
@@ -1403,125 +735,17 @@ export default function Dashboard() {
           <p className="text-center text-sm text-gray-400">{t("how_works_desc")}</p>
         </div>
 
-        {/* Sección de redes sociales - Rediseñada para mejor organización */}
-        <div className="mb-6 grid grid-cols-1 gap-4">
-          {/* Botón de Discord - Mejorado */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#5865F2]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3847-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
-              </svg>
-            </div>
-            <Link
-              href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/BaYaaUsUuN"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 bg-[#5865F2] shadow-md"
-              onMouseEnter={() => setIsDiscordHovered(true)}
-              onMouseLeave={() => setIsDiscordHovered(false)}
-              onTouchStart={() => setIsDiscordHovered(true)}
-              onTouchEnd={() => setIsDiscordHovered(false)}
-            >
-              <span className="whitespace-nowrap">{t("join_community")}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isDiscordHovered ? "translate-x-1" : ""}`}
-              >
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </Link>
-          </div>
+        {/* Sección de redes sociales */}
+        <SocialLinks
+          isDiscordHovered={isDiscordHovered}
+          setIsDiscordHoveredAction={setIsDiscordHovered}
+          isTelegramHovered={isTelegramHovered}
+          setIsTelegramHoveredAction={setIsTelegramHovered}
+          isTwitterHovered={isTwitterHovered}
+          setIsTwitterHoveredAction={setIsTwitterHovered}
+        />
 
-          {/* Botón de Telegram - Mejorado */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#0088cc]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="white"
-                className="transform translate-x-0.5"
-              >
-                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
-              </svg>
-            </div>
-            <Link
-              href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/cryptodigitaltribe"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 bg-[#0088cc] shadow-md"
-              onMouseEnter={() => setIsTelegramHovered(true)}
-              onMouseLeave={() => setIsTelegramHovered(false)}
-              onTouchStart={() => setIsTelegramHovered(true)}
-              onTouchEnd={() => setIsTelegramHovered(false)}
-            >
-              <span className="whitespace-nowrap">{t("join_telegram")}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isTelegramHovered ? "translate-x-1" : ""}`}
-              >
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </Link>
-          </div>
-
-          {/* Botón de Twitter/X - Mejorado */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-black">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </div>
-            <Link
-              href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://x.com/TriboCDT"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-full text-white font-medium transition-all duration-300 bg-gray-900 shadow-md"
-              onMouseEnter={() => setIsTwitterHovered(true)}
-              onMouseLeave={() => setIsTwitterHovered(false)}
-              onTouchStart={() => setIsTwitterHovered(true)}
-              onTouchEnd={() => setIsTwitterHovered(false)}
-            >
-              <span className="whitespace-nowrap">{t("follow_twitter")}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isTwitterHovered ? "translate-x-1" : ""}`}
-              >
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </Link>
-          </div>
-        </div>
-
-        {/* Banner de sorteos diarios - Mejorado */}
+        {/* Banner de sorteos diarios */}
         <Link
           href={telegramGiveawayUrl}
           target="_blank"
@@ -1532,7 +756,6 @@ export default function Dashboard() {
           onTouchStart={() => setIsDailyGiveawayHovered(true)}
           onTouchEnd={() => setIsDailyGiveawayHovered(false)}
         >
-          {/* Componente de lluvia de tokens CDT - ahora siempre activo */}
           <CdtButtonRain containerClassName="rounded-xl" />
 
           <div className="flex items-center justify-between relative z-10">
@@ -1559,112 +782,35 @@ export default function Dashboard() {
           </div>
         </Link>
 
-        {/* Sección de propina - Mejorada */}
-        <div className="mb-6">
-          <div className="dashboard-card p-6">
-            <h2 className="text-xl font-semibold mb-2 text-primary">{t("support_project")}</h2>
-            <p className="text-gray-400 text-sm mb-4">{t("support_help")}</p>
-            <button
-              onClick={handleSendCDT}
-              disabled={isSendingCDT}
-              className="w-full px-4 py-3 rounded-full transition-all duration-300 bg-secondary text-white font-medium shadow-md"
-              aria-live="polite"
-            >
-              {isSendingCDT ? t("processing") : t("support_with").replace("0.023", "0.23")}
-            </button>
+        {/* Sección de propina */}
+        <SupportSection
+          isSendingCDT={isSendingCDT}
+          txHash={txHash}
+          txError={txError}
+          handleSendCDTAction={handleSendCDT}
+        />
 
-            {txHash && !txError && isSendingCDT === false && (
-              <div className="mt-4 p-3 bg-black/70 border border-primary rounded-full animate-pulse">
-                <p className="text-sm font-medium text-primary text-center">{txHash}</p>
-              </div>
-            )}
-
-            {txError && !isSendingCDT && (
-              <div className="mt-4 p-3 bg-black/70 border border-secondary rounded-full">
-                <p className="text-sm font-medium text-secondary text-center">{t("error_sending")}</p>
-                <p className="text-xs mt-1 text-secondary text-center">{txError}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Componente CdtRain - Siempre presente pero solo visible cuando showCdtRain es true */}
+        {/* Componente CdtRain */}
         <div className={`cdt-rain-container ${showCdtRain ? "visible" : "hidden"}`} aria-hidden="true">
           <CdtRain count={50} duration={5} />
         </div>
 
-        {/* Modal de regalo de bienvenida - Mejorado */}
-        {showWelcomeGift && (
-          <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="welcome-gift-title"
-          >
-            <div className="bg-black/90 border border-primary rounded-xl shadow-lg p-6 max-w-md w-full animate-fadeIn">
-              <h2 id="welcome-gift-title" className="text-2xl font-semibold mb-4 text-white">
-                {t("welcome_gift_title")}
-              </h2>
-              <p className="text-gray-300 mb-6">{t("welcome_gift_description")}</p>
+        {/* Modales */}
+        <WelcomeGiftModal
+          showWelcomeGift={showWelcomeGift}
+          isClaimingWelcomeGift={isClaimingWelcomeGift}
+          welcomeGiftError={welcomeGiftError}
+          handleClaimWelcomeGiftAction={handleClaimWelcomeGift}
+        />
 
-              <button
-                onClick={handleClaimWelcomeGift}
-                disabled={isClaimingWelcomeGift}
-                className="w-full px-4 py-3 rounded-full transition-all duration-300 bg-primary text-black font-medium shadow-md"
-                aria-live="polite"
-              >
-                {isClaimingWelcomeGift ? t("claiming_welcome_gift") : t("claim_welcome_gift")}
-              </button>
-
-              {welcomeGiftError && (
-                <div className="mt-4 p-3 bg-black/80 border border-secondary rounded-full">
-                  <p className="text-sm font-medium text-secondary text-center">{welcomeGiftError}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Modal de selección de país - Mejorado */}
-        {showCountryModal && (
-          <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="country-select-title"
-          >
-            <div className="bg-black/90 border border-primary rounded-xl shadow-lg p-6 max-w-md w-full animate-fadeIn">
-              <h2 id="country-select-title" className="text-2xl font-semibold mb-4 text-white">
-                {t("select_country_title")}
-              </h2>
-              <p className="text-gray-300 mb-6">{t("select_country_description")}</p>
-
-              <CountrySelector value={country} onChangeAction={(value) => handleSaveCountry(value)} className="mb-6" />
-
-              {countryUpdateError && (
-                <div className="mb-4 p-3 bg-black/80 border border-secondary rounded-full">
-                  <p className="text-sm font-medium text-secondary text-center">{countryUpdateError}</p>
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => {
-                    const identifier = getUserIdentifier()
-                    if (identifier) {
-                      localStorage.setItem(`tribo-country-modal-${identifier}`, "true")
-                    }
-                    setShowCountryModal(false)
-                  }}
-                  disabled={isUpdatingCountry}
-                  className="flex-1 px-4 py-3 rounded-full transition-all duration-300 bg-gray-800 text-white font-medium shadow-md"
-                >
-                  {t("remind_later")}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <CountryModal
+          showCountryModal={showCountryModal}
+          country={country}
+          isUpdatingCountry={isUpdatingCountry}
+          countryUpdateError={countryUpdateError}
+          handleSaveCountryAction={handleSaveCountry}
+          onCloseAction={handleCloseCountryModal}
+        />
       </div>
     </div>
   )
