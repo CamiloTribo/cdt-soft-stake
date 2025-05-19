@@ -341,3 +341,4 @@ export type TranslationKey =
   | "invalid_response_format"
   | "levels"
   | "your_country"
+  | "países"
