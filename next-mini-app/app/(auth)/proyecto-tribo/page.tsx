@@ -598,13 +598,13 @@ export default function ProyectoTriboPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rounded-xl blur-xl"></div>
           <div className="relative z-10 bg-gradient-to-br from-gray-900 to-black rounded-xl p-8 border border-tribo-green-DEFAULT/30 shadow-lg">
             <div className="flex flex-col items-center text-center">
-              <h2 className="text-3xl font-bold mb-4 text-white">{t("ready_to_join")}</h2>
+              <h2 className="text-4xl font-bold mb-4 text-white">{t("ready_to_join")}</h2>
               <p className="text-white mb-8 max-w-2xl text-lg">{t("join_earn_daily")}</p>
               <a
                 href={swapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-tribo-green-DEFAULT hover:bg-tribo-green-hover text-black font-bold py-5 px-10 rounded-xl text-center text-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
+                className="flex items-center justify-center gap-3 bg-tribo-green-DEFAULT text-black font-bold py-5 px-10 rounded-full text-center text-xl"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -622,21 +622,7 @@ export default function ProyectoTriboPage() {
                   <path d="M21 16v5h-5"></path>
                   <path d="M15 15 3 3"></path>
                 </svg>
-                <span>{t("swap_wld_cdt")}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14"></path>
-                  <path d="m12 5 7 7-7 7"></path>
-                </svg>
+                <span className="uppercase font-bold">SWAP WLD/CDT</span>
               </a>
               <p className="text-center text-gray-300 mt-4 text-sm">{t("invest_future")}</p>
             </div>
