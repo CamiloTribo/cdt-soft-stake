@@ -152,7 +152,6 @@ export default function Dashboard() {
   // Estado para los botones con hover
   const [isDiscordHovered, setIsDiscordHovered] = useState(false)
   const [isProfileHovered, setIsProfileHovered] = useState(false)
-  const [isReferralBannerHovered, setIsReferralBannerHovered] = useState(false)
   const [isDailyGiveawayHovered, setIsDailyGiveawayHovered] = useState(false)
   const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
 
@@ -985,37 +984,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Banner de concurso de referidos - Mejorado con transiciones más suaves */}
-        <Link
-          href="/rankings?tab=referrals"
-          className="block mb-6 bg-primary text-black rounded-xl p-4 shadow-lg border border-primary/30 transition-all duration-300"
-          onMouseEnter={() => setIsReferralBannerHovered(true)}
-          onMouseLeave={() => setIsReferralBannerHovered(false)}
-          onTouchStart={() => setIsReferralBannerHovered(true)}
-          onTouchEnd={() => setIsReferralBannerHovered(false)}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-black font-bold text-xl">🏆 {t("weekly_rewards")}</h3>
-            </div>
-            <div className="bg-white/20 rounded-full p-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isReferralBannerHovered ? "translate-x-1" : ""}`}
-              >
-                <path d="m9 18 6-6-6-6"></path>
-              </svg>
-            </div>
-          </div>
-        </Link>
 
         {/* Sección de usuario y saludo con detective verificador - Mejorada */}
         <div className="mb-6 relative">
