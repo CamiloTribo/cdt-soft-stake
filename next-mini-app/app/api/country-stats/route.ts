@@ -16,12 +16,11 @@ interface UserWithStaking {
   staking_info: StakingInfo[]
 }
 
-// Eliminar esta interfaz que ya no se usa
-// interface CountryStatsResult {
-//   country: string
-//   total_cdt: string | number
-//   user_count: string | number
-// }
+interface CountryStatsResult {
+  country: string
+  total_cdt: string | number
+  user_count: string | number
+}
 
 // Definir el tipo para los rankings que devolvemos en la respuesta
 type CountryRanking = {
@@ -61,75 +60,79 @@ export async function GET(request: Request) {
 
     // Si queremos el ranking de países
     else if (type === "ranking") {
-      // Primero, obtener todos los países únicos para asegurarnos de que no hay limitación
-      const { data: allCountries, error: countriesError } = await supabase
-        .from("users")
-        .select("country")
-        .not("country", "is", null)
-        .not("country", "eq", "")
+      // Usar la consulta SQL directamente como RPC para obtener los totales de CDT por país
+      const { data: cdtByCountry, error: cdtError } = await supabase.rpc("get_country_stats")
 
-      if (countriesError) {
-        console.error("Error fetching all countries:", countriesError)
-        return NextResponse.json({ success: false, error: "Error fetching country data" }, { status: 500 })
-      }
+      if (cdtError) {
+        console.error("Error fetching CDT by country:", cdtError)
 
-      // Obtener países únicos
-      const uniqueCountries = [
-        ...new Set(allCountries.map((user) => user.country).filter((country) => country && country.trim() !== "")),
-      ]
+        // Si la función RPC falla, intentamos con una consulta directa
+        console.log("Intentando con consulta directa...")
 
-      console.log(`Total unique countries found: ${uniqueCountries.length}`)
-
-      // Ahora, en lugar de usar la función RPC que podría tener limitaciones,
-      // vamos a hacer una consulta directa para obtener los datos de todos los países
-      const { data: directQueryData, error: directQueryError } = await supabase
-        .from("users")
-        .select(`
-          country,
-          staking_info!inner (
-            staked_amount
-          )
-        `)
-        .not("country", "is", null)
-        .not("country", "eq", "")
-
-      if (directQueryError) {
-        console.error("Error en consulta directa:", directQueryError)
-        return NextResponse.json({ success: false, error: "Error fetching country data" }, { status: 500 })
-      }
-
-      // Procesar los resultados de la consulta directa
-      const countryTotals: Record<string, { totalCDT: number; userCount: number }> = {}
-
-      directQueryData.forEach((user: UserWithStaking) => {
-        const country = user.country
-        const stakedAmount = Array.isArray(user.staking_info)
-          ? user.staking_info.reduce(
-              (sum: number, item: StakingInfo) => sum + (Number.parseFloat(String(item.staked_amount)) || 0),
-              0,
+        // Ejecutar consulta SQL directamente
+        const { data: directQueryData, error: directQueryError } = await supabase
+          .from("users")
+          .select(`
+            country,
+            staking_info!inner (
+              staked_amount
             )
-          : 0
+          `)
+          .not("country", "is", null)
+          .not("country", "eq", "")
 
-        if (!countryTotals[country]) {
-          countryTotals[country] = { totalCDT: 0, userCount: 0 }
+        if (directQueryError) {
+          console.error("Error en consulta directa:", directQueryError)
+          return NextResponse.json({ success: false, error: "Error fetching country data" }, { status: 500 })
         }
 
-        countryTotals[country].totalCDT += stakedAmount
-        countryTotals[country].userCount += 1
-      })
+        // Procesar los resultados de la consulta directa
+        const countryTotals: Record<string, { totalCDT: number; userCount: number }> = {}
 
-      // Convertir a array y ordenar
-      const countryRankings: CountryRanking[] = Object.entries(countryTotals)
-        .map(([country, stats], index) => ({
-          country,
-          totalCDT: stats.totalCDT,
-          userCount: stats.userCount,
-          position: index + 1,
+        directQueryData.forEach((user: UserWithStaking) => {
+          const country = user.country
+          const stakedAmount = Array.isArray(user.staking_info)
+            ? user.staking_info.reduce(
+                (sum: number, item: StakingInfo) => sum + (Number.parseFloat(String(item.staked_amount)) || 0),
+                0,
+              )
+            : 0
+
+          if (!countryTotals[country]) {
+            countryTotals[country] = { totalCDT: 0, userCount: 0 }
+          }
+
+          countryTotals[country].totalCDT += stakedAmount
+          countryTotals[country].userCount += 1
+        })
+
+        // Convertir a array y ordenar
+        const countryRankings: CountryRanking[] = Object.entries(countryTotals)
+          .map(([country, stats]) => ({
+            country,
+            totalCDT: stats.totalCDT,
+            userCount: stats.userCount,
+            position: 0, // Se asignará después de ordenar
+          }))
+          .sort((a, b) => b.userCount - a.userCount) // Ordenar por cantidad de usuarios
+          .map((item, index) => ({ ...item, position: index + 1 })) // Asignar posiciones después de ordenar
+
+        return NextResponse.json({
+          success: true,
+          rankings: countryRankings,
+        })
+      }
+
+      // Si la función RPC funciona, usamos esos datos
+      const countryRankings: CountryRanking[] = (cdtByCountry as CountryStatsResult[])
+        .map((item) => ({
+          country: item.country,
+          totalCDT: Number.parseFloat(String(item.total_cdt)) || 0,
+          userCount: Number.parseInt(String(item.user_count)) || 0,
+          position: 0, // Se asignará después de ordenar
         }))
-        .sort((a, b) => b.userCount - a.userCount) // Ordenar por cantidad de usuarios en lugar de CDT
-        .map((item, index) => ({ ...item, position: index + 1 }))
-
-      console.log(`Returning ${countryRankings.length} countries in ranking`)
+        .sort((a, b) => b.userCount - a.userCount) // Ordenar por cantidad de usuarios
+        .map((item, index) => ({ ...item, position: index + 1 })) // Asignar posiciones después de ordenar
 
       return NextResponse.json({
         success: true,
