@@ -1,10 +1,13 @@
 import type { Config } from "tailwindcss"
+import { fontFamily } from "tailwindcss/defaultTheme"
+import plugin from "tailwindcss/plugin"
+
 const config: Config = {
   darkMode: ["class"],
   content: [
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "*.{js,ts,jsx,tsx,mdx}",
   ],
@@ -16,16 +19,7 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "#4ebd0a", // Color principal directo en lugar de usar hsl
-          foreground: "#ffffff",
-          hover: "#3fa008",
-        },
-        secondary: {
-          DEFAULT: "#ff1744", // Color secundario directo
-          foreground: "#ffffff",
-          hover: "#ff2954",
-        },
+        // Eliminamos las definiciones duplicadas de primary y secondary
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -46,6 +40,15 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Definimos los colores personalizados
+        "tribo-green": {
+          DEFAULT: "#4ebd0a",
+          hover: "#3fa008",
+        },
+        "tribo-red": {
+          DEFAULT: "#ff1744",
+          hover: "#e5002f",
+        },
         text: {
           primary: "#ffffff",
           secondary: "#aaaaaa",
@@ -58,24 +61,43 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Helvetica Neue", "Arial", "Helvetica", "sans-serif"],
+        sans: ["Helvetica Neue", "Arial", "Helvetica", ...fontFamily.sans],
       },
       animation: {
-        fadeIn: "fadeIn 0.5s ease-out forwards",
-        pulseGreen: "pulse-green 2s infinite",
+        "bounce-slow": "bounce 3s infinite",
+        "ping-slow": "ping 3s cubic-bezier(0, 0, 0.2, 1) infinite",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        float: "float 6s ease-in-out infinite",
+        fadeIn: "fadeIn 0.5s ease-in-out",
       },
       keyframes: {
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
         fadeIn: {
-          "0%": { opacity: "0", transform: "translateY(-10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
-        "pulse-green": {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(78, 189, 10, 0.4)" },
-          "50%": { boxShadow: "0 0 0 8px rgba(78, 189, 10, 0)" },
-        },
+      },
+      transitionDelay: {
+        "0": "0ms",
+        "150": "150ms",
+        "300": "300ms",
+        "450": "450ms",
+        "600": "600ms",
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        ".animate-pause": {
+          "animation-play-state": "paused",
+        },
+      })
+    }),
+  ],
 }
+
 export default config
