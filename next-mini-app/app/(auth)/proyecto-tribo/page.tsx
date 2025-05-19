@@ -6,29 +6,6 @@ import RoadmapTimeline from "@/src/components/RoadmapTimeline"
 import Image from "next/image"
 import { useEffect, useState, useRef } from "react"
 
-// Función para generar el enlace a UNO correctamente
-function getUnoDeeplinkUrl({
-  fromToken,
-  toToken,
-}: {
-  fromToken?: string
-  toToken?: string
-}) {
-  const UNO_APP_ID = "app_a4f7f3e62c1de0b9490a5260cb390b56"
-  let path = `?tab=swap`
-
-  if (fromToken) {
-    path += `&fromToken=${fromToken}`
-  }
-
-  if (toToken) {
-    path += `&toToken=${toToken}`
-  }
-
-  const encodedPath = encodeURIComponent(path)
-  return `https://worldcoin.org/mini-app?app_id=${UNO_APP_ID}&path=${encodedPath}`
-}
-
 export default function ProyectoTriboPage() {
   const { t } = useTranslation()
   const [mounted, setMounted] = useState(false)
@@ -36,11 +13,8 @@ export default function ProyectoTriboPage() {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
-  // Generar el enlace a UNO para el swap WLD/CDT
-  const unoSwapLink = getUnoDeeplinkUrl({
-    fromToken: "0x340f0eebd9a417b36eb5a5fba6a9fc9d8ffcb9f1", // WLD token
-    toToken: "0x1fa2f83ba2df61c3d370071d55daec05c1f82c5c", // CDT token
-  })
+  // Usar el nuevo enlace de swap directo en lugar de UNO
+  const swapLink = process.env.NEXT_PUBLIC_BUY_CDT_URL || "https://app.uniswap.org/swap"
 
   useEffect(() => {
     setMounted(true)
@@ -619,7 +593,7 @@ export default function ProyectoTriboPage() {
               </h2>
               <p className="text-gray-300 mb-8 max-w-2xl">{t("join_earn_daily")}</p>
               <a
-                href={unoSwapLink}
+                href={swapLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center gap-3 bg-gradient-to-r from-tribo-green-DEFAULT to-green-600 hover:from-green-600 hover:to-tribo-green-DEFAULT text-black font-bold py-4 px-8 rounded-xl text-center text-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
