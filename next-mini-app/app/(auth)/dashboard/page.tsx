@@ -15,22 +15,9 @@ import CdtButtonRain from "../../../src/components/CdtButtonRain"
 import { CountryFlag } from "../../../src/components/CountryFlag"
 import { CountrySelector } from "../../../src/components/CountrySelector"
 
-// Función para generar el enlace a UNO con parámetros específicos para swap
+// Función para obtener la URL de la mini-app de World.org
 function getUnoDeeplinkUrl() {
-  const UNO_APP_ID = "app_a4f7f3e62c1de0b9490a5260cb390b56"
-  const CDT_TOKEN_ADDRESS = "0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
-  const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003"
-
-  // Configurar para comprar CDT con WLD (toToken=CDT, fromToken=WLD)
-  let path = `?tab=swap&fromToken=${WLD_TOKEN_ADDRESS}&toToken=${CDT_TOKEN_ADDRESS}`
-
-  // Añadir referrerAppId si está disponible
-  if (process.env.NEXT_PUBLIC_WORLDCOIN_APP_ID) {
-    path += `&referrerAppId=${process.env.NEXT_PUBLIC_WORLDCOIN_APP_ID}`
-  }
-
-  const encodedPath = encodeURIComponent(path)
-  return `https://worldcoin.org/mini-app?app_id=${UNO_APP_ID}&path=${encodedPath}`
+  return "https://world.org/mini-app?app_id=app_25cf6ee1d9660721e651d43cf126953a"
 }
 
 // Vamos a mejorar varios aspectos del dashboard para hacerlo más profesional y alineado con las guidelines
