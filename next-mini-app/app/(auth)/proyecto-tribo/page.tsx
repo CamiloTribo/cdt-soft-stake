@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslation } from "@/src/components/TranslationProvider"
+import ProjectSection from "@/src/components/ProjectSection"
 import RoadmapTimeline from "@/src/components/RoadmapTimeline"
 import Image from "next/image"
 import { useEffect, useState, useRef } from "react"
@@ -77,89 +78,35 @@ export default function ProyectoTriboPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white pb-24 overflow-x-hidden">
-      {/* Fondo dinámico con partículas y gradientes */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Gradiente principal */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(78,189,10,0.2),transparent_70%)]"></div>
-
-        {/* Líneas de grid */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, #4ebd0a 1px, transparent 1px), linear-gradient(to bottom, #4ebd0a 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        ></div>
-
-        {/* Partículas flotantes */}
-        <div className="absolute top-1/4 left-1/4 w-3 h-3 rounded-full bg-tribo-green-DEFAULT/40 animate-float"></div>
-        <div
-          className="absolute top-3/4 left-2/3 w-2 h-2 rounded-full bg-tribo-green-DEFAULT/40 animate-float"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 left-1/3 w-4 h-4 rounded-full bg-tribo-green-DEFAULT/30 animate-float"
-          style={{ animationDelay: "1.5s" }}
-        ></div>
-        <div
-          className="absolute top-1/3 right-1/4 w-2 h-2 rounded-full bg-tribo-green-DEFAULT/40 animate-float"
-          style={{ animationDelay: "0.5s" }}
-        ></div>
-        <div
-          className="absolute bottom-1/4 right-1/3 w-3 h-3 rounded-full bg-tribo-green-DEFAULT/40 animate-float"
-          style={{ animationDelay: "2s" }}
-        ></div>
-
-        {/* Formas geométricas */}
-        <div className="absolute top-[15%] left-[10%] w-40 h-40 rounded-full border border-tribo-green-DEFAULT/20 animate-spin-slow"></div>
-        <div className="absolute bottom-[20%] right-[5%] w-60 h-60 rounded-full border border-tribo-green-DEFAULT/10 animate-spin-reverse"></div>
-        <div className="absolute top-[40%] right-[15%] w-20 h-20 rounded-full border border-tribo-green-DEFAULT/20 animate-pulse"></div>
+    <main className="min-h-screen bg-black text-white pb-24">
+      {/* Fondo con efecto de partículas sutiles */}
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(78,189,10,0.1),transparent_70%)]"></div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 pt-6 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 pt-6 relative z-10">
         {/* Encabezado con animación mejorada */}
         <div
-          className="flex flex-col items-center justify-center mb-16 text-center"
+          className="flex flex-col items-center justify-center mb-12 text-center"
           ref={(ref) => registerSectionRef("header", ref)}
           id="header"
         >
-          <div className="relative mb-8 transform transition-all duration-700 hover:scale-105">
-            {/* Efectos de luz alrededor del logo */}
-            <div className="absolute -inset-8 rounded-full bg-gradient-to-r from-tribo-green-DEFAULT/40 to-tribo-green-DEFAULT/20 blur-xl animate-pulse"></div>
-            <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rotate-45 blur-lg"></div>
-
-            {/* Logo con efectos */}
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-tribo-green-DEFAULT to-tribo-green-DEFAULT/70 opacity-70 animate-pulse"></div>
-              <Image
-                src="/LOGO TRIBO.png"
-                alt="TRIBO Logo"
-                width={180}
-                height={180}
-                className="relative z-10 drop-shadow-[0_0_25px_rgba(78,189,10,0.8)]"
-                priority
-              />
-            </div>
+          <div className="relative mb-6 transform transition-all duration-700 hover:scale-105">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-tribo-green-DEFAULT/30 to-tribo-green-DEFAULT/10 blur-xl"></div>
+            <Image
+              src="/LOGO TRIBO.png"
+              alt="TRIBO Logo"
+              width={150}
+              height={150}
+              className="relative z-10 drop-shadow-[0_0_15px_rgba(78,189,10,0.5)]"
+              priority
+            />
           </div>
+          <h1 className="text-4xl font-bold mb-3 text-white">{t("project_tribo")}</h1>
+          <p className="text-gray-300 max-w-2xl text-lg leading-relaxed">{t("project_tribo_subtitle")}</p>
 
-          {/* Título con efecto de resplandor */}
-          <h1 className="text-5xl font-bold mb-4 relative">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-tribo-green-DEFAULT to-white animate-pulse">
-              {t("project_tribo")}
-            </span>
-            <div className="absolute -inset-2 bg-tribo-green-DEFAULT/10 blur-xl rounded-full -z-10"></div>
-          </h1>
-
-          {/* Subtítulo con mejor contraste */}
-          <p className="text-white max-w-2xl text-xl leading-relaxed mb-8 font-light">{t("project_tribo_subtitle")}</p>
-
-          {/* Navegación rápida mejorada */}
-          <div className="flex flex-wrap justify-center gap-4 mt-8 relative">
-            {/* Efecto de resplandor detrás de los botones */}
-            <div className="absolute inset-0 bg-tribo-green-DEFAULT/10 blur-xl rounded-full -z-10"></div>
-
+          {/* Navegación rápida */}
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
             {["mission", "cdt", "roadmap", "community", "next_steps"].map((section) => (
               <button
                 key={section}
@@ -169,10 +116,10 @@ export default function ProyectoTriboPage() {
                     block: "start",
                   })
                 }}
-                className={`px-6 py-3 rounded-full text-base transition-all duration-300 transform ${
+                className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ${
                   activeSection === section
-                    ? "bg-tribo-green-DEFAULT text-black font-bold shadow-lg shadow-tribo-green-DEFAULT/50 scale-110"
-                    : "bg-black/60 text-white hover:bg-black/80 border border-tribo-green-DEFAULT/50 hover:border-tribo-green-DEFAULT hover:scale-105 hover:shadow-md hover:shadow-tribo-green-DEFAULT/30"
+                    ? "bg-tribo-green-DEFAULT text-black font-medium shadow-lg shadow-tribo-green-DEFAULT/30"
+                    : "bg-gray-800 text-white hover:bg-gray-700 border border-gray-700 hover:border-tribo-green-DEFAULT/50"
                 }`}
               >
                 {t(
@@ -191,748 +138,192 @@ export default function ProyectoTriboPage() {
           </div>
         </div>
 
-        {/* Nuestra Misión - Completamente rediseñada */}
-        <div ref={(ref) => registerSectionRef("mission", ref)} id="mission" className="scroll-mt-16 mb-24">
-          <div className="relative">
-            {/* Fondo con efecto de resplandor */}
-            <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-3xl blur-xl -z-10"></div>
+        {/* Nuestra Misión - Mejorada con animación */}
+        <div ref={(ref) => registerSectionRef("mission", ref)} id="mission" className="scroll-mt-16">
+          <ProjectSection
+            title={t("our_mission")}
+            className="transform transition-all duration-500 hover:translate-y-[-5px]"
+            titleClassName="text-tribo-green-DEFAULT text-2xl md:text-3xl"
+          >
+            <p className="text-white leading-relaxed text-lg">{t("mission_text")}</p>
 
-            <div className="bg-black/60 backdrop-blur-md rounded-3xl border border-tribo-green-DEFAULT/30 overflow-hidden transform transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)]">
-              {/* Cabecera de sección con diseño mejorado */}
-              <div className="bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent p-6 border-b border-tribo-green-DEFAULT/30">
-                <h2 className="text-3xl md:text-4xl font-bold text-tribo-green-DEFAULT flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-3"
-                  >
-                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                    <path d="m9 12 2 2 4-4"></path>
-                  </svg>
-                  {t("our_mission")}
-                </h2>
-              </div>
+            {/* Valores añadidos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              {[
+                {
+                  icon: (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                      <path d="m9 12 2 2 4-4"></path>
+                    </svg>
+                  ),
+                  title: t("transparency"),
+                  desc: t("transparency_desc"),
+                },
+                {
+                  icon: (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                      <path d="M12 8v4l3 3"></path>
+                    </svg>
+                  ),
+                  title: t("sustainability"),
+                  desc: t("sustainability_desc"),
+                },
+                {
+                  icon: (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  ),
+                  title: t("community"),
+                  desc: t("community_desc"),
+                },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-gray-800 p-5 rounded-xl border border-gray-700 transition-all duration-300 hover:border-tribo-green-DEFAULT hover:bg-gray-800/90 hover:shadow-[0_0_15px_rgba(78,189,10,0.2)]"
+                >
+                  <div className="w-12 h-12 rounded-full bg-tribo-green-DEFAULT/30 flex items-center justify-center mb-3 text-tribo-green-DEFAULT">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                  <p className="text-gray-300">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </ProjectSection>
+        </div>
 
-              {/* Contenido de la sección */}
-              <div className="p-8">
-                <p className="text-white text-xl leading-relaxed mb-10">{t("mission_text")}</p>
+        {/* Ilustración de cohete - Bebé TRIBO - Mejorada */}
+        <div className="flex justify-center my-12">
+          <div className="w-48 h-48 relative animate-bounce-slow">
+            <div className="absolute -inset-4 bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rounded-full blur-xl animate-pulse"></div>
+            <Image
+              src="/BEBE TRIBO EN COHETE DESPEGUE.png"
+              alt={t("baby_tribo_rocket")}
+              width={200}
+              height={200}
+              className="drop-shadow-[0_0_12px_rgba(255,165,0,0.6)] relative z-10"
+            />
 
-                {/* Valores con diseño mejorado */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Estrellas animadas alrededor */}
+            <div className="absolute top-0 left-0 w-3 h-3 bg-yellow-300 rounded-full animate-ping opacity-70"></div>
+            <div
+              className="absolute bottom-10 right-0 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-70"
+              style={{ animationDelay: "0.5s" }}
+            ></div>
+            <div
+              className="absolute top-10 right-5 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-70"
+              style={{ animationDelay: "1s" }}
+            ></div>
+          </div>
+        </div>
+
+        {/* ¿Qué es CDT? - Mejorada */}
+        <div ref={(ref) => registerSectionRef("cdt", ref)} id="cdt" className="scroll-mt-16">
+          <ProjectSection
+            title={t("what_is_cdt")}
+            className="transform transition-all duration-500 hover:translate-y-[-5px]"
+            titleClassName="text-tribo-green-DEFAULT text-2xl md:text-3xl"
+          >
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="flex-1">
+                <p className="text-white whitespace-pre-line leading-relaxed text-lg">{t("cdt_description")}</p>
+
+                {/* Características del token con mejor contraste */}
+                <div className="mt-6 space-y-3">
                   {[
+                    { label: t("staking"), value: "0.2% " + t("daily") + " (73% APY)" },
+                    { label: t("monthly"), value: "6%" },
+                    { label: t("blockchain"), value: "World Chain" },
+                    { label: t("supply"), value: "100,000,000 CDT" },
                     {
-                      icon: (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                          <path d="m9 12 2 2 4-4"></path>
-                        </svg>
-                      ),
-                      title: t("transparency"),
-                      desc: t("transparency_desc"),
-                    },
-                    {
-                      icon: (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                          <path d="M12 8v4l3 3"></path>
-                        </svg>
-                      ),
-                      title: t("sustainability"),
-                      desc: t("sustainability_desc"),
-                    },
-                    {
-                      icon: (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                      ),
-                      title: t("community"),
-                      desc: t("community_desc"),
+                      /* Corregido a 100M */
                     },
                   ].map((item, i) => (
                     <div
                       key={i}
-                      className="bg-gradient-to-br from-black/80 to-black/60 p-6 rounded-2xl border border-tribo-green-DEFAULT/40 transition-all duration-300 hover:border-tribo-green-DEFAULT hover:shadow-[0_0_20px_rgba(78,189,10,0.3)] transform hover:-translate-y-2"
+                      className="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700"
                     >
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-tribo-green-DEFAULT/70 flex items-center justify-center mb-4 text-black shadow-lg shadow-tribo-green-DEFAULT/30">
-                        {item.icon}
-                      </div>
-                      <h3 className="text-2xl font-bold text-white mb-3">{item.title}</h3>
-                      <p className="text-gray-300 text-lg">{item.desc}</p>
+                      <span className="text-white font-medium">{item.label}</span>
+                      <span className="text-tribo-green-DEFAULT font-semibold">{item.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Ilustración de cohete - Bebé TRIBO - Mejorada */}
-        <div className="flex justify-center my-24 relative">
-          {/* Efecto de resplandor detrás del cohete */}
-          <div className="absolute inset-0 bg-gradient-to-t from-tribo-green-DEFAULT/30 to-transparent blur-2xl"></div>
-
-          {/* Estrellas animadas alrededor */}
-          <div className="absolute top-0 left-1/4 w-4 h-4 bg-yellow-300 rounded-full animate-ping opacity-70"></div>
-          <div
-            className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-yellow-300 rounded-full animate-ping opacity-70"
-            style={{ animationDelay: "0.5s" }}
-          ></div>
-          <div
-            className="absolute top-1/3 right-1/3 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-70"
-            style={{ animationDelay: "1s" }}
-          ></div>
-          <div
-            className="absolute bottom-0 left-1/3 w-3 h-3 bg-yellow-300 rounded-full animate-ping opacity-70"
-            style={{ animationDelay: "1.5s" }}
-          ></div>
-
-          {/* Rastro de cohete */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-40 bg-gradient-to-t from-orange-500/50 via-yellow-400/30 to-transparent blur-xl"></div>
-
-          <div className="w-64 h-64 relative animate-bounce-slow">
-            <Image
-              src="/BEBE TRIBO EN COHETE DESPEGUE.png"
-              alt={t("baby_tribo_rocket")}
-              width={250}
-              height={250}
-              className="drop-shadow-[0_0_25px_rgba(255,165,0,0.8)] relative z-10"
-            />
-          </div>
-        </div>
-
-        {/* ¿Qué es CDT? - Completamente rediseñada */}
-        <div ref={(ref) => registerSectionRef("cdt", ref)} id="cdt" className="scroll-mt-16 mb-24">
-          <div className="relative">
-            {/* Fondo con efecto de resplandor */}
-            <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-3xl blur-xl -z-10"></div>
-
-            <div className="bg-black/60 backdrop-blur-md rounded-3xl border border-tribo-green-DEFAULT/30 overflow-hidden transform transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)]">
-              {/* Cabecera de sección con diseño mejorado */}
-              <div className="bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent p-6 border-b border-tribo-green-DEFAULT/30">
-                <h2 className="text-3xl md:text-4xl font-bold text-tribo-green-DEFAULT flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-3"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 6v6l4 2"></path>
-                  </svg>
-                  {t("what_is_cdt")}
-                </h2>
-              </div>
-
-              {/* Contenido de la sección */}
-              <div className="p-8">
-                <div className="flex flex-col md:flex-row gap-10 items-center">
-                  <div className="flex-1">
-                    <p className="text-white whitespace-pre-line leading-relaxed text-xl mb-8">
-                      {t("cdt_description")}
-                    </p>
-
-                    {/* Características del token con mejor diseño */}
-                    <div className="space-y-4">
-                      {[
-                        { label: t("staking"), value: "0.1% " + t("daily") + " (36.5% APY)" },
-                        { label: t("blockchain"), value: "World Chain" },
-                        { label: t("supply"), value: "100,000,000 CDT" },
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex justify-between items-center bg-gradient-to-r from-black/80 to-black/60 p-5 rounded-xl border border-tribo-green-DEFAULT/30 hover:border-tribo-green-DEFAULT/70 transition-all duration-300 transform hover:translate-x-1"
-                        >
-                          <span className="text-white text-lg font-medium">{item.label}</span>
-                          <span className="text-tribo-green-DEFAULT text-xl font-bold bg-black/50 px-4 py-2 rounded-full">
-                            {item.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Token CDT con efectos mejorados */}
-                  <div className="flex-shrink-0 relative">
-                    {/* Efectos de luz alrededor del token */}
-                    <div className="absolute -inset-8 bg-gradient-to-r from-tribo-green-DEFAULT/40 to-transparent rounded-full blur-2xl animate-pulse"></div>
-                    <div className="absolute -inset-4 bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rotate-45 blur-xl"></div>
-
-                    {/* Token con rotación */}
-                    <div className="relative w-64 h-64 flex items-center justify-center">
-                      <div className="absolute inset-0 rounded-full border-4 border-tribo-green-DEFAULT/20 animate-spin-slow"></div>
-                      <div className="absolute inset-4 rounded-full border-2 border-tribo-green-DEFAULT/30 animate-spin-reverse"></div>
-                      <Image
-                        src="/TOKEN CDT.png"
-                        alt="CDT Token"
-                        width={220}
-                        height={220}
-                        className="rounded-full animate-float relative z-10 drop-shadow-[0_0_30px_rgba(78,189,10,0.8)]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Roadmap - Completamente rediseñado */}
-        <div ref={(ref) => registerSectionRef("roadmap", ref)} id="roadmap" className="scroll-mt-16 mb-24">
-          <div className="relative">
-            {/* Fondo con efecto de resplandor */}
-            <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-3xl blur-xl -z-10"></div>
-
-            <div className="bg-black/60 backdrop-blur-md rounded-3xl border border-tribo-green-DEFAULT/30 overflow-hidden transform transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)]">
-              {/* Cabecera de sección con diseño mejorado */}
-              <div className="bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent p-6 border-b border-tribo-green-DEFAULT/30">
-                <h2 className="text-3xl md:text-4xl font-bold text-tribo-green-DEFAULT flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-3"
-                  >
-                    <path d="M12 2v4"></path>
-                    <path d="M12 18v4"></path>
-                    <path d="M4.93 4.93l2.83 2.83"></path>
-                    <path d="M16.24 16.24l2.83 2.83"></path>
-                    <path d="M2 12h4"></path>
-                    <path d="M18 12h4"></path>
-                    <path d="M4.93 19.07l2.83-2.83"></path>
-                    <path d="M16.24 7.76l2.83-2.83"></path>
-                  </svg>
-                  {t("our_roadmap")}
-                </h2>
-              </div>
-
-              {/* Contenido de la sección */}
-              <div className="p-8">
-                <p className="text-white mb-10 text-xl">{t("roadmap_intro")}</p>
-
-                {/* Timeline mejorado */}
-                <div className="relative mb-16">
-                  <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-2 bg-gradient-to-b from-tribo-green-DEFAULT via-tribo-green-DEFAULT/70 to-tribo-green-DEFAULT/30 rounded-full"></div>
-                  <RoadmapTimeline />
-                </div>
-
-                {/* Nuevo apartado para roadmaps completos - Mejorado */}
-                <div className="p-8 bg-gradient-to-br from-black/80 to-black/60 rounded-2xl border border-tribo-green-DEFAULT/50 shadow-lg transform transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)] hover:border-tribo-green-DEFAULT">
-                  <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="flex-1">
-                      <h3 className="text-3xl font-bold text-tribo-green-DEFAULT mb-4">{t("view_full_roadmap")}</h3>
-                      <p className="text-white mb-6 text-lg">{t("full_roadmap_description")}</p>
-                    </div>
-
-                    <a
-                      href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribocdt.com"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-center gap-3 bg-gradient-to-r from-tribo-green-DEFAULT to-green-600 hover:from-tribo-green-DEFAULT hover:to-green-600 text-black font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/50 text-xl"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="transition-transform duration-300 group-hover:rotate-12"
-                      >
-                        <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
-                        <path d="M12 8v8" />
-                        <path d="M8 12h8" />
-                      </svg>
-                      <span>tribocdt.com</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="transition-transform duration-300 group-hover:translate-x-1"
-                      >
-                        <path d="M7 7h10v10" />
-                        <path d="M7 17 17 7" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Espacio para el futuro mini mapa - Completamente rediseñado */}
-        <div className="mb-24 relative">
-          {/* Fondo con efecto de resplandor */}
-          <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-3xl blur-xl -z-10"></div>
-
-          <div className="h-80 bg-black/60 backdrop-blur-md rounded-3xl border border-tribo-green-DEFAULT/30 flex items-center justify-center relative overflow-hidden group transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)] hover:border-tribo-green-DEFAULT">
-            {/* Efecto de mapa de fondo */}
-            <div className="absolute inset-0 opacity-40 bg-[url('/abstract-digital-pattern.png')] bg-cover bg-center"></div>
-
-            {/* Líneas de conexión animadas */}
-            <div className="absolute inset-0">
-              <svg width="100%" height="100%" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-                <line
-                  x1="200"
-                  y1="100"
-                  x2="400"
-                  y2="200"
-                  stroke="#4ebd0a"
-                  strokeWidth="1"
-                  strokeDasharray="5,5"
-                  className="animate-pulse"
+              <div className="flex-shrink-0 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-tribo-green-DEFAULT/40 to-transparent rounded-full blur-xl animate-pulse"></div>
+                <Image
+                  src="/TOKEN CDT.png"
+                  alt="CDT Token"
+                  width={180}
+                  height={180}
+                  className="rounded-full animate-float relative z-10"
                 />
-                <line
-                  x1="400"
-                  y1="200"
-                  x2="600"
-                  y2="150"
-                  stroke="#4ebd0a"
-                  strokeWidth="1"
-                  strokeDasharray="5,5"
-                  className="animate-pulse"
-                  style={{ animationDelay: "0.5s" }}
-                />
-                <line
-                  x1="400"
-                  y1="200"
-                  x2="300"
-                  y2="300"
-                  stroke="#4ebd0a"
-                  strokeWidth="1"
-                  strokeDasharray="5,5"
-                  className="animate-pulse"
-                  style={{ animationDelay: "1s" }}
-                />
-                <line
-                  x1="400"
-                  y1="200"
-                  x2="500"
-                  y2="300"
-                  stroke="#4ebd0a"
-                  strokeWidth="1"
-                  strokeDasharray="5,5"
-                  className="animate-pulse"
-                  style={{ animationDelay: "1.5s" }}
-                />
-              </svg>
-            </div>
-
-            {/* Puntos de mapa animados */}
-            <div className="absolute w-4 h-4 bg-tribo-green-DEFAULT rounded-full top-1/4 left-1/4 animate-ping"></div>
-            <div
-              className="absolute w-4 h-4 bg-tribo-green-DEFAULT rounded-full top-1/3 right-1/3 animate-ping"
-              style={{ animationDelay: "0.7s" }}
-            ></div>
-            <div
-              className="absolute w-4 h-4 bg-tribo-green-DEFAULT rounded-full bottom-1/4 right-1/4 animate-ping"
-              style={{ animationDelay: "1.3s" }}
-            ></div>
-            <div
-              className="absolute w-4 h-4 bg-tribo-green-DEFAULT rounded-full bottom-1/3 left-1/3 animate-ping"
-              style={{ animationDelay: "2s" }}
-            ></div>
-
-            <div className="relative z-10 text-center p-6 bg-black/70 backdrop-blur-md rounded-2xl border border-tribo-green-DEFAULT/50 transform transition-all duration-500 group-hover:scale-110">
-              <h3 className="text-2xl font-bold text-tribo-green-DEFAULT mb-3">{t("countries_map_coming")}</h3>
-              <p className="text-white text-lg mb-4">Explora la comunidad global de TRIBO</p>
-              <div className="inline-block px-6 py-3 rounded-full bg-tribo-green-DEFAULT text-black text-lg font-bold opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                {t("coming_soon")}
               </div>
             </div>
-          </div>
+          </ProjectSection>
         </div>
 
-        {/* Comunidad TRIBO - Completamente rediseñada */}
-        <div ref={(ref) => registerSectionRef("community", ref)} id="community" className="scroll-mt-16 mb-24">
-          <div className="relative">
-            {/* Fondo con efecto de resplandor */}
-            <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-3xl blur-xl -z-10"></div>
+        {/* Roadmap - Mejorado */}
+        <div ref={(ref) => registerSectionRef("roadmap", ref)} id="roadmap" className="scroll-mt-16">
+          <ProjectSection
+            title={t("our_roadmap")}
+            className="transform transition-all duration-500 hover:translate-y-[-5px]"
+            titleClassName="text-tribo-green-DEFAULT text-2xl md:text-3xl"
+          >
+            <p className="text-white mb-6 text-lg">{t("roadmap_intro")}</p>
 
-            <div className="bg-black/60 backdrop-blur-md rounded-3xl border border-tribo-green-DEFAULT/30 overflow-hidden transform transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)]">
-              {/* Cabecera de sección con diseño mejorado */}
-              <div className="bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent p-6 border-b border-tribo-green-DEFAULT/30">
-                <h2 className="text-3xl md:text-4xl font-bold text-tribo-green-DEFAULT flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-3"
-                  >
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  {t("join_tribe")}
-                </h2>
-              </div>
-
-              {/* Contenido de la sección */}
-              <div className="p-8">
-                <p className="text-white mb-10 text-xl">{t("community_text")}</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                  {/* Telegram */}
-                  <a
-                    href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/tribocdt"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-black/80 to-black/60 p-8 rounded-2xl transition-all duration-500 transform hover:-translate-y-3 hover:shadow-xl hover:shadow-tribo-green-DEFAULT/30 border border-tribo-green-DEFAULT/40 hover:border-tribo-green-DEFAULT"
-                  >
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-tribo-green-DEFAULT/70 flex items-center justify-center text-black shadow-lg shadow-tribo-green-DEFAULT/30 group-hover:scale-110 transition-transform duration-300">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m22 2-7 20-4-9-9-4Z" />
-                        <path d="M22 2 11 13" />
-                      </svg>
-                    </div>
-                    <span className="text-2xl font-bold text-white">Telegram</span>
-                    <span className="text-gray-300 text-center text-lg">{t("telegram_desc")}</span>
-                    <div className="mt-4 px-6 py-3 rounded-full bg-tribo-green-DEFAULT text-black text-lg font-bold transform transition-all duration-300 group-hover:scale-110">
-                      {t("join_now")}
-                    </div>
-                  </a>
-
-                  {/* Twitter */}
-                  <a
-                    href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/tribocdt"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-black/80 to-black/60 p-8 rounded-2xl transition-all duration-500 transform hover:-translate-y-3 hover:shadow-xl hover:shadow-tribo-green-DEFAULT/30 border border-tribo-green-DEFAULT/40 hover:border-tribo-green-DEFAULT"
-                  >
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-tribo-green-DEFAULT/70 flex items-center justify-center text-black shadow-lg shadow-tribo-green-DEFAULT/30 group-hover:scale-110 transition-transform duration-300">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-                      </svg>
-                    </div>
-                    <span className="text-2xl font-bold text-white">Twitter</span>
-                    <span className="text-gray-300 text-center text-lg">{t("twitter_desc")}</span>
-                    <div className="mt-4 px-6 py-3 rounded-full bg-tribo-green-DEFAULT text-black text-lg font-bold transform transition-all duration-300 group-hover:scale-110">
-                      {t("follow_now")}
-                    </div>
-                  </a>
-
-                  {/* Discord */}
-                  <a
-                    href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/tribocdt"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-black/80 to-black/60 p-8 rounded-2xl transition-all duration-500 transform hover:-translate-y-3 hover:shadow-xl hover:shadow-tribo-green-DEFAULT/30 border border-tribo-green-DEFAULT/40 hover:border-tribo-green-DEFAULT"
-                  >
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-tribo-green-DEFAULT/70 flex items-center justify-center text-black shadow-lg shadow-tribo-green-DEFAULT/30 group-hover:scale-110 transition-transform duration-300">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="9" cy="12" r="1" />
-                        <circle cx="15" cy="12" r="1" />
-                        <path d="M7.5 7.5c3.5-1 5.5-1 9 0" />
-                        <path d="M7.5 16.5c3.5 1 5.5 1 9 0" />
-                        <path d="M15.5 17c0 1 1.5 3 2 3 1.5 0 2.833-1.667 3.5-3 .667-1.667.5-5.833-1.5-11.5-1.457-1.015-3-1.34-4.5-1.5l-1 2.5" />
-                        <path d="M8.5 17c0 1-1.356 3-1.832 3-1.429 0-2.698-1.667-3.333-3-.635-1.667-.48-5.833 1.428-11.5C6.151 4.485 7.545 4.16 9 4l1 2.5" />
-                      </svg>
-                    </div>
-                    <span className="text-2xl font-bold text-white">Discord</span>
-                    <span className="text-gray-300 text-center text-lg">{t("discord_desc")}</span>
-                    <div className="mt-4 px-6 py-3 rounded-full bg-tribo-green-DEFAULT text-black text-lg font-bold transform transition-all duration-300 group-hover:scale-110">
-                      {t("join_now")}
-                    </div>
-                  </a>
-                </div>
-
-                {/* Contador de miembros mejorado */}
-                <div className="bg-gradient-to-br from-black/80 to-black/60 rounded-2xl p-8 border border-tribo-green-DEFAULT/40 transform transition-all duration-500 hover:border-tribo-green-DEFAULT hover:shadow-[0_0_20px_rgba(78,189,10,0.3)]">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div className="text-center md:text-left">
-                      <h4 className="text-2xl font-bold text-tribo-green-DEFAULT mb-3">{t("growing_community")}</h4>
-                      <p className="text-white text-lg">{t("join_thousands")}</p>
-                    </div>
-                    <div className="flex gap-8">
-                      <div className="text-center">
-                        <div className="text-4xl font-bold text-tribo-green-DEFAULT mb-2 flex items-center justify-center">
-                          <span className="animate-pulse">10K+</span>
-                        </div>
-                        <p className="text-white text-lg">{t("members")}</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-4xl font-bold text-tribo-green-DEFAULT mb-2 flex items-center justify-center">
-                          <span className="animate-pulse">50+</span>
-                        </div>
-                        <p className="text-white text-lg">{t("countries")}</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-4xl font-bold text-tribo-green-DEFAULT mb-2 flex items-center justify-center">
-                          <span className="animate-pulse">24/7</span>
-                        </div>
-                        <p className="text-white text-lg">{t("support")}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* Timeline mejorado */}
+            <div className="relative">
+              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-tribo-green-DEFAULT to-gray-800"></div>
+              <RoadmapTimeline />
             </div>
-          </div>
-        </div>
 
-        {/* Próximos Pasos - Completamente rediseñado */}
-        <div ref={(ref) => registerSectionRef("next_steps", ref)} id="next_steps" className="scroll-mt-16 mb-24">
-          <div className="relative">
-            {/* Fondo con efecto de resplandor */}
-            <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent rounded-3xl blur-xl -z-10"></div>
-
-            <div className="bg-black/60 backdrop-blur-md rounded-3xl border border-tribo-green-DEFAULT/30 overflow-hidden transform transition-all duration-500 hover:shadow-[0_0_30px_rgba(78,189,10,0.3)]">
-              {/* Cabecera de sección con diseño mejorado */}
-              <div className="bg-gradient-to-r from-tribo-green-DEFAULT/20 to-transparent p-6 border-b border-tribo-green-DEFAULT/30">
-                <h2 className="text-3xl md:text-4xl font-bold text-tribo-green-DEFAULT flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-3"
-                  >
-                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                    <path d="M5 3v4" />
-                    <path d="M19 17v4" />
-                    <path d="M3 5h4" />
-                    <path d="M17 19h4" />
-                  </svg>
-                  {t("next_steps")}
-                </h2>
-              </div>
-
-              {/* Contenido de la sección */}
-              <div className="p-8">
-                <div className="flex flex-col md:flex-row gap-10 items-center">
-                  <div className="flex-1">
-                    <p className="text-white leading-relaxed text-xl mb-8">{t("contract_upgrade")}</p>
-
-                    {/* Roadmap de próximos pasos mejorado */}
-                    <div className="space-y-6">
-                      {[
-                        {
-                          title: t("q2_2025"),
-                          desc: t("contract_redeploy"),
-                          status: t("in_progress"),
-                        },
-                        {
-                          title: t("q3_2025"),
-                          desc: t("governance_platform"),
-                          status: t("planned"),
-                        },
-                        {
-                          title: t("q4_2025"),
-                          desc: t("market_expansion"),
-                          status: t("planned"),
-                        },
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="bg-gradient-to-r from-black/80 to-black/60 p-6 rounded-xl border border-tribo-green-DEFAULT/40 flex items-center transform transition-all duration-300 hover:translate-x-2 hover:border-tribo-green-DEFAULT hover:shadow-[0_0_15px_rgba(78,189,10,0.2)]"
-                        >
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-tribo-green-DEFAULT/70 flex items-center justify-center text-black mr-6 flex-shrink-0 shadow-lg shadow-tribo-green-DEFAULT/20">
-                            <span className="text-2xl font-bold">{i + 1}</span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-xl font-bold text-white mb-2">{item.title}</h4>
-                            <p className="text-gray-300 text-lg">{item.desc}</p>
-                          </div>
-                          <div
-                            className={`px-4 py-2 rounded-full text-base font-bold ${
-                              item.status === t("in_progress")
-                                ? "bg-tribo-green-DEFAULT text-black"
-                                : "bg-gray-800 text-white border border-tribo-green-DEFAULT/30"
-                            }`}
-                          >
-                            {item.status}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Icono con efectos mejorados */}
-                  <div className="flex-shrink-0">
-                    <div className="relative">
-                      {/* Efectos de luz */}
-                      <div className="absolute -inset-8 bg-gradient-to-r from-tribo-green-DEFAULT/40 to-transparent rounded-full blur-2xl animate-pulse"></div>
-
-                      <div className="w-40 h-40 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-green-600 flex items-center justify-center shadow-lg shadow-tribo-green-DEFAULT/30 transform transition-all duration-500 hover:rotate-12 relative">
-                        {/* Anillos giratorios */}
-                        <div className="absolute inset-0 rounded-full border-4 border-white/10 animate-spin-slow"></div>
-                        <div className="absolute inset-4 rounded-full border-2 border-white/20 animate-spin-reverse"></div>
-
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="64"
-                          height="64"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="white"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="relative z-10"
-                        >
-                          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                          <path d="M5 3v4" />
-                          <path d="M19 17v4" />
-                          <path d="M3 5h4" />
-                          <path d="M17 19h4" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Llamada a la acción - Completamente rediseñada */}
-        <div className="mt-24 relative">
-          {/* Efectos de fondo */}
-          <div className="absolute -inset-10 bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rounded-3xl blur-2xl -z-10"></div>
-          <div className="absolute -inset-20 bg-gradient-to-b from-transparent via-tribo-green-DEFAULT/10 to-transparent rounded-full blur-3xl -z-10 animate-pulse"></div>
-
-          <div className="relative z-10 bg-gradient-to-br from-black/80 to-black/60 backdrop-blur-lg rounded-3xl p-10 border border-tribo-green-DEFAULT/50 shadow-2xl overflow-hidden">
-            {/* Elementos decorativos */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tribo-green-DEFAULT via-tribo-green-DEFAULT/50 to-transparent"></div>
-            <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-tribo-green-DEFAULT via-tribo-green-DEFAULT/50 to-transparent"></div>
-            <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full border border-tribo-green-DEFAULT/20 animate-spin-slow"></div>
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full border border-tribo-green-DEFAULT/20 animate-spin-reverse"></div>
-
-            <div className="flex flex-col items-center text-center relative z-10">
-              <h2 className="text-4xl font-bold mb-6 text-tribo-green-DEFAULT">{t("ready_to_join")}</h2>
-              <p className="text-white mb-10 max-w-2xl text-xl">{t("join_earn_daily")}</p>
-
+            {/* Nuevo apartado para roadmaps completos - Mejorado */}
+            <div className="mt-10 p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-gray-700 shadow-lg transform transition-all duration-500 hover:shadow-[0_0_25px_rgba(78,189,10,0.2)] hover:border-tribo-green-DEFAULT/30">
+              <h3 className="text-2xl font-bold text-tribo-green-DEFAULT mb-4">{t("view_full_roadmap")}</h3>
+              <p className="text-white mb-6 text-lg">{t("full_roadmap_description")}</p>
               <a
-                href={swapLink}
+                href={process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribocdt.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative flex items-center justify-center gap-3 bg-gradient-to-r from-tribo-green-DEFAULT to-green-600 hover:from-green-600 hover:to-tribo-green-DEFAULT text-black font-bold py-5 px-10 rounded-xl text-center text-2xl transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-tribo-green-DEFAULT/40"
+                className="group flex items-center justify-center gap-3 bg-tribo-green-DEFAULT hover:bg-tribo-green-hover text-black font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
               >
-                {/* Efecto de resplandor */}
-                <div className="absolute inset-0 rounded-xl bg-white/20 blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:rotate-12 relative z-10"
-                >
-                  <path d="M16 3h5v5"></path>
-                  <path d="M4 20 21 3"></path>
-                  <path d="M21 16v5h-5"></path>
-                  <path d="M15 15 3 3"></path>
-                </svg>
-                <span className="relative z-10">{t("swap_wld_cdt")}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -943,14 +334,313 @@ export default function ProyectoTriboPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="transition-transform duration-300 group-hover:translate-x-2 relative z-10"
+                  className="transition-transform duration-300 group-hover:rotate-12"
+                >
+                  <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                  <path d="M12 8v8" />
+                  <path d="M8 12h8" />
+                </svg>
+                <span className="text-xl">tribocdt.com</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                >
+                  <path d="M7 7h10v10" />
+                  <path d="M7 17 17 7" />
+                </svg>
+              </a>
+            </div>
+          </ProjectSection>
+        </div>
+
+        {/* Espacio para el futuro mini mapa - Mejorado */}
+        <div className="flex justify-center my-12">
+          <div className="w-full h-64 bg-gray-800 rounded-xl border border-gray-700 flex items-center justify-center relative overflow-hidden group transition-all duration-300 hover:border-tribo-green-DEFAULT/30 hover:shadow-[0_0_25px_rgba(78,189,10,0.1)]">
+            {/* Efecto de mapa de fondo */}
+            <div className="absolute inset-0 opacity-30 bg-[url('/abstract-digital-pattern.png')] bg-cover bg-center"></div>
+
+            {/* Puntos de mapa animados */}
+            <div className="absolute w-3 h-3 bg-tribo-green-DEFAULT rounded-full top-1/4 left-1/4 animate-ping"></div>
+            <div
+              className="absolute w-3 h-3 bg-tribo-green-DEFAULT rounded-full top-1/3 right-1/3 animate-ping"
+              style={{ animationDelay: "0.7s" }}
+            ></div>
+            <div
+              className="absolute w-3 h-3 bg-tribo-green-DEFAULT rounded-full bottom-1/4 right-1/4 animate-ping"
+              style={{ animationDelay: "1.3s" }}
+            ></div>
+
+            <div className="relative z-10 text-center p-6">
+              <p className="text-white text-lg mb-2 font-medium">{t("countries_map_coming")}</p>
+              <p className="text-tribo-green-DEFAULT text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {t("coming_soon")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Comunidad TRIBO - Mejorada */}
+        <div ref={(ref) => registerSectionRef("community", ref)} id="community" className="scroll-mt-16">
+          <ProjectSection
+            title={t("join_tribe")}
+            className="transform transition-all duration-500 hover:translate-y-[-5px]"
+            titleClassName="text-tribo-green-DEFAULT text-2xl md:text-3xl"
+          >
+            <p className="text-white mb-8 text-lg">{t("community_text")}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Telegram */}
+              <a
+                href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/tribocdt"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/20 border border-gray-700 hover:border-tribo-green-DEFAULT/30"
+              >
+                <div className="w-16 h-16 rounded-full bg-[#0088cc]/20 flex items-center justify-center text-[#0088cc] group-hover:scale-110 transition-transform duration-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m22 2-7 20-4-9-9-4Z" />
+                    <path d="M22 2 11 13" />
+                  </svg>
+                </div>
+                <span className="text-xl font-medium text-white">Telegram</span>
+                <span className="text-sm text-gray-300 text-center">{t("telegram_desc")}</span>
+                <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT text-black text-sm font-medium">
+                  {t("join_now")}
+                </div>
+              </a>
+
+              {/* Twitter */}
+              <a
+                href={process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/tribocdt"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/20 border border-gray-700 hover:border-tribo-green-DEFAULT/30"
+              >
+                <div className="w-16 h-16 rounded-full bg-[#1DA1F2]/20 flex items-center justify-center text-[#1DA1F2] group-hover:scale-110 transition-transform duration-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+                  </svg>
+                </div>
+                <span className="text-xl font-medium text-white">Twitter</span>
+                <span className="text-sm text-gray-300 text-center">{t("twitter_desc")}</span>
+                <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT text-black text-sm font-medium">
+                  {t("follow_now")}
+                </div>
+              </a>
+
+              {/* Discord */}
+              <a
+                href={process.env.NEXT_PUBLIC_DISCORD_URL || "https://discord.gg/tribocdt"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-tribo-green-DEFAULT/20 border border-gray-700 hover:border-tribo-green-DEFAULT/30"
+              >
+                <div className="w-16 h-16 rounded-full bg-[#5865F2]/20 flex items-center justify-center text-[#5865F2] group-hover:scale-110 transition-transform duration-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="9" cy="12" r="1" />
+                    <circle cx="15" cy="12" r="1" />
+                    <path d="M7.5 7.5c3.5-1 5.5-1 9 0" />
+                    <path d="M7.5 16.5c3.5 1 5.5 1 9 0" />
+                    <path d="M15.5 17c0 1 1.5 3 2 3 1.5 0 2.833-1.667 3.5-3 .667-1.667.5-5.833-1.5-11.5-1.457-1.015-3-1.34-4.5-1.5l-1 2.5" />
+                    <path d="M8.5 17c0 1-1.356 3-1.832 3-1.429 0-2.698-1.667-3.333-3-.635-1.667-.48-5.833 1.428-11.5C6.151 4.485 7.545 4.16 9 4l1 2.5" />
+                  </svg>
+                </div>
+                <span className="text-xl font-medium text-white">Discord</span>
+                <span className="text-sm text-gray-300 text-center">{t("discord_desc")}</span>
+                <div className="mt-2 px-4 py-2 rounded-full bg-tribo-green-DEFAULT text-black text-sm font-medium">
+                  {t("join_now")}
+                </div>
+              </a>
+            </div>
+
+            {/* Contador de miembros mejorado */}
+            <div className="mt-10 bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-center md:text-left">
+                  <h4 className="text-xl font-semibold text-white mb-2">{t("growing_community")}</h4>
+                  <p className="text-gray-300">{t("join_thousands")}</p>
+                </div>
+                <div className="flex gap-6">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-tribo-green-DEFAULT">10K+</p>
+                    <p className="text-sm text-white">{t("members")}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-tribo-green-DEFAULT">50+</p>
+                    <p className="text-sm text-white">{t("countries")}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-tribo-green-DEFAULT">24/7</p>
+                    <p className="text-sm text-white">{t("support")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ProjectSection>
+        </div>
+
+        {/* Próximos Pasos - Mejorado */}
+        <div ref={(ref) => registerSectionRef("next_steps", ref)} id="next_steps" className="scroll-mt-16">
+          <ProjectSection
+            title={t("next_steps")}
+            className="transform transition-all duration-500 hover:translate-y-[-5px]"
+            titleClassName="text-tribo-green-DEFAULT text-2xl md:text-3xl"
+          >
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="flex-1">
+                <p className="text-white leading-relaxed text-lg mb-6">{t("contract_upgrade")}</p>
+
+                {/* Roadmap de próximos pasos mejorado */}
+                <div className="space-y-4">
+                  {[
+                    {
+                      title: t("q2_2025"),
+                      desc: t("contract_redeploy"),
+                      status: t("in_progress"),
+                    },
+                    {
+                      title: t("q3_2025"),
+                      desc: t("governance_platform"),
+                      status: t("planned"),
+                    },
+                    {
+                      title: t("q4_2025"),
+                      desc: t("market_expansion"),
+                      status: t("planned"),
+                    },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center">
+                      <div className="w-12 h-12 rounded-full bg-tribo-green-DEFAULT/30 flex items-center justify-center text-tribo-green-DEFAULT mr-4 flex-shrink-0">
+                        <span className="font-bold">{i + 1}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-white font-medium">{item.title}</h4>
+                        <p className="text-gray-300 text-sm">{item.desc}</p>
+                      </div>
+                      <div
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          item.status === t("in_progress")
+                            ? "bg-tribo-green-DEFAULT text-black"
+                            : "bg-gray-700 text-white"
+                        }`}
+                      >
+                        {item.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-tribo-green-DEFAULT to-green-600 flex items-center justify-center shadow-lg shadow-tribo-green-DEFAULT/20 transform transition-all duration-500 hover:rotate-12">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    <path d="M5 3v4" />
+                    <path d="M19 17v4" />
+                    <path d="M3 5h4" />
+                    <path d="M17 19h4" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </ProjectSection>
+        </div>
+
+        {/* Llamada a la acción - Mejorada */}
+        <div className="mt-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-tribo-green-DEFAULT/30 to-transparent rounded-xl blur-xl"></div>
+          <div className="relative z-10 bg-gradient-to-br from-gray-900 to-black rounded-xl p-8 border border-tribo-green-DEFAULT/30 shadow-lg">
+            <div className="flex flex-col items-center text-center">
+              <h2 className="text-3xl font-bold mb-4 text-tribo-green-DEFAULT">{t("ready_to_join")}</h2>
+              <p className="text-white mb-8 max-w-2xl text-lg">{t("join_earn_daily")}</p>
+              <a
+                href={swapLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 bg-tribo-green-DEFAULT hover:bg-tribo-green-hover text-black font-bold py-4 px-8 rounded-xl text-center text-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-tribo-green-DEFAULT/30"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-300 group-hover:rotate-12"
+                >
+                  <path d="M16 3h5v5"></path>
+                  <path d="M4 20 21 3"></path>
+                  <path d="M21 16v5h-5"></path>
+                  <path d="M15 15 3 3"></path>
+                </svg>
+                {t("swap_wld_cdt")}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-300 group-hover:translate-x-1"
                 >
                   <path d="M5 12h14"></path>
                   <path d="m12 5 7 7-7 7"></path>
                 </svg>
               </a>
-
-              <p className="text-center text-gray-300 mt-6 text-lg">{t("invest_future")}</p>
+              <p className="text-center text-gray-300 mt-4 text-sm">{t("invest_future")}</p>
             </div>
           </div>
         </div>
