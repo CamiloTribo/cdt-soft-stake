@@ -18,6 +18,7 @@ import { SocialLinks } from "../../../src/components/dashboard/SocialLinks"
 import { SupportSection } from "../../../src/components/dashboard/SupportSection"
 import { CountryModal } from "../../../src/components/dashboard/CountryModal"
 import { WelcomeGiftModal } from "../../../src/components/dashboard/WelcomeGiftModal"
+import { LevelSection } from "../../../src/components/dashboard/LevelSection"
 
 // Función para obtener la URL de swap
 function getSwapUrl() {
@@ -625,6 +626,9 @@ export default function Dashboard() {
           handleClaimRewardsAction={handleClaimRewards}
           formatDateAction={formatDate}
         />
+
+        {/* Nueva sección de nivel */}
+        <LevelSection stakedAmount={stakedAmount} />
 
         {/* Enlace a la sección de niveles */}
         <div className="mb-6">

@@ -342,3 +342,12 @@ export type TranslationKey =
   | "levels"
   | "your_country"
   | "países"
+  // Nuevas claves para niveles
+  | "your_level"
+  | "next_level"
+  | "progress_to_next"
+  | "max_level_reached"
+  | "level_benefits"
+  | "current_apy"
+  | "need"
+  | "more_cdt"

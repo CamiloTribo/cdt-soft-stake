@@ -1,5 +1,7 @@
 import { supabase, type StakingInfo } from "./supabase"
 import { getCDTBalance, sendRewards } from "./blockchain"
+import { getDailyRateForAmount } from "./levels"
+import type { TranslationKey } from "../types/translations"
 
 // Función para obtener la información de staking de un usuario
 export async function getStakingInfo(userId: string, walletAddress?: string): Promise<StakingInfo | null> {
@@ -69,8 +71,14 @@ export function calculatePendingRewards(stakingInfo: StakingInfo): number {
   // Si ha pasado menos de 24 horas, no hay recompensas
   if (hoursSinceLastClaim < 24) return 0
 
-  // Si ha pasado más de 24 horas, la recompensa es el 0.1% del balance actual
-  return stakingInfo.staked_amount * 0.001 // 0.1%
+  // Convertir la función t para que acepte string en lugar de TranslationKey
+  const tString = (key: string) => key as TranslationKey
+
+  // Obtener la tasa diaria según el nivel del usuario
+  const dailyRate = getDailyRateForAmount(stakingInfo.staked_amount, tString) / 100
+
+  // Calcular recompensas según la tasa del nivel
+  return stakingInfo.staked_amount * dailyRate
 }
 
 // Función para calcular el tiempo del próximo claim
@@ -97,12 +105,18 @@ export async function claimRewards(
     // Obtener el balance actual para calcular la recompensa exacta
     const currentBalance = await getCDTBalance(userAddress)
 
-    // Calcular recompensas (0.1% del balance actual)
-    const rewardAmount = currentBalance * 0.001
+    // Convertir la función t para que acepte string en lugar de TranslationKey
+    const tString = (key: string) => key as TranslationKey
+
+    // Obtener la tasa diaria según el nivel del usuario
+    const dailyRate = getDailyRateForAmount(currentBalance, tString) / 100
+
+    // Calcular recompensas según la tasa del nivel
+    const rewardAmount = currentBalance * dailyRate
 
     if (rewardAmount <= 0) return { success: false, amount: 0, txHash: null }
 
-    console.log(`Enviando ${rewardAmount} CDT a ${userAddress}`)
+    console.log(`Enviando ${rewardAmount} CDT a ${userAddress} (tasa: ${dailyRate * 100}%)`)
 
     // Enviar recompensas a través de la blockchain
     const sendResult = await sendRewards(userAddress, rewardAmount)
@@ -126,6 +140,23 @@ export async function claimRewards(
     if (error) {
       console.error("Error updating staking info after claim:", error)
       return { success: false, amount: rewardAmount, txHash: sendResult.txHash }
+    }
+
+    // Sincronizar el nivel del usuario
+    try {
+      await fetch("/api/update-level", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: userAddress,
+          staked_amount: currentBalance,
+        }),
+      })
+    } catch (error) {
+      console.error("Error syncing user level:", error)
+      // No interrumpimos el flujo si falla la sincronización del nivel
     }
 
     return { success: true, amount: rewardAmount, txHash: sendResult.txHash }
@@ -179,6 +210,23 @@ export async function updateStakedAmount(userId: string, address: string): Promi
         console.error("Error inserting staking info:", insertError)
         return false
       }
+    }
+
+    // Sincronizar el nivel del usuario
+    try {
+      await fetch("/api/update-level", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: address,
+          staked_amount: balance,
+        }),
+      })
+    } catch (error) {
+      console.error("Error syncing user level:", error)
+      // No interrumpimos el flujo si falla la sincronización del nivel
     }
 
     return true
