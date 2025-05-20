@@ -3,6 +3,31 @@ import { getCDTBalance, sendRewards } from "./blockchain"
 import { getDailyRateForAmount } from "./levels"
 import type { TranslationKey } from "../types/translations"
 
+// Función de utilidad para reintentos
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Intento ${attempt} para ${url}`);
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    } catch (error) {
+      console.warn(`Intento ${attempt} falló:`, error);
+      lastError = error;
+      
+      // Esperar antes de reintentar (backoff exponencial)
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 // Función para obtener la información de staking de un usuario
 export async function getStakingInfo(userId: string, walletAddress?: string): Promise<StakingInfo | null> {
   try {
@@ -144,7 +169,12 @@ export async function claimRewards(
 
     // Sincronizar el nivel del usuario
     try {
-      await fetch("/api/update-level", {
+      // Construir URL absoluta
+      const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://tribo-vault.vercel.app';
+      const updateLevelUrl = `${baseUrl}/api/update-level`;
+      
+      // Usar fetchWithRetry para manejar fallos temporales
+      await fetchWithRetry(updateLevelUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +183,7 @@ export async function claimRewards(
           address: userAddress,
           staked_amount: currentBalance,
         }),
-      })
+      }, 3); // 3 intentos máximo
     } catch (error) {
       console.error("Error syncing user level:", error)
       // No interrumpimos el flujo si falla la sincronización del nivel
@@ -214,7 +244,12 @@ export async function updateStakedAmount(userId: string, address: string): Promi
 
     // Sincronizar el nivel del usuario
     try {
-      await fetch("/api/update-level", {
+      // Construir URL absoluta
+      const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://tribo-vault.vercel.app';
+      const updateLevelUrl = `${baseUrl}/api/update-level`;
+      
+      // Usar fetchWithRetry para manejar fallos temporales
+      await fetchWithRetry(updateLevelUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -223,7 +258,7 @@ export async function updateStakedAmount(userId: string, address: string): Promi
           address: address,
           staked_amount: balance,
         }),
-      })
+      }, 3); // 3 intentos máximo
     } catch (error) {
       console.error("Error syncing user level:", error)
       // No interrumpimos el flujo si falla la sincronización del nivel
