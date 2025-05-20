@@ -294,5 +294,12 @@
   "error_loading_country_rankings": "Error al cargar rankings de países",
   "invalid_response_format": "Formato de respuesta inválido",
   "levels": "Niveles",
-  "países": "Países"
+  "your_level": "Tu Nivel",
+  "next_level": "Siguiente Nivel",
+  "progress_to_next": "Progreso al Siguiente Nivel",
+  "max_level_reached": "Nivel Máximo Alcanzado",
+  "level_benefits": "Beneficios del Nivel",
+  "current_apy": "APY Actual",
+  "need": "Necesitas",
+  "more_cdt": "más CDT para alcanzar el siguiente nivel"
 }

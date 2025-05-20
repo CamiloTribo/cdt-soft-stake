@@ -296,5 +296,12 @@
   "error_loading_country_rankings": "Error loading country rankings",
   "invalid_response_format": "Invalid response format",
   "levels": "Levels",
-  "países": "Countries"
+  "your_level": "Your Level",
+  "next_level": "Next Level",
+  "progress_to_next": "Progress to Next Level",
+  "max_level_reached": "Maximum Level Reached",
+  "level_benefits": "Level Benefits",
+  "current_apy": "Current APY",
+  "need": "You need",
+  "more_cdt": "more CDT to reach next level"
 }
