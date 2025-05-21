@@ -32,6 +32,11 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
   const nextLevel = getNextLevel(stakedAmount, tString)
   const progress = getProgressToNextLevel(stakedAmount, tString)
 
+  // Obtener la clave de traducción para la historia del nivel actual
+  const getLevelLoreKey = (levelId: string): TranslationKey => {
+    return `${levelId}_lore` as TranslationKey;
+  };
+
   const handleImageClick = () => {
     setShowTooltip(!showTooltip)
   }
@@ -116,11 +121,23 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
           </div>
         </div>
 
-        {/* Tooltip informativo */}
+        {/* Tooltip informativo con la historia del nivel */}
         {showTooltip && (
-          <div className="mb-3 p-3 bg-black/60 border border-primary/30 rounded-lg animate-fadeIn">
-            <p className="text-sm text-white mb-1">{t("level_info")}</p>
-            <p className="text-xs text-gray-400">{t("click_for_more_details")}</p>
+          <div className="mb-3 p-4 bg-black/70 border border-primary/30 rounded-lg animate-fadeIn">
+            <div className="flex justify-between items-center mb-2">
+              <h5 className="text-sm font-semibold" style={{ color: currentLevel.id === "millotribers" ? currentLevel.bgColor : currentLevel.color }}>
+                {t("level_info")}
+              </h5>
+              <button 
+                onClick={() => setShowTooltip(false)}
+                className="text-gray-400 hover:text-white text-xs"
+              >
+                {t("close")} &times;
+              </button>
+            </div>
+            <p className="text-sm text-gray-200 mb-2">
+              {t(getLevelLoreKey(currentLevel.id))}
+            </p>
           </div>
         )}
 

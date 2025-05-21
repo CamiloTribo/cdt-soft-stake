@@ -299,3 +299,8 @@ export type TranslationKey =
   | "level_info"
   | "click_for_more_details"
   | "close"
+  // Nuevas claves para historias de niveles
+  | "tribers_lore"
+  | "cryptotribers_lore"
+  | "millotribers_lore"
+  | "legendarytribers_lore"

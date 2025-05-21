@@ -303,6 +303,12 @@
   "need": "Necesitas",
   "more_cdt": "más CDT para alcanzar el siguiente nivel",
   "view_all_levels": "Ver Todos los Niveles",
-  "level_info": "Información del Nivel",
-  "click_for_more_details": "Haz clic para más detalles"
+  "level_info": "Historia del Nivel",
+  "click_for_more_details": "Haz clic para más detalles",
+  "close": "Cerrar",
+  
+  "tribers_lore": "Los Tribers son la base de nuestra comunidad. Estos primeros usuarios creen en el potencial de CDT y están dando sus primeros pasos en el ecosistema TRIBO. Con su staking básico, contribuyen a la estabilidad y crecimiento de la red.",
+  "cryptotribers_lore": "Los Cryptotribers han demostrado su compromiso con la visión de TRIBO. Con una comprensión más profunda del ecosistema, disfrutan de recompensas mejoradas y comienzan a acceder a características exclusivas de la comunidad. Su mayor participación fortalece toda la red.",
+  "millotribers_lore": "Los Millotribers son los pilares de la comunidad TRIBO. Estos miembros dedicados han mostrado un compromiso sustancial y disfrutan de beneficios premium. Su importante participación ayuda a impulsar la innovación y expansión del ecosistema.",
+  "legendarytribers_lore": "Los Legendarytribers representan la élite del ecosistema TRIBO. Estos visionarios han hecho un compromiso extraordinario con el éxito del proyecto. Su masiva participación les proporciona las más altas recompensas y beneficios exclusivos que dan forma al futuro de TRIBO."
 }

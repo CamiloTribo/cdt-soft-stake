@@ -305,7 +305,12 @@
   "need": "You need",
   "more_cdt": "more CDT to reach next level",
   "view_all_levels": "View All Levels",
-  "level_info": "Min. requirement",
+  "level_info": "Level Story",
   "click_for_more_details": "Click for more details",
-  "close": "Close"
+  "close": "Close",
+  
+  "tribers_lore": "Tribers are the foundation of our community. These early adopters believe in the potential of CDT and are taking their first steps in the TRIBO ecosystem. With their basic staking, they contribute to the stability and growth of the network.",
+  "cryptotribers_lore": "Cryptotribers have demonstrated their commitment to the TRIBO vision. With a deeper understanding of the ecosystem, they enjoy enhanced rewards and begin to access exclusive community features. Their increased stake strengthens the entire network.",
+  "millotribers_lore": "Millotribers are the pillars of the TRIBO community. These dedicated members have shown substantial commitment and enjoy premium benefits. Their significant stake helps drive innovation and expansion of the ecosystem.",
+  "legendarytribers_lore": "Legendarytribers represent the elite of the TRIBO ecosystem. These visionaries have made an extraordinary commitment to the project's success. Their massive stake provides them with the highest rewards and exclusive benefits that shape the future of TRIBO."
 }
