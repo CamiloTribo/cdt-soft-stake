@@ -175,9 +175,10 @@
   "country_selection_description": "Select your country to personalize your experience and connect with other users from your region.",
   "update_country": "Update country",
   "country_updated": "Country updated successfully!",
-  "error_updating_country": "Error updating country",
+  "error_updating_country": "Error al updating country",
   "countries_using_app": "Countries using the app",
   "country_optional": "Selecting a country is optional, but it helps us improve your experience",
+  "country_required": "Selecting a country is required to continue",
 
   "welcome_gift_title": "Welcome Gift!",
   "welcome_gift_description": "Thanks for joining Tribo Vault. Claim your 1 CDT welcome gift!",
@@ -192,7 +193,6 @@
   "save_country": "Save country",
 
   "project_tribo": "TRIBO Project",
-  "project_tribo_subtitle": "Revolutionizing digital finance through community",
   "our_mission": "Our Mission",
   "mission_text": "TRIBO was born with the goal of revolutionizing digital finance by empowering individuals through innovative blockchain solutions. We believe in an ecosystem where the community is at the center, promoting financial inclusion and creating opportunities for all.",
   "what_is_cdt": "What is CDT?",
@@ -303,5 +303,7 @@
   "level_benefits": "Level Benefits",
   "current_apy": "Current APY",
   "need": "You need",
-  "more_cdt": "more CDT to reach next level"
+  "more_cdt": "more CDT to reach next level",
+  "info_banner_title": "Important Information",
+  "info_banner_description": "This is a sample info banner. You can customize this message in the translation files."
 }
