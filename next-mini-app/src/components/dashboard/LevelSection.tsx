@@ -24,7 +24,6 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
-  const [nextImageLoaded, setNextImageLoaded] = useState(false)
 
   // Convertir la función t para que acepte string en lugar de TranslationKey
   const tString = (key: string) => t(key as TranslationKey)
@@ -94,7 +93,6 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
                 height={64}
                 className="object-cover"
                 onLoad={() => setImageLoaded(true)}
-                priority
               />
             </div>
             {!imageLoaded && (
@@ -155,16 +153,21 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
 
         {/* Beneficios del nivel mejorados */}
         <div className="mb-4">
-          <p className="text-sm font-medium text-white mb-2">{t("level_benefits")}:</p>
+          <p 
+            className="text-sm font-medium mb-2" 
+            style={{ color: currentLevel.color }}
+          >
+            {t("level_benefits")}:
+          </p>
           <ul className="space-y-1">
             {currentLevel.benefits.map((benefit, index) => (
               <li key={index} className="text-sm text-gray-400 flex items-start">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0"
+                  className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="currentColor"
+                  stroke={currentLevel.color}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -182,26 +185,16 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
           <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors">
             <div className="flex items-center mb-1">
               <div
-                className="w-6 h-6 rounded-full overflow-hidden mr-2 relative"
+                className="w-6 h-6 rounded-full overflow-hidden mr-2"
                 style={{ backgroundColor: `${nextLevel.bgColor}40` }}
               >
-                {/* Imagen del siguiente nivel con estado de carga */}
-                <div className={`absolute inset-0 ${nextImageLoaded ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}>
-                  <Image
-                    src={nextLevel.imageUrl || "/placeholder.svg"}
-                    alt={nextLevel.name}
-                    width={24}
-                    height={24}
-                    className="object-cover"
-                    onLoad={() => setNextImageLoaded(true)}
-                    priority
-                  />
-                </div>
-                {!nextImageLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-primary"></div>
-                  </div>
-                )}
+                <Image
+                  src={nextLevel.imageUrl || "/placeholder.svg"}
+                  alt={nextLevel.name}
+                  width={24}
+                  height={24}
+                  className="object-cover"
+                />
               </div>
               <p className="text-sm font-medium">
                 {t("next_level")}: <span style={{ color: nextLevel.color }}>{nextLevel.name}</span>
