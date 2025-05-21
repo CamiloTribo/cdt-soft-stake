@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-import { cookies, headers } from 'next/headers';
+import { NextResponse } from "next/server";
+import { cookies, headers } from "next/headers";
 import { createClient } from '@supabase/supabase-js';
 
 // Inicializar cliente de Supabase para el servidor
@@ -8,14 +8,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY || ''
 );
 
-// Corregir la definición de tipos para Next.js 15
-type Props = {
-  params: {
-    username: string;
-  };
-};
-
-export default async function CollaboratorRedirect({ params }: Props) {
+export async function GET(
+  request: Request,
+  { params }: { params: { username: string } }
+) {
   const { username } = params;
   
   try {
@@ -72,5 +68,5 @@ export default async function CollaboratorRedirect({ params }: Props) {
   }
   
   // Redirigir a la URL correcta de la mini-app
-  redirect('https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3');
+  return NextResponse.redirect('https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3');
 }
