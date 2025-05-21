@@ -13,22 +13,24 @@ const CDT_ABI = ["function transfer(address to, uint256 amount) returns (bool)"]
 let lastUsedNonce = -1
 let nonceUpdateTime = 0
 
+// Función para convertir valores en notación científica a formato decimal completo
+function formatDecimal(num: number): string {
+  // Convertir a string con 18 decimales fijos (precisión de Ethereum)
+  const str = num.toFixed(18);
+  // Eliminar ceros finales y punto decimal si no hay decimales
+  return str.replace(/\.?0+$/, "");
+}
+
 // Función para normalizar valores decimales extremadamente pequeños
 function normalizeAmount(amount: number): number {
-  // Si el valor es extremadamente pequeño (menor que 1e-15), lo redondeamos a 0
-  if (amount < 1e-15) {
+  // Si el valor es extremadamente pequeño (menor que 1e-18), lo redondeamos a 0
+  if (amount < 1e-18) {
     console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`);
     return 0;
   }
   
-  // Para otros valores pequeños pero manejables, redondeamos a 15 decimales máximo
-  // Esto evita problemas con notación científica en ethers.js
-  if (amount < 0.1) {
-    const rounded = parseFloat(amount.toFixed(15));
-    console.log(`Valor pequeño normalizado: ${amount} -> ${rounded}`);
-    return rounded;
-  }
-  
+  // Para valores pequeños pero significativos, mantenemos el valor original
+  // pero nos aseguramos de que se pueda representar correctamente
   return amount;
 }
 
@@ -211,62 +213,130 @@ export async function sendRewards(
     // Crear los datos de la transacción (llamada a la función transfer del contrato)
     const iface = new ethers.utils.Interface(CDT_ABI)
     
-    // Usar el valor normalizado para la conversión a wei
-    const amountInWei = ethers.utils.parseUnits(normalizedAmount.toString(), 18)
-    const data = iface.encodeFunctionData("transfer", [toAddress, amountInWei])
+    // CAMBIO IMPORTANTE: Convertir a formato decimal completo para evitar notación científica
+    const formattedAmount = formatDecimal(normalizedAmount);
+    console.log(`Valor formateado para ethers: ${formattedAmount}`);
+    
+    try {
+      // Usar el valor formateado para la conversión a wei
+      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18)
+      const data = iface.encodeFunctionData("transfer", [toAddress, amountInWei])
 
-    // Crear la transacción
-    const tx = {
-      to: CDT_CONTRACT_ADDRESS,
-      nonce: ethers.utils.hexlify(nonce),
-      gasLimit: ethers.utils.hexlify(200000), // Gas limit fijo
-      gasPrice: gasPrice,
-      data: data,
-      chainId: 480, // WorldChain chainId
-      value: "0x0",
-    }
-
-    console.log("Transacción a firmar:", tx)
-
-    // Firmar la transacción sin usar un proveedor
-    const signedTx = await wallet.signTransaction(tx)
-    console.log("Transacción firmada:", signedTx)
-
-    // Enviar la transacción usando la API de Alchemy
-    const sendResponse = await axios.post(ALCHEMY_API_URL, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "eth_sendRawTransaction",
-      params: [signedTx],
-    })
-
-    console.log("Respuesta de envío:", JSON.stringify(sendResponse.data, null, 2))
-
-    if (sendResponse.data && sendResponse.data.result) {
-      const txHash = sendResponse.data.result
-      console.log("Transacción enviada. Hash:", txHash)
-      return { success: true, txHash }
-    } else if (sendResponse.data && sendResponse.data.error) {
-      // Si hay un error de nonce, intentar recuperar
-      const errorData = sendResponse.data.error
-      if (errorData && typeof errorData.message === "string" && errorData.message.includes("nonce too low")) {
-        console.log("Error de nonce detectado, actualizando nonce global")
-
-        // Forzar actualización del nonce
-        nonceUpdateTime = 0
-        await getCurrentNonce(wallet.address)
-
-        return {
-          success: false,
-          txHash: null,
-          error: `Error de nonce: ${JSON.stringify(errorData)}. Por favor, intenta nuevamente.`,
-        }
+      // Crear la transacción
+      const tx = {
+        to: CDT_CONTRACT_ADDRESS,
+        nonce: ethers.utils.hexlify(nonce),
+        gasLimit: ethers.utils.hexlify(200000), // Gas limit fijo
+        gasPrice: gasPrice,
+        data: data,
+        chainId: 480, // WorldChain chainId
+        value: "0x0",
       }
 
-      throw new Error(`Error de Alchemy: ${JSON.stringify(errorData)}`)
-    }
+      console.log("Transacción a firmar:", tx)
 
-    throw new Error("Respuesta inesperada de Alchemy")
+      // Firmar la transacción sin usar un proveedor
+      const signedTx = await wallet.signTransaction(tx)
+      console.log("Transacción firmada:", signedTx)
+
+      // Enviar la transacción usando la API de Alchemy
+      const sendResponse = await axios.post(ALCHEMY_API_URL, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_sendRawTransaction",
+        params: [signedTx],
+      })
+
+      console.log("Respuesta de envío:", JSON.stringify(sendResponse.data, null, 2))
+
+      if (sendResponse.data && sendResponse.data.result) {
+        const txHash = sendResponse.data.result
+        console.log("Transacción enviada. Hash:", txHash)
+        return { success: true, txHash }
+      } else if (sendResponse.data && sendResponse.data.error) {
+        // Si hay un error de nonce, intentar recuperar
+        const errorData = sendResponse.data.error
+        if (errorData && typeof errorData.message === "string" && errorData.message.includes("nonce too low")) {
+          console.log("Error de nonce detectado, actualizando nonce global")
+
+          // Forzar actualización del nonce
+          nonceUpdateTime = 0
+          await getCurrentNonce(wallet.address)
+
+          return {
+            success: false,
+            txHash: null,
+            error: `Error de nonce: ${JSON.stringify(errorData)}. Por favor, intenta nuevamente.`,
+          }
+        }
+
+        throw new Error(`Error de Alchemy: ${JSON.stringify(errorData)}`)
+      }
+
+      throw new Error("Respuesta inesperada de Alchemy")
+    } catch (parseError) {
+      // Si hay un error al parsear el valor, intentamos con un enfoque alternativo
+      console.error("Error al parsear el valor, intentando enfoque alternativo:", parseError);
+      
+      // Convertir a un valor más grande y luego ajustar las unidades
+      // Por ejemplo, si tenemos 1e-9, lo multiplicamos por 1e9 para obtener 1
+      // y luego usamos 9 decimales menos (18-9=9)
+      let adjustedDecimals = 18;
+      let adjustedAmount = normalizedAmount;
+      
+      // Si el valor es muy pequeño, ajustamos
+      if (normalizedAmount < 1e-6) {
+        const exponent = Math.floor(Math.log10(normalizedAmount));
+        const adjustment = Math.abs(exponent);
+        adjustedAmount = normalizedAmount * Math.pow(10, adjustment);
+        adjustedDecimals = Math.max(18 - adjustment, 0);
+        console.log(`Ajustando valor: ${normalizedAmount} -> ${adjustedAmount} con ${adjustedDecimals} decimales`);
+      }
+      
+      // Convertir a string con formato fijo
+      const adjustedAmountStr = adjustedAmount.toString();
+      
+      // Usar el valor ajustado para la conversión a wei
+      const amountInWei = ethers.utils.parseUnits(adjustedAmountStr, adjustedDecimals);
+      const data = iface.encodeFunctionData("transfer", [toAddress, amountInWei]);
+      
+      // Crear la transacción con el nuevo data
+      const tx = {
+        to: CDT_CONTRACT_ADDRESS,
+        nonce: ethers.utils.hexlify(nonce),
+        gasLimit: ethers.utils.hexlify(200000), // Gas limit fijo
+        gasPrice: gasPrice,
+        data: data,
+        chainId: 480, // WorldChain chainId
+        value: "0x0",
+      }
+
+      console.log("Transacción a firmar (enfoque alternativo):", tx);
+
+      // Firmar la transacción sin usar un proveedor
+      const signedTx = await wallet.signTransaction(tx);
+      console.log("Transacción firmada (enfoque alternativo):", signedTx);
+
+      // Enviar la transacción usando la API de Alchemy
+      const sendResponse = await axios.post(ALCHEMY_API_URL, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_sendRawTransaction",
+        params: [signedTx],
+      });
+
+      console.log("Respuesta de envío (enfoque alternativo):", JSON.stringify(sendResponse.data, null, 2));
+
+      if (sendResponse.data && sendResponse.data.result) {
+        const txHash = sendResponse.data.result;
+        console.log("Transacción enviada (enfoque alternativo). Hash:", txHash);
+        return { success: true, txHash };
+      } else if (sendResponse.data && sendResponse.data.error) {
+        throw new Error(`Error de Alchemy (enfoque alternativo): ${JSON.stringify(sendResponse.data.error)}`);
+      }
+
+      throw new Error("Respuesta inesperada de Alchemy (enfoque alternativo)");
+    }
   } catch (error) {
     console.error("Error al enviar recompensas:", error)
 
