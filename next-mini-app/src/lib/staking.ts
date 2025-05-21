@@ -169,8 +169,8 @@ export async function claimRewards(
 
     // Sincronizar el nivel del usuario
     try {
-      // Construir URL absoluta
-      const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://tribo-vault.vercel.app';
+      // Construir URL absoluta - CAMBIO AQUÍ
+      const baseUrl = 'https://tribo-vault.vercel.app'; // URL fija sin variable de entorno
       const updateLevelUrl = `${baseUrl}/api/update-level`;
       
       // Usar fetchWithRetry para manejar fallos temporales
@@ -244,8 +244,8 @@ export async function updateStakedAmount(userId: string, address: string): Promi
 
     // Sincronizar el nivel del usuario
     try {
-      // Construir URL absoluta
-      const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://tribo-vault.vercel.app';
+      // Construir URL absoluta - CAMBIO AQUÍ
+      const baseUrl = 'https://tribo-vault.vercel.app'; // URL fija sin variable de entorno
       const updateLevelUrl = `${baseUrl}/api/update-level`;
       
       // Usar fetchWithRetry para manejar fallos temporales
