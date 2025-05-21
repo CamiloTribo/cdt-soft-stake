@@ -16,6 +16,8 @@ interface WalletCardProps {
   handleUpdateStakeAction: () => Promise<void>
   isProfileHovered: boolean
   setIsProfileHoveredAction: (value: boolean) => void
+  totalClaimed: number
+  calculateUsdValueAction: (amount: number) => string // Renombrado con "Action" al final
 }
 
 export const WalletCard: React.FC<WalletCardProps> = ({
@@ -28,6 +30,8 @@ export const WalletCard: React.FC<WalletCardProps> = ({
   handleUpdateStakeAction,
   isProfileHovered,
   setIsProfileHoveredAction,
+  totalClaimed,
+  calculateUsdValueAction, // Renombrado con "Action" al final
 }) => {
   const { t } = useTranslation()
 
@@ -78,6 +82,15 @@ export const WalletCard: React.FC<WalletCardProps> = ({
             <path d="m9 18 6-6-6-6"></path>
           </svg>
         </Link>
+      </div>
+
+      {/* Nueva sección de CDTs Ganados */}
+      <div className="mb-4 p-4 bg-black/40 rounded-xl border border-gray-800">
+        <h4 className="text-lg font-semibold text-primary mb-2">{t("cdts_earned")}</h4>
+        <p className="text-3xl font-bold text-white mb-1">{totalClaimed.toLocaleString()} CDT</p>
+        <p className="text-sm text-primary">
+          ≈ ${calculateUsdValueAction(totalClaimed)} {t("usd_claimed")}
+        </p>
       </div>
 
       <p className="text-gray-400 text-sm mb-2">{t("tokens_staked")}</p>

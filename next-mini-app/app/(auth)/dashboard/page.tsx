@@ -21,7 +21,7 @@ import { WelcomeGiftModal } from "../../../src/components/dashboard/WelcomeGiftM
 import { LevelSection } from "../../../src/components/dashboard/LevelSection"
 
 // URL base para todas las llamadas a API
-const baseUrl = 'https://tribo-vault.vercel.app';
+const baseUrl = "https://tribo-vault.vercel.app"
 
 // Función para obtener la URL de swap
 function getSwapUrl() {
@@ -561,14 +561,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* CDTs Ganados - Diseño mejorado */}
-        <div className="mb-6 dashboard-card p-6">
-          <h4 className="text-lg font-semibold text-primary mb-2">{t("cdts_earned")}</h4>
-          <p className="text-4xl font-bold text-white mb-1">{totalClaimed.toLocaleString()} CDT</p>
-          <p className="text-sm text-primary">
-            ≈ ${calculateUsdValue(totalClaimed)} {t("usd_claimed")}
-          </p>
-        </div>
+        {/* Se eliminó la sección de CDTs Ganados de aquí */}
 
         {/* Botón de Swap WLD/CDT */}
         <div className="mb-6">
@@ -707,7 +700,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Wallet Card */}
+        {/* Wallet Card - Ahora con los nuevos props */}
         <WalletCard
           stakedAmount={stakedAmount}
           cdtPrice={cdtPrice}
@@ -718,6 +711,8 @@ export default function Dashboard() {
           handleUpdateStakeAction={handleUpdateStake}
           isProfileHovered={isProfileHovered}
           setIsProfileHoveredAction={setIsProfileHovered}
+          totalClaimed={totalClaimed}
+          calculateUsdValueAction={calculateUsdValue} // Renombrado con "Action" al final
         />
 
         {/* Sección de ganancias */}
