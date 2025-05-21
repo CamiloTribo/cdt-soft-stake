@@ -1,13 +1,7 @@
 // app/api/join/[username]/route.ts
 import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
-import { createClient } from '@supabase/supabase-js';
-
-// Inicializar cliente de Supabase para el servidor
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_KEY || ''
-);
+import { supabase } from "@/src/lib/supabase"; // Importar supabase desde tu archivo centralizado
 
 export async function GET(request: Request) {
   try {
