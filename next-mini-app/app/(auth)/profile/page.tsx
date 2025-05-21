@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useTranslation } from "../../../src/components/TranslationProvider"
 import { CountrySelector } from "../../../src/components/CountrySelector"
 import { CountryFlag } from "../../../src/components/CountryFlag"
+import { LevelSection } from "../../../src/components/dashboard/LevelSection"
 
 // Mantenemos los tipos existentes
 type UserStats = {
@@ -375,8 +376,6 @@ export default function Profile() {
   const cardValueClass = "text-4xl font-bold text-white mb-1"
   const cardSubtitleClass = "text-sm text-gray-400 mb-3"
   const cardSeparatorClass = "border-t border-gray-800 my-3"
-  const buttonPrimaryClass =
-    "w-full px-4 py-3 bg-[#4ebd0a] text-black rounded-full hover:bg-[#3fa008] text-center block font-medium transition-colors"
   const buttonSecondaryClass =
     "w-full px-4 py-3 bg-black border border-gray-700 rounded-full hover:bg-gray-900 text-white text-center block transition-colors"
 
@@ -455,6 +454,9 @@ export default function Profile() {
             </div>
           </div>
 
+          {/* Sección de niveles - AÑADIDA AQUÍ */}
+          <LevelSection stakedAmount={userStats.totalStaked} />
+
           {/* Sección de referidos */}
           <div
             className={`mb-6 bg-black rounded-2xl shadow-lg p-6 border border-gray-800 transition-all duration-300 hover:border-gray-700`}
@@ -522,15 +524,6 @@ export default function Profile() {
                 <p className="text-sm text-gray-400">{t("total_invitations")}</p>
                 <p className="text-xl font-bold text-[#4ebd0a]">{userStats.referralCount}</p>
               </div>
-            </div>
-            <div className="mt-3">
-              <Link
-                href="/rankings?tab=referrals"
-                className={buttonPrimaryClass}
-                aria-label={t("join_referral_contest")}
-              >
-                🏆 {t("join_referral_contest")}
-              </Link>
             </div>
 
             {/* Lista de referidos */}
