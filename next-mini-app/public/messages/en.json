@@ -304,6 +304,7 @@
   "current_apy": "Current APY",
   "need": "You need",
   "more_cdt": "more CDT to reach next level",
-  "info_banner_title": "Important Information",
-  "info_banner_description": "This is a sample info banner. You can customize this message in the translation files."
+  "view_all_levels": "View All Levels",
+  "level_info": "Level Information",
+  "click_for_more_details": "Click for more details"
 }

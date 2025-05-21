@@ -301,5 +301,8 @@
   "level_benefits": "Beneficios del Nivel",
   "current_apy": "APY Actual",
   "need": "Necesitas",
-  "more_cdt": "más CDT para alcanzar el siguiente nivel"
+  "more_cdt": "más CDT para alcanzar el siguiente nivel",
+  "view_all_levels": "Ver Todos los Niveles",
+  "level_info": "Información del Nivel",
+  "click_for_more_details": "Haz clic para más detalles"
 }
