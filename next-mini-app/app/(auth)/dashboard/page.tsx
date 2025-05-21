@@ -564,7 +564,7 @@ export default function Dashboard() {
         {/* Nueva sección de nivel - MOVIDA AQUÍ */}
         <LevelSection stakedAmount={stakedAmount} />
 
-        {/* Botón de Swap WLD/CDT */}
+        {/* Botón de Swap WLD/CDT - MODIFICADO PARA INCLUIR LA IMAGEN DE COLABORACIÓN */}
         <div className="mb-6">
           <Link
             href={getSwapUrl()}
@@ -591,7 +591,14 @@ export default function Dashboard() {
             </svg>
             <span className="whitespace-nowrap">{t("swap_wld_cdt")}</span>
             <div className="flex items-center gap-1">
-              <Image src="/TOKEN CDT.png" alt="CDT Token" width={24} height={24} className="rounded-full" />
+              {/* Imagen de colaboración TRIBO y Human Fi */}
+              <Image
+                src="/colabs/COLAB HUMAN LABS.png"
+                alt="TRIBO & Human Fi Collaboration"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
