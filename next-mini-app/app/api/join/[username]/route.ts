@@ -9,13 +9,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY || ''
 );
 
-export async function GET(
-  request: Request,
-  { params }: { params: { username: string } }
-) {
-  const { username } = params;
-  
+export async function GET(request: Request) {
   try {
+    // Extraer el username de la URL
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const username = pathParts[pathParts.length - 1];
+    
+    if (!username) {
+      return NextResponse.json({ success: false, error: "Username is required" }, { status: 400 });
+    }
+    
     // Obtener información del cliente para tracking
     const headersList = await headers();
     const userAgent = headersList.get('user-agent') || 'unknown';
@@ -63,11 +67,12 @@ export async function GET(
       maxAge: 60 * 60 * 24 * 7, // 7 días
       path: '/'
     });
+    
+    // Redirigir a la URL correcta de la mini-app
+    return NextResponse.redirect('https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3');
   } catch (error) {
-    console.error('Error registering collaborator click:', error);
-    // Continuar con la redirección incluso si hay un error
+    console.error('Error in join API:', error);
+    // En caso de error, redirigir de todos modos
+    return NextResponse.redirect('https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3');
   }
-  
-  // Redirigir a la URL correcta de la mini-app
-  return NextResponse.redirect('https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3');
 }
