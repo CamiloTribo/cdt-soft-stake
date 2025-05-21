@@ -48,7 +48,8 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-2">
-          <h4 className="text-lg font-semibold text-primary">{t("your_level")}</h4>
+          {/* Cambiado de text-primary (verde) a text-white */}
+          <h4 className="text-lg font-semibold text-white">{t("your_level")}</h4>
 
           {/* Enlace a la sección de rankings */}
           <Link
