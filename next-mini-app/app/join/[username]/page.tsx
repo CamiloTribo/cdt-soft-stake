@@ -8,7 +8,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY || ''
 );
 
-export default async function CollaboratorRedirect({ params }: { params: { username: string } }) {
+// Corregir la definición de tipos para Next.js 15
+type Props = {
+  params: {
+    username: string;
+  };
+};
+
+export default async function CollaboratorRedirect({ params }: Props) {
   const { username } = params;
   
   try {
