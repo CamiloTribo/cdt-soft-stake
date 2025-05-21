@@ -20,6 +20,9 @@ import { CountryModal } from "../../../src/components/dashboard/CountryModal"
 import { WelcomeGiftModal } from "../../../src/components/dashboard/WelcomeGiftModal"
 import { LevelSection } from "../../../src/components/dashboard/LevelSection"
 
+// URL base para todas las llamadas a API
+const baseUrl = 'https://tribo-vault.vercel.app';
+
 // Función para obtener la URL de swap
 function getSwapUrl() {
   return process.env.NEXT_PUBLIC_BUY_CDT_URL || "https://app.uniswap.org/#/swap"
@@ -113,7 +116,7 @@ export default function Dashboard() {
       }
 
       try {
-        const response = await fetch(`/api/welcome-gift?wallet_address=${identifier}`, {
+        const response = await fetch(`${baseUrl}/api/welcome-gift?wallet_address=${identifier}`, {
           method: "GET",
           headers: {
             "Cache-Control": "no-cache",
@@ -168,7 +171,7 @@ export default function Dashboard() {
       setIsUpdatingCountry(true)
       setCountryUpdateError(null)
 
-      const response = await fetch("/api/update-country", {
+      const response = await fetch(`${baseUrl}/api/update-country`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +210,7 @@ export default function Dashboard() {
       setClaimSuccess(null)
       setClaimError(null)
 
-      const response = await fetch("/api/claim", {
+      const response = await fetch(`${baseUrl}/api/claim`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -249,7 +252,7 @@ export default function Dashboard() {
       setIsClaimingWelcomeGift(true)
       setWelcomeGiftError(null)
 
-      const response = await fetch("/api/welcome-gift", {
+      const response = await fetch(`${baseUrl}/api/welcome-gift`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -291,7 +294,7 @@ export default function Dashboard() {
       setUpdateSuccess(null)
       setUpdateError(null)
 
-      const response = await fetch("/api/update-stake", {
+      const response = await fetch(`${baseUrl}/api/update-stake`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -339,7 +342,7 @@ export default function Dashboard() {
             const transactionHash =
               result.txHash || result.transactionHash || "0x" + Math.random().toString(16).substring(2, 10)
 
-            const response = await fetch("/api/transactions", {
+            const response = await fetch(`${baseUrl}/api/transactions`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
