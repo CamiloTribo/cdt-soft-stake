@@ -99,6 +99,31 @@ export function getDailyRateForAmount(stakedAmount: number, t: (key: string) => 
   return level.dailyRate
 }
 
+// Función de utilidad para reintentos
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Intento ${attempt} para ${url}`);
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    } catch (error) {
+      console.warn(`Intento ${attempt} falló:`, error);
+      lastError = error;
+      
+      // Esperar antes de reintentar (backoff exponencial)
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 // Función para sincronizar el nivel con Supabase
 export async function syncUserLevel(address: string, stakedAmount: number) {
   // Esta función se llamará cuando:
@@ -107,7 +132,12 @@ export async function syncUserLevel(address: string, stakedAmount: number) {
   // 3. El usuario reclame recompensas
 
   try {
-    const response = await fetch("/api/update-level", {
+    // Construir URL absoluta
+    const baseUrl = "https://tribo-vault.vercel.app";
+    const updateLevelUrl = `${baseUrl}/api/update-level`;
+    
+    // Usar fetchWithRetry para manejar fallos temporales
+    const response = await fetchWithRetry(updateLevelUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -116,15 +146,11 @@ export async function syncUserLevel(address: string, stakedAmount: number) {
         address,
         staked_amount: stakedAmount,
       }),
-    })
+    }, 3); // 3 intentos máximo
 
-    if (!response.ok) {
-      console.error("Error syncing user level")
-    }
-
-    return await response.json()
+    return await response.json();
   } catch (error) {
-    console.error("Error syncing user level:", error)
-    return { success: false, error }
+    console.error("Error syncing user level:", error);
+    return { success: false, error };
   }
 }

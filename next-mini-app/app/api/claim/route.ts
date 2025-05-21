@@ -8,13 +8,16 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Función de utilidad para reintentos en operaciones críticas
-async function retryOperation<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+// Función de utilidad para reintentos
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
   let lastError;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await operation();
+      console.log(`Intento ${attempt} para ${url}`);
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
     } catch (error) {
       console.warn(`Intento ${attempt} falló:`, error);
       lastError = error;
@@ -47,10 +50,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
     }
 
-    // Reclamar recompensas con reintentos
-    const claimResult = await retryOperation(async () => {
-      return await claimRewards(user.id, wallet_address)
-    }, 3);
+    // Reclamar recompensas
+    const claimResult = await claimRewards(user.id, wallet_address)
 
     // Verificación mejorada del resultado
     if (!claimResult || !claimResult.success || !claimResult.txHash) {
@@ -64,63 +65,78 @@ export async function POST(request: Request) {
       )
     }
 
-    // Registrar la transacción con reintentos
-    try {
-      await retryOperation(async () => {
-        const { error: txError } = await supabase.from("transactions").insert([
-          {
-            user_id: user.id,
-            type: "claim",
-            amount: claimResult.amount,
-            token_type: "CDT",
-            tx_hash: claimResult.txHash,
-            status: "success",
-            description: "Reclamación de recompensas diarias",
-          },
-        ])
+    // Registrar la transacción
+    const { error: txError } = await supabase.from("transactions").insert([
+      {
+        user_id: user.id,
+        type: "claim",
+        amount: claimResult.amount,
+        token_type: "CDT",
+        tx_hash: claimResult.txHash,
+        status: "success",
+        description: "Reclamación de recompensas diarias",
+      },
+    ])
 
-        if (txError) {
-          throw new Error(`Error registering transaction: ${txError.message}`);
-        }
-        
-        return true;
-      }, 2);
-    } catch (txError) {
-      console.error("Error registering transaction after retries:", txError)
+    if (txError) {
+      console.error("Error registering transaction:", txError)
       // Continuamos aunque falle el registro de la transacción
     }
 
     // MEJORA: Actualizar el total_claimed del usuario de manera más eficiente
-    try {
-      await retryOperation(async () => {
-        // Obtenemos el total_claimed actual para asegurarnos de tener el valor más reciente
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("total_claimed")
-          .eq("id", user.id)
-          .single()
+    // Obtenemos el total_claimed actual para asegurarnos de tener el valor más reciente
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("total_claimed")
+      .eq("id", user.id)
+      .single()
 
-        if (userError) {
-          throw new Error(`Error getting current total_claimed: ${userError.message}`);
-        }
+    if (userError) {
+      console.error("Error getting current total_claimed:", userError)
+    } else {
+      // Calculamos el nuevo total_claimed
+      const currentTotal = userData.total_claimed || 0
+      const newTotal = currentTotal + claimResult.amount
 
-        // Calculamos el nuevo total_claimed
-        const currentTotal = userData.total_claimed || 0
-        const newTotal = currentTotal + claimResult.amount
+      // Actualizamos directamente con el nuevo valor
+      const { error: updateError } = await supabase.from("users").update({ total_claimed: newTotal }).eq("id", user.id)
 
-        // Actualizamos directamente con el nuevo valor
-        const { error: updateError } = await supabase.from("users").update({ total_claimed: newTotal }).eq("id", user.id)
-
-        if (updateError) {
-          throw new Error(`Error updating total_claimed: ${updateError.message}`);
-        }
-        
+      if (updateError) {
+        console.error("Error updating total_claimed:", updateError)
+      } else {
         console.log(`Total claimed updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
-        return true;
-      }, 2);
-    } catch (updateError) {
-      console.error("Error updating total_claimed after retries:", updateError)
-      // Continuamos aunque falle la actualización del total_claimed
+      }
+    }
+
+    // Sincronizar el nivel del usuario después del claim
+    try {
+      // Construir URL absoluta
+      const baseUrl = "https://tribo-vault.vercel.app";
+      const updateLevelUrl = `${baseUrl}/api/update-level`;
+      
+      // Obtener el balance actual
+      const { data: stakingData } = await supabase
+        .from("staking_info")
+        .select("staked_amount")
+        .eq("user_id", user.id)
+        .single();
+        
+      if (stakingData) {
+        // Usar fetchWithRetry para manejar fallos temporales
+        await fetchWithRetry(updateLevelUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            address: wallet_address,
+            staked_amount: stakingData.staked_amount,
+          }),
+        }, 3); // 3 intentos máximo
+      }
+    } catch (error) {
+      console.error("Error syncing user level after claim:", error);
+      // No interrumpimos el flujo principal si falla la sincronización
     }
 
     return NextResponse.json({
