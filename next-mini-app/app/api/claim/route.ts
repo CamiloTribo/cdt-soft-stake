@@ -8,6 +8,29 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// Interfaz para errores con mensaje
+interface ErrorWithMessage {
+  message: string;
+}
+
+// Función para verificar si un error tiene propiedad message
+function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  );
+}
+
+// Función para obtener el mensaje de error
+function getErrorMessage(error: unknown): string {
+  if (isErrorWithMessage(error)) {
+    return error.message;
+  }
+  return String(error);
+}
+
 // Función de utilidad para reintentos
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
   let lastError;
@@ -51,7 +74,27 @@ export async function POST(request: Request) {
     }
 
     // Reclamar recompensas
-    const claimResult = await claimRewards(user.id, wallet_address)
+    let claimResult;
+    try {
+      claimResult = await claimRewards(user.id, wallet_address)
+    } catch (error: unknown) {
+      console.error("Error en claimRewards:", error)
+      
+      // Si el error es por un valor decimal inválido, proporcionamos un mensaje más claro
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes("invalid decimal value")) {
+        console.log("Detectado error de valor decimal inválido")
+        
+        return NextResponse.json({
+          success: false,
+          error: "Error al procesar recompensas. Por favor, intenta nuevamente más tarde.",
+          details: "Se ha detectado un valor decimal inválido que será corregido automáticamente."
+        }, { status: 400 })
+      }
+      
+      // Si es otro tipo de error, lo propagamos
+      throw error
+    }
 
     // Verificación mejorada del resultado
     if (!claimResult || !claimResult.success || !claimResult.txHash) {
@@ -144,12 +187,12 @@ export async function POST(request: Request) {
       message: "¡Recompensas reclamadas correctamente!",
       amount: claimResult.amount, // Añadimos la cantidad reclamada en la respuesta
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in claim API:", error)
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: isErrorWithMessage(error) ? error.message : "Internal server error",
       },
       { status: 500 },
     )

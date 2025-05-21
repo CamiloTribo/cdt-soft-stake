@@ -13,6 +13,25 @@ const CDT_ABI = ["function transfer(address to, uint256 amount) returns (bool)"]
 let lastUsedNonce = -1
 let nonceUpdateTime = 0
 
+// Función para normalizar valores decimales extremadamente pequeños
+function normalizeAmount(amount: number): number {
+  // Si el valor es extremadamente pequeño (menor que 1e-15), lo redondeamos a 0
+  if (amount < 1e-15) {
+    console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`);
+    return 0;
+  }
+  
+  // Para otros valores pequeños pero manejables, redondeamos a 15 decimales máximo
+  // Esto evita problemas con notación científica en ethers.js
+  if (amount < 0.1) {
+    const rounded = parseFloat(amount.toFixed(15));
+    console.log(`Valor pequeño normalizado: ${amount} -> ${rounded}`);
+    return rounded;
+  }
+  
+  return amount;
+}
+
 // Función para obtener el balance de CDT de una dirección
 export async function getCDTBalance(address: string): Promise<number> {
   console.log("Obteniendo balance real para:", address)
@@ -128,7 +147,20 @@ export async function sendRewards(
   toAddress: string,
   amount: number,
 ): Promise<{ success: boolean; txHash: string | null; error?: string }> {
-  console.log(`Enviando ${amount} CDT a ${toAddress}`)
+  // Normalizar el monto antes de procesarlo
+  const normalizedAmount = normalizeAmount(amount);
+  
+  console.log(`Enviando ${normalizedAmount} CDT a ${toAddress} (valor original: ${amount})`);
+
+  // Si el monto normalizado es 0, no enviamos la transacción
+  if (normalizedAmount <= 0) {
+    console.log("Monto normalizado es 0, no se enviará la transacción");
+    return {
+      success: false,
+      txHash: null,
+      error: "Monto demasiado pequeño para procesar",
+    };
+  }
 
   try {
     // Obtener la clave privada de la wallet central
@@ -146,9 +178,9 @@ export async function sendRewards(
     console.log("Balance de CDT en la wallet central:", cdtBalance, "CDT")
 
     // Verificar si hay suficiente CDT para enviar
-    if (cdtBalance < amount) {
+    if (cdtBalance < normalizedAmount) {
       console.error(
-        `La wallet central no tiene suficiente CDT para enviar. Tiene ${cdtBalance} CDT, necesita ${amount} CDT`,
+        `La wallet central no tiene suficiente CDT para enviar. Tiene ${cdtBalance} CDT, necesita ${normalizedAmount} CDT`,
       )
       return {
         success: false,
@@ -178,7 +210,9 @@ export async function sendRewards(
 
     // Crear los datos de la transacción (llamada a la función transfer del contrato)
     const iface = new ethers.utils.Interface(CDT_ABI)
-    const amountInWei = ethers.utils.parseUnits(amount.toString(), 18)
+    
+    // Usar el valor normalizado para la conversión a wei
+    const amountInWei = ethers.utils.parseUnits(normalizedAmount.toString(), 18)
     const data = iface.encodeFunctionData("transfer", [toAddress, amountInWei])
 
     // Crear la transacción

@@ -28,6 +28,25 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
   throw lastError;
 }
 
+// Función para normalizar valores decimales extremadamente pequeños
+function normalizeAmount(amount: number): number {
+  // Si el valor es extremadamente pequeño (menor que 1e-15), lo redondeamos a 0
+  if (amount < 1e-15) {
+    console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`);
+    return 0;
+  }
+  
+  // Para otros valores pequeños pero manejables, redondeamos a 15 decimales máximo
+  // Esto evita problemas con notación científica en ethers.js
+  if (amount < 0.1) {
+    const rounded = parseFloat(amount.toFixed(15));
+    console.log(`Valor pequeño normalizado: ${amount} -> ${rounded}`);
+    return rounded;
+  }
+  
+  return amount;
+}
+
 // Función para obtener la información de staking de un usuario
 export async function getStakingInfo(userId: string, walletAddress?: string): Promise<StakingInfo | null> {
   try {
@@ -137,7 +156,10 @@ export async function claimRewards(
     const dailyRate = getDailyRateForAmount(currentBalance, tString) / 100
 
     // Calcular recompensas según la tasa del nivel
-    const rewardAmount = currentBalance * dailyRate
+    let rewardAmount = currentBalance * dailyRate
+
+    // NUEVO: Normalizar el valor de recompensa para evitar errores con valores extremadamente pequeños
+    rewardAmount = normalizeAmount(rewardAmount)
 
     if (rewardAmount <= 0) return { success: false, amount: 0, txHash: null }
 
