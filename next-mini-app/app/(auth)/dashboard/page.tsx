@@ -561,7 +561,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Se eliminó la sección de CDTs Ganados de aquí */}
+        {/* Nueva sección de nivel - MOVIDA AQUÍ */}
+        <LevelSection stakedAmount={stakedAmount} />
 
         {/* Botón de Swap WLD/CDT */}
         <div className="mb-6">
@@ -623,10 +624,7 @@ export default function Dashboard() {
           formatDateAction={formatDate}
         />
 
-        {/* Nueva sección de nivel */}
-        <LevelSection stakedAmount={stakedAmount} />
-
-        {/* Enlace a la sección de niveles */}
+        {/* Enlace a la sección de niveles - ELIMINADO DE AQUÍ */}
         <div className="mb-6">
           <Link
             href="/rankings?tab=levels"
@@ -700,7 +698,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Wallet Card - Ahora con los nuevos props */}
+        {/* Wallet Card */}
         <WalletCard
           stakedAmount={stakedAmount}
           cdtPrice={cdtPrice}
@@ -712,7 +710,7 @@ export default function Dashboard() {
           isProfileHovered={isProfileHovered}
           setIsProfileHoveredAction={setIsProfileHovered}
           totalClaimed={totalClaimed}
-          calculateUsdValueAction={calculateUsdValue} // Renombrado con "Action" al final
+          calculateUsdValueAction={calculateUsdValue}
         />
 
         {/* Sección de ganancias */}
