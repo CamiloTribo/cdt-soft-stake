@@ -84,7 +84,9 @@ export const useDashboardData = () => {
   const fetchTokenPrice = useCallback(async () => {
     try {
       console.log("Obteniendo precio del token en vivo...")
-      const response = await fetch("/api/token-price", {
+      // CAMBIO AQUÍ: URL absoluta en lugar de relativa
+      const baseUrl = "https://tribo-vault.vercel.app"
+      const response = await fetch(`${baseUrl}/api/token-price`, {
         cache: "no-store",
         headers: {
           "Cache-Control": "no-cache",
@@ -129,7 +131,9 @@ export const useDashboardData = () => {
       }
 
       const timestamp = Date.now()
-      const response = await fetch(`/api/staking?wallet_address=${identifier}&_t=${timestamp}`, {
+      // CAMBIO AQUÍ: URL absoluta en lugar de relativa
+      const baseUrl = "https://tribo-vault.vercel.app"
+      const response = await fetch(`${baseUrl}/api/staking?wallet_address=${identifier}&_t=${timestamp}`, {
         cache: "no-store",
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -163,7 +167,8 @@ export const useDashboardData = () => {
 
       if (!username) {
         try {
-          const usernameResponse = await fetch(`/api/username?wallet_address=${identifier}`)
+          // CAMBIO AQUÍ: URL absoluta en lugar de relativa
+          const usernameResponse = await fetch(`${baseUrl}/api/username?wallet_address=${identifier}`)
           if (usernameResponse.ok) {
             const usernameData = await usernameResponse.json()
             if (usernameData.username && usernameData.username !== username) {
