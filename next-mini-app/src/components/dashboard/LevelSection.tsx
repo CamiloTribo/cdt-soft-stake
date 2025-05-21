@@ -10,6 +10,16 @@ interface LevelSectionProps {
   stakedAmount: number
 }
 
+// Función para formatear números grandes
+const formatNumber = (num: number): string => {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1)}M`;
+  } else if (num >= 1000) {
+    return `${(num / 1000).toFixed(num % 1000 === 0 ? 0 : 1)}k`;
+  }
+  return num.toString();
+};
+
 export function LevelSection({ stakedAmount }: LevelSectionProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
@@ -92,7 +102,13 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
             )}
           </div>
           <div>
-            <p className="text-xl font-bold text-white">{currentLevel.name}</p>
+            {/* Nombre del nivel actual con el color del nivel */}
+            <p 
+              className="text-xl font-bold" 
+              style={{ color: currentLevel.color }}
+            >
+              {currentLevel.name}
+            </p>
             <p className="text-sm text-primary">
               {t("current_apy")}: {currentLevel.apy}%
             </p>
@@ -119,14 +135,14 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
                 className="h-2.5 rounded-full animate-pulse-slow"
                 style={{
                   width: `${progress}%`,
-                  backgroundColor: nextLevel.color,
+                  backgroundColor: currentLevel.color, // Usar el color del nivel actual
                   transition: "width 1s ease-in-out",
                 }}
               ></div>
             </div>
             <div className="flex justify-between text-xs mt-1">
-              <span className="text-gray-500">{currentLevel.minAmount.toLocaleString()} CDT</span>
-              <span className="text-gray-500">{nextLevel.minAmount.toLocaleString()} CDT</span>
+              <span className="text-gray-500">{formatNumber(currentLevel.minAmount)} CDT</span>
+              <span className="text-gray-500">{formatNumber(nextLevel.minAmount)} CDT</span>
             </div>
           </div>
         ) : (
@@ -175,12 +191,12 @@ export function LevelSection({ stakedAmount }: LevelSectionProps) {
                   className="object-cover"
                 />
               </div>
-              <p className="text-sm font-medium text-white">
-                {t("next_level")}: {nextLevel.name}
+              <p className="text-sm font-medium">
+                {t("next_level")}: <span style={{ color: nextLevel.color }}>{nextLevel.name}</span>
               </p>
             </div>
             <p className="text-xs text-gray-400">
-              {t("need")} {(nextLevel.minAmount - stakedAmount).toLocaleString()} {t("more_cdt")}
+              {t("need")} {formatNumber(nextLevel.minAmount - stakedAmount)} {t("more_cdt")}
             </p>
           </div>
         )}

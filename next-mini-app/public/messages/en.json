@@ -305,6 +305,7 @@
   "need": "You need",
   "more_cdt": "more CDT to reach next level",
   "view_all_levels": "View All Levels",
-  "level_info": "Level Information",
-  "click_for_more_details": "Click for more details"
+  "level_info": "Min. requirement",
+  "click_for_more_details": "Click for more details",
+  "close": "Close"
 }

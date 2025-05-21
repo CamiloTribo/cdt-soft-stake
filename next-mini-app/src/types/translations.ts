@@ -298,3 +298,4 @@ export type TranslationKey =
   | "view_all_levels"
   | "level_info"
   | "click_for_more_details"
+  | "close"
