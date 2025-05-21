@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getUserByAddress, supabase } from "@/src/lib/supabase"
+import { headers } from "next/headers"
 
 export async function POST(request: Request) {
   try {
@@ -75,6 +76,48 @@ export async function POST(request: Request) {
     if (updateError) {
       console.error("Error updating referral count:", updateError)
       // No devolvemos error aquí porque el referido ya se registró correctamente
+    }
+
+    // NUEVO: Actualizar estadísticas de colaboradores si corresponde
+    try {
+      // Obtener información del cliente para tracking
+      const headersList = await headers();
+      const userAgent = headersList.get('user-agent') || 'unknown';
+      const clientIP = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+      
+      // Crear hashes para privacidad
+      const ipHash = Buffer.from(clientIP).toString('base64');
+      const uaHash = Buffer.from(userAgent).toString('base64');
+      
+      // Marcar como convertido el clic más reciente con este hash
+      await supabase
+        .from('collaborator_clicks')
+        .update({ converted: true })
+        .eq('username', referral_code)
+        .eq('ip_hash', ipHash)
+        .eq('user_agent_hash', uaHash)
+        .is('converted', false)
+        .order('clicked_at', { ascending: false })
+        .limit(1);
+      
+      // Incrementar el contador de conversiones
+      const { data: collaborator } = await supabase
+        .from('collaborator_links')
+        .select('id')
+        .eq('username', referral_code)
+        .single();
+      
+      if (collaborator) {
+        await supabase
+          .from('collaborator_links')
+          .update({ 
+            conversions: supabase.rpc('increment', { row_id: collaborator.id })
+          })
+          .eq('id', collaborator.id);
+      }
+    } catch (error) {
+      // Si hay un error al actualizar las estadísticas, lo registramos pero no interrumpimos el flujo
+      console.error('Error updating collaborator stats:', error);
     }
 
     return NextResponse.json({

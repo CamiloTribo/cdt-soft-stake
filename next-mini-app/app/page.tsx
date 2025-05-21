@@ -43,6 +43,9 @@ export default function Home() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  
+  // Estado para almacenar el código de referido (no visible para el usuario)
+  const [referralCode, setReferralCode] = useState("")
 
   // Estado para el país
   const [country, setCountry] = useState("")
@@ -81,6 +84,29 @@ export default function Home() {
   useEffect(() => {
     fetchUserCounts()
   }, [fetchUserCounts])
+  
+  // NUEVO: Verificar si hay un código de referido en la cookie
+  useEffect(() => {
+    // Función para obtener una cookie por nombre
+    const getCookie = (name: string) => {
+      if (typeof document === 'undefined') return null;
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+    
+    // Obtener el código de referido de la cookie
+    const cookieReferralCode = getCookie('referral_code');
+    
+    if (cookieReferralCode) {
+      console.log("Código de referido encontrado en cookie:", cookieReferralCode);
+      setReferralCode(cookieReferralCode);
+      
+      // Borrar la cookie después de usarla
+      document.cookie = 'referral_code=; Max-Age=0; path=/;';
+    }
+  }, []);
 
   // NUEVO: Iniciar verificación de World ID automáticamente
   useEffect(() => {
@@ -257,6 +283,32 @@ export default function Home() {
           } catch (error) {
             console.error("Error al guardar el país:", error)
             // No bloqueamos el flujo si falla la actualización del país
+          }
+        }
+        
+        // NUEVO: Si hay un código de referido de la cookie, registrarlo automáticamente
+        if (referralCode) {
+          try {
+            console.log("Registrando código de referido automáticamente:", referralCode);
+            const referralResponse = await fetch("/api/referral", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                wallet_address: identifier,
+                referral_code: referralCode,
+              }),
+            });
+
+            if (!referralResponse.ok) {
+              console.error("Error al registrar el código de referido automáticamente, pero continuamos con el flujo");
+            } else {
+              console.log("Código de referido registrado automáticamente con éxito");
+            }
+          } catch (error) {
+            console.error("Error al registrar el código de referido automáticamente:", error);
+            // No bloqueamos el flujo si falla el registro del referido
           }
         }
 
@@ -437,6 +489,8 @@ export default function Home() {
                         <CountrySelector value={country} onChangeAction={handleCountryChange} className="w-full" />
                         <p className="text-xs text-gray-500 mt-1">{t("country_optional")}</p>
                       </div>
+
+                      {/* NOTA: No mostramos el campo de código de referido, se maneja automáticamente */}
 
                       {usernameError && (
                         <div className="mb-4 p-2 bg-black border border-[#ff1744] rounded-md">
