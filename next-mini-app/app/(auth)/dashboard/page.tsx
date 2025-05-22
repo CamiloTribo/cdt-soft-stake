@@ -25,7 +25,11 @@ const baseUrl = "https://tribo-vault.vercel.app"
 
 // Función para obtener la URL de swap
 function getSwapUrl() {
-  return process.env.NEXT_PUBLIC_BUY_CDT_URL || "https://app.uniswap.org/#/swap"
+  // CAMBIO 1: Actualizado el link de swap
+  return (
+    process.env.NEXT_PUBLIC_BUY_CDT_URL ||
+    "https://world.org/mini-app?app_id=app_25cf6ee1d9660721e651d43cf126953a&path=/?ref=tribo-vault"
+  )
 }
 
 export default function Dashboard() {
@@ -58,6 +62,7 @@ export default function Dashboard() {
   const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
   const [isTelegramHovered, setIsTelegramHovered] = useState(false)
   const [isTwitterHovered, setIsTwitterHovered] = useState(false)
+  const [isRuletaBannerHovered, setIsRuletaBannerHovered] = useState(false) // Nuevo estado para el banner de ruleta
 
   // Obtener datos del dashboard usando el hook personalizado
   const {
@@ -614,6 +619,31 @@ export default function Dashboard() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
+            </div>
+          </Link>
+        </div>
+
+        {/* CAMBIO 2: Añadir banner de ruleta 175k */}
+        <div className="mb-6">
+          <Link
+            href="https://t.me/cryptodigitaltribe/28484"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl"
+            onMouseEnter={() => setIsRuletaBannerHovered(true)}
+            onMouseLeave={() => setIsRuletaBannerHovered(false)}
+          >
+            <div className={`transition-transform duration-500 ${isRuletaBannerHovered ? "scale-105" : "scale-100"}`}>
+              <Image
+                src="/ruleta 175k.png"
+                alt="Ruleta 175k"
+                width={1200}
+                height={400}
+                className="w-full h-auto object-cover rounded-xl"
+              />
+            </div>
+            <div className="absolute bottom-4 right-4 bg-primary text-black px-4 py-2 rounded-full font-bold text-sm shadow-lg transform transition-transform duration-300 hover:scale-105">
+              Participar ahora
             </div>
           </Link>
         </div>
