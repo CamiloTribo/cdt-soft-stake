@@ -10,23 +10,23 @@ import VaultDial from "../src/components/VaultDial"
 import { CountrySelector } from "../src/components/CountrySelector"
 import { CountryCounter } from "../src/components/CountryCounter"
 // Importar MiniKit
-import { MiniKit, Permission, type RequestPermissionInput } from "@worldcoin/minikit-js"
+// import { MiniKit, Permission, type RequestPermissionInput } from "@worldcoin/minikit-js"
 
 // Definir interfaces para los tipos de respuesta
-interface MiniAppRequestPermissionSuccessPayload {
-  status: "success"
-  permission: "notifications"
-  timestamp: string
-  version: number
-}
+// interface MiniAppRequestPermissionSuccessPayload {
+//   status: "success"
+//   permission: "notifications"
+//   timestamp: string
+//   version: number
+// }
 
-interface MiniAppRequestPermissionErrorPayload {
-  status: "error"
-  error_code: string
-  version: number
-}
+// interface MiniAppRequestPermissionErrorPayload {
+//   status: "error"
+//   error_code: string
+//   version: number
+// }
 
-type MiniAppRequestPermissionPayload = MiniAppRequestPermissionSuccessPayload | MiniAppRequestPermissionErrorPayload
+// type MiniAppRequestPermissionPayload = MiniAppRequestPermissionSuccessPayload | MiniAppRequestPermissionErrorPayload
 
 export default function Home() {
   const { t } = useTranslation()
@@ -43,7 +43,7 @@ export default function Home() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  
+
   // Estado para almacenar el código de referido (no visible para el usuario)
   const [referralCode, setReferralCode] = useState("")
 
@@ -54,7 +54,7 @@ export default function Home() {
   const worldIDInitiated = useRef(false)
 
   // Referencia para controlar si ya se solicitaron notificaciones
-  const notificationsRequested = useRef(false)
+  // const notificationsRequested = useRef(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -84,29 +84,49 @@ export default function Home() {
   useEffect(() => {
     fetchUserCounts()
   }, [fetchUserCounts])
-  
+
   // NUEVO: Verificar si hay un código de referido en la cookie
   useEffect(() => {
     // Función para obtener una cookie por nombre
     const getCookie = (name: string) => {
-      if (typeof document === 'undefined') return null;
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
-    };
-    
-    // Obtener el código de referido de la cookie
-    const cookieReferralCode = getCookie('referral_code');
-    
-    if (cookieReferralCode) {
-      console.log("Código de referido encontrado en cookie:", cookieReferralCode);
-      setReferralCode(cookieReferralCode);
-      
-      // Borrar la cookie después de usarla
-      document.cookie = 'referral_code=; Max-Age=0; path=/;';
+      if (typeof document === "undefined") return null
+      const value = `; ${document.cookie}`
+      const parts = value.split(`; ${name}=`)
+      if (parts.length === 2) return parts.pop()?.split(";").shift()
+      return null
     }
-  }, []);
+
+    // Obtener el código de referido de la cookie
+    const cookieReferralCode = getCookie("referral_code")
+
+    if (cookieReferralCode) {
+      console.log("Código de referido encontrado en cookie:", cookieReferralCode)
+      setReferralCode(cookieReferralCode)
+
+      // Borrar la cookie después de usarla
+      document.cookie = "referral_code=; Max-Age=0; path=/;"
+    }
+  }, [])
+
+  // NUEVO: Detectar parámetro ref en la URL
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const refCode = urlParams.get("ref")
+
+      if (refCode) {
+        console.log("Código de referido detectado en URL:", refCode)
+        localStorage.setItem("referral_code", refCode)
+
+        // Registrar el click para estadísticas
+        fetch("/api/referral-click", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: refCode }),
+        }).catch((error) => console.error("Error registrando click:", error))
+      }
+    }
+  }, [])
 
   // NUEVO: Iniciar verificación de World ID automáticamente
   useEffect(() => {
@@ -125,50 +145,50 @@ export default function Home() {
   }, [isLoading, isAuthenticated, signInWorldID])
 
   // NUEVO: Solicitar permisos de notificaciones automáticamente
-  useEffect(() => {
-    // Solo solicitar si no está cargando, está autenticado con wallet y no se ha solicitado antes
-    if (!isLoading && isAuthenticated && session?.isAuthenticatedWallet && !notificationsRequested.current) {
-      console.log("Solicitando permisos de notificaciones automáticamente")
-      notificationsRequested.current = true
+  // useEffect(() => {
+  //   // Solo solicitar si no está cargando, está autenticado con wallet y no se ha solicitado antes
+  //   if (!isLoading && isAuthenticated && session?.isAuthenticatedWallet && !notificationsRequested.current) {
+  //     console.log("Solicitando permisos de notificaciones automáticamente")
+  //     notificationsRequested.current = true
 
-      // Pequeño retraso para asegurar que todo esté cargado y no interferir con otros diálogos
-      const timer = setTimeout(() => {
-        // Verificar si ya se solicitó antes (en sesiones anteriores)
-        const previousPermission = localStorage.getItem("notification_permission")
-        if (!previousPermission) {
-          const requestPayload: RequestPermissionInput = {
-            permission: Permission.Notifications,
-          }
-          MiniKit.commandsAsync
-            .requestPermission(requestPayload)
-            .then((response) => {
-              console.log("Respuesta de permiso de notificaciones:", response)
-              // Guardar el resultado en localStorage
-              if (response.finalPayload) {
-                try {
-                  const payload = response.finalPayload as unknown as MiniAppRequestPermissionPayload
-                  if (payload.status === "success") {
-                    localStorage.setItem("notification_permission", "granted")
-                    console.log("Permiso de notificaciones concedido")
-                  } else if (payload.status === "error") {
-                    localStorage.setItem("notification_permission", payload.error_code || "denied")
-                    console.log("Permiso de notificaciones denegado:", payload.error_code)
-                  }
-                } catch (error) {
-                  console.error("Error al procesar la respuesta:", error)
-                  localStorage.setItem("notification_permission", "error_processing")
-                }
-              }
-            })
-            .catch((error) => {
-              console.error("Error al solicitar permiso de notificaciones:", error)
-            })
-        }
-      }, 2000) // Un poco más de retraso que World ID para no mostrar ambos diálogos a la vez
+  //     // Pequeño retraso para asegurar que todo esté cargado y no interferir con otros diálogos
+  //     const timer = setTimeout(() => {
+  //       // Verificar si ya se solicitó antes (en sesiones anteriores)
+  //       const previousPermission = localStorage.getItem("notification_permission")
+  //       if (!previousPermission) {
+  //         const requestPayload: RequestPermissionInput = {
+  //           permission: Permission.Notifications,
+  //         }
+  //         MiniKit.commandsAsync
+  //           .requestPermission(requestPayload)
+  //           .then((response) => {
+  //             console.log("Respuesta de permiso de notificaciones:", response)
+  //             // Guardar el resultado en localStorage
+  //             if (response.finalPayload) {
+  //               try {
+  //                 const payload = response.finalPayload as unknown as MiniAppRequestPermissionPayload
+  //                 if (payload.status === "success") {
+  //                   localStorage.setItem("notification_permission", "granted")
+  //                   console.log("Permiso de notificaciones concedido")
+  //                 } else if (payload.status === "error") {
+  //                   localStorage.setItem("notification_permission", payload.error_code || "denied")
+  //                   console.log("Permiso de notificaciones denegado:", payload.error_code)
+  //                 }
+  //               } catch (error) {
+  //                 console.error("Error al procesar la respuesta:", error)
+  //                 localStorage.setItem("notification_permission", "error_processing")
+  //               }
+  //             }
+  //           })
+  //           .catch((error) => {
+  //             console.error("Error al solicitar permiso de notificaciones:", error)
+  //           })
+  //       }
+  //     }, 2000) // Un poco más de retraso que World ID para no mostrar ambos diálogos a la vez
 
-      return () => clearTimeout(timer)
-    }
-  }, [isLoading, isAuthenticated, session])
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [isLoading, isAuthenticated, session])
 
   // Efecto para mostrar el dial después de la verificación
   useEffect(() => {
@@ -285,11 +305,13 @@ export default function Home() {
             // No bloqueamos el flujo si falla la actualización del país
           }
         }
-        
-        // NUEVO: Si hay un código de referido de la cookie, registrarlo automáticamente
-        if (referralCode) {
+
+        // MODIFICADO: Verificar referido en localStorage primero, luego en cookie
+        const savedReferralCode = localStorage.getItem("referral_code") || referralCode
+
+        if (savedReferralCode) {
           try {
-            console.log("Registrando código de referido automáticamente:", referralCode);
+            console.log("Registrando código de referido:", savedReferralCode)
             const referralResponse = await fetch("/api/referral", {
               method: "POST",
               headers: {
@@ -297,17 +319,20 @@ export default function Home() {
               },
               body: JSON.stringify({
                 wallet_address: identifier,
-                referral_code: referralCode,
+                referral_code: savedReferralCode,
               }),
-            });
+            })
 
             if (!referralResponse.ok) {
-              console.error("Error al registrar el código de referido automáticamente, pero continuamos con el flujo");
+              console.error("Error al registrar el código de referido, pero continuamos con el flujo")
             } else {
-              console.log("Código de referido registrado automáticamente con éxito");
+              console.log("Código de referido registrado con éxito")
             }
+
+            // Limpiar el código guardado en localStorage
+            localStorage.removeItem("referral_code")
           } catch (error) {
-            console.error("Error al registrar el código de referido automáticamente:", error);
+            console.error("Error al registrar el código de referido:", error)
             // No bloqueamos el flujo si falla el registro del referido
           }
         }

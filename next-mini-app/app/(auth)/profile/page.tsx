@@ -228,9 +228,14 @@ export default function Profile() {
     }
   }, [country])
 
-  // Función para copiar el código de referido
-  const copyReferralCode = () => {
-    navigator.clipboard.writeText(username)
+  // Función para generar el link de referido
+  const generateReferralLink = () => {
+    return `https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3&path=/?ref=${username}`
+  }
+
+  // Función para copiar el link de referido
+  const copyReferralLink = () => {
+    navigator.clipboard.writeText(generateReferralLink())
     setIsCopied(true)
     setTimeout(() => setIsCopied(false), 2000)
   }
@@ -465,21 +470,21 @@ export default function Profile() {
 
             <p className="text-sm text-gray-300 mb-4">{t("share_referral_code")}</p>
 
-            {/* Tu código de referido */}
+            {/* Tu link de referido */}
             <div className="bg-gray-900/50 p-4 rounded-xl mb-4">
-              <p className="text-sm text-gray-400 mb-2">{t("your_referral_code")}</p>
+              <p className="text-sm text-gray-400 mb-2">{t("your_referral_link")}</p>
               <div className="flex items-center">
                 <input
                   type="text"
-                  value={username}
+                  value={generateReferralLink()}
                   readOnly
-                  className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm font-mono text-white"
-                  aria-label={t("your_referral_code")}
+                  className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-xs font-mono text-white overflow-hidden text-ellipsis"
+                  aria-label={t("your_referral_link")}
                 />
                 <button
-                  onClick={copyReferralCode}
+                  onClick={copyReferralLink}
                   className="bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black px-3 py-2 rounded-r-full transition-colors"
-                  aria-label={isCopied ? "Copied" : "Copy code"}
+                  aria-label={isCopied ? "Copied" : "Copy link"}
                 >
                   {isCopied ? (
                     <svg
@@ -515,7 +520,7 @@ export default function Profile() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">{t("friends_must_use_exact")}</p>
+              <p className="text-xs text-gray-500 mt-2">{t("share_this_link_with_friends")}</p>
             </div>
 
             {/* Invitaciones Totales */}

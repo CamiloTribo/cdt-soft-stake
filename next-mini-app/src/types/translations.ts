@@ -98,6 +98,8 @@ export type TranslationKey =
   | "total_invitations"
   | "share_referral_code"
   | "your_referral_code"
+  | "your_referral_link"
+  | "share_this_link_with_friends"
   | "friends_must_use"
   | "friends_must_use_exact"
   | "send_invitation"
@@ -304,3 +306,6 @@ export type TranslationKey =
   | "cryptotribers_lore"
   | "millotribers_lore"
   | "legendarytribers_lore"
+  // Nuevas claves para el sistema de referidos por link
+  | "your_referral_link"
+  | "share_this_link_with_friends"
