@@ -799,7 +799,7 @@ export default function ProyectoTriboPage() {
         <div className="mt-16 relative">
           <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
             <a
-              href="https://world.org/es-es/ecosystem/app_8aeb55d57b7be834fb8d67e2f803d258?ref=gfErdQ1g"
+              href="https://world.org/mini-app?app_id=app_8aeb55d57b7be834fb8d67e2f803d258"
               target="_blank"
               rel="noopener noreferrer"
               className="block"
