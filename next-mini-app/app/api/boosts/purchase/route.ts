@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     const { wallet_address, username, level, quantity, price_paid, transaction_hash } = await request.json()
 
-    // Validar datos requeridos
+    // Validar datos requeridos (transaction_hash VUELVE A SER OBLIGATORIO)
     if (!wallet_address || !username || level === undefined || !quantity || !price_paid || !transaction_hash) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
     }

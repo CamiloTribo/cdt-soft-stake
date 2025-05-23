@@ -7,6 +7,13 @@ import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
 import { useTranslation } from "../TranslationProvider"
 
+// Definir el tipo correcto para el resultado de pay()
+interface PaymentResult {
+  success: boolean
+  txHash?: string
+  transactionHash?: string
+}
+
 interface BoostModalProps {
   isOpen: boolean
   onCloseAction: () => void
@@ -50,13 +57,17 @@ export function BoostModal({
       setError(null)
 
       // Realizar pago con World ID
-      const result = await pay({
+      const result = (await pay({
         amount: totalPrice,
         token: Tokens.WLD,
         recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x2Eb67DdFf6761bC0938e670bf1e1ed46110DDABb",
-      })
+      })) as PaymentResult // Usar el tipo correcto
 
-      if (result.success) {
+      // CAMBIO IMPORTANTE: Verificar que el pago se completó Y tiene hash
+      if (result.success && (result.txHash || result.transactionHash)) {
+        // Obtener el hash de la transacción
+        const txHash = result.txHash || result.transactionHash
+
         // Registrar compra en la base de datos
         const response = await fetch("/api/boosts/purchase", {
           method: "POST",
@@ -69,6 +80,7 @@ export function BoostModal({
             quantity,
             price_paid: totalPrice,
             level: userLevel,
+            transaction_hash: txHash, // AÑADIDO: Enviar el hash real
           }),
         })
 
@@ -84,7 +96,8 @@ export function BoostModal({
           setError(data.message || t("error_registering_purchase"))
         }
       } else {
-        setError(t("payment_not_completed"))
+        // Si el usuario canceló o no hay hash, mostrar error
+        setError(result.success === false ? t("payment_not_completed") : t("transaction_cancelled"))
       }
     } catch (error) {
       console.error("Error purchasing boost:", error)
@@ -170,10 +183,7 @@ export function BoostModal({
               </div>
             </div>
             <h3 className="text-2xl font-bold text-[#4ebd0a] mb-2">{t("purchase_successful")}</h3>
-            <p className="text-gray-300 mb-6">
-
-{t("acquired_boosts").replace("{quantity}", quantity.toString())}
-          </p>
+            <p className="text-gray-300 mb-6">{t("acquired_boosts").replace("{quantity}", quantity.toString())}</p>
             <p className="text-sm text-gray-400">{t("next_rewards_multiplied")}</p>
           </div>
         ) : (
