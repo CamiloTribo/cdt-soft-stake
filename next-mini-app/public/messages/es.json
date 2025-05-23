@@ -342,6 +342,8 @@
   "claim_with_boost": "Reclamar Recompensas (x2)",
   "boost_active_x2": "x2",
   "boosted_by_x2": "Potenciado por BOOSTER TRIBER",
-  "transaction_not_confirmed": "Transacción no confirmada en blockchain",
-  "transaction_hash_missing": "No se pudo obtener el hash de la transacción"
+
+  "payment_cancelled_or_failed": "El pago fue cancelado o falló",
+  "no_transaction_hash": "No se recibió hash de transacción",
+  "transaction_verification_failed": "La verificación de la transacción falló"
 }

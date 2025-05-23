@@ -337,7 +337,9 @@ export type TranslationKey =
   | "payment_not_completed"
   | "error_processing_purchase"
   | "claim_with_boost"
-| "boost_active_x2"
-| "boosted_by_x2"
-| "transaction_not_confirmed"
-| "transaction_hash_missing"
+  | "boost_active_x2"
+  | "boosted_by_x2"
+  // Nuevas claves para verificación de transacciones
+  | "payment_cancelled_or_failed"
+  | "no_transaction_hash"
+  | "transaction_verification_failed"
