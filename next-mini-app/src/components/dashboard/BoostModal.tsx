@@ -38,6 +38,7 @@ export function BoostModal({
   const { pay } = useWorldAuth()
   const [quantity, setQuantity] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [verifyingBlockchain, setVerifyingBlockchain] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,8 +55,16 @@ export function BoostModal({
       // Esperar un poco para que la transacción se propague
       await new Promise((resolve) => setTimeout(resolve, 3000))
 
+      // Verificar en WorldScan API
       const response = await fetch(`https://worldscan.org/api/v1/tx/${txHash}`)
+
+      if (!response.ok) {
+        console.error("WorldScan API error:", response.status)
+        return false
+      }
+
       const data = await response.json()
+      console.log("WorldScan API response:", data)
 
       // Verificar que la transacción existe y fue exitosa
       return data && data.status === "success" && data.hash === txHash
@@ -78,7 +87,7 @@ export function BoostModal({
       const result = (await pay({
         amount: totalPrice,
         token: Tokens.WLD,
-        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x2Eb67DdFf6761bC0938e670bf1e1ed46110DDABb",
+        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })) as PaymentResult
 
       console.log("Payment result:", result) // Para debug
@@ -89,8 +98,13 @@ export function BoostModal({
         const txHash = result.txHash || result.transactionHash || result.hash
 
         if (txHash) {
+          // Mostrar estado de verificación blockchain
+          setVerifyingBlockchain(true)
+
           // VERIFICACIÓN BLOCKCHAIN: Confirmar que la transacción existe
           const isTransactionValid = await verifyTransactionOnBlockchain(txHash)
+
+          setVerifyingBlockchain(false)
 
           if (isTransactionValid) {
             // Solo ahora crear el boost
@@ -121,10 +135,10 @@ export function BoostModal({
               setError(data.message || t("error_registering_purchase"))
             }
           } else {
-            setError(t("transaction_not_confirmed"))
+            setError("Transacción no confirmada en blockchain")
           }
         } else {
-          setError(t("transaction_hash_missing"))
+          setError("No se pudo obtener el hash de la transacción")
         }
       } else {
         setError(t("payment_not_completed"))
@@ -134,6 +148,7 @@ export function BoostModal({
       setError(t("error_processing_purchase"))
     } finally {
       setIsLoading(false)
+      setVerifyingBlockchain(false)
     }
   }
 
@@ -142,7 +157,7 @@ export function BoostModal({
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] border border-[#4ebd0a] rounded-xl p-6 max-w-md w-full">
-        {!isLoading && !purchaseSuccess ? (
+        {!isLoading && !verifyingBlockchain && !purchaseSuccess ? (
           <>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-[#4ebd0a]">{t("buy_boosts")}</h2>
@@ -202,6 +217,22 @@ export function BoostModal({
 
             {error && <div className="text-red-500 text-sm text-center mt-2">{error}</div>}
           </>
+        ) : verifyingBlockchain ? (
+          <div className="text-center py-12">
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
+            </div>
+            <p className="text-gray-300">Verificando transacción en blockchain...</p>
+            <p className="text-xs text-gray-500 mt-2">Esto puede tomar unos segundos</p>
+          </div>
+        ) : isLoading ? (
+          <div className="text-center py-12">
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
+            </div>
+            <p className="text-gray-300">{t("processing_purchase")}</p>
+            <p className="text-xs text-gray-500 mt-2">{t("dont_close_window")}</p>
+          </div>
         ) : purchaseSuccess ? (
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">
@@ -216,15 +247,7 @@ export function BoostModal({
             <p className="text-gray-300 mb-6">{t("acquired_boosts").replace("{quantity}", quantity.toString())}</p>
             <p className="text-sm text-gray-400">{t("next_rewards_multiplied")}</p>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="flex justify-center mb-6">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
-            </div>
-            <p className="text-gray-300">{t("processing_purchase")}</p>
-            <p className="text-xs text-gray-500 mt-2">{t("dont_close_window")}</p>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   )
