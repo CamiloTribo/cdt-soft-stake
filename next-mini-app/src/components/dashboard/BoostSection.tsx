@@ -118,12 +118,13 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
               </p>
             </div>
 
+            {/* BOTÓN DESACTIVADO */}
             {availableBoosts < 7 && (
               <button
-                onClick={() => setShowModal(true)}
-                className="bg-gradient-to-r from-[#4ebd0a] to-[#6dd00f] text-black font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-[#4ebd0a]/25 transition-all duration-300 transform hover:scale-105"
+                disabled={true}
+                className="bg-gray-500 text-black font-bold py-3 px-6 rounded-full cursor-not-allowed"
               >
-                {t("buy_boost")}
+                Temporalmente desactivado
               </button>
             )}
           </div>
@@ -136,16 +137,16 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
             </div>
           )}
 
-          {/* Oferta especial */}
-          <div className="mt-4 p-3 bg-gradient-to-r from-[#4ebd0a]/10 to-transparent border border-[#4ebd0a]/30 rounded-lg">
-            <p className="text-sm text-[#4ebd0a] font-medium">🎉 {t("launch_offer")}</p>
-            <p className="text-xs text-gray-400">{t("first_100_boosts_50_off")}</p>
+          {/* MENSAJE DE MANTENIMIENTO */}
+          <div className="mt-4 p-3 bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 rounded-lg">
+            <p className="text-sm text-amber-500 font-medium">🔧 Servicio temporalmente desactivado</p>
+            <p className="text-xs text-gray-400">Estamos mejorando el sistema. Vuelve pronto.</p>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
+      {/* Modal desactivado - no se abrirá */}
+      {false && showModal && (
         <BoostModal
           isOpen={showModal}
           onCloseAction={() => setShowModal(false)}
