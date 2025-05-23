@@ -48,6 +48,23 @@ export function BoostModal({
     return basePrice * 0.5 // 50% de descuento
   }
 
+  // Función para verificar transacción en WorldScan
+  const verifyTransactionOnBlockchain = async (txHash: string): Promise<boolean> => {
+    try {
+      // Esperar un poco para que la transacción se propague
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+
+      const response = await fetch(`https://worldscan.org/api/v1/tx/${txHash}`)
+      const data = await response.json()
+
+      // Verificar que la transacción existe y fue exitosa
+      return data && data.status === "success" && data.hash === txHash
+    } catch (error) {
+      console.error("Error verifying transaction:", error)
+      return false
+    }
+  }
+
   const boostPrice = getBoostPrice(userLevel)
   const totalPrice = boostPrice * quantity
   const maxQuantity = Math.min(7 - currentBoosts, 7)
@@ -57,50 +74,57 @@ export function BoostModal({
       setIsLoading(true)
       setError(null)
 
-      // CORREGIDO: Usar la wallet correcta
+      // Realizar pago con World ID
       const result = (await pay({
         amount: totalPrice,
         token: Tokens.WLD,
-        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
+        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x2Eb67DdFf6761bC0938e670bf1e1ed46110DDABb",
       })) as PaymentResult
 
       console.log("Payment result:", result) // Para debug
 
       // Verificar que el pago fue exitoso
       if (result && result.success === true) {
-        // Generar un hash único para la transacción si no existe
-        const txHash =
-          result.txHash ||
-          result.transactionHash ||
-          result.hash ||
-          "0x" + Date.now().toString(16) + Math.random().toString(16).substring(2, 8)
+        // Intentar obtener el hash de la transacción
+        const txHash = result.txHash || result.transactionHash || result.hash
 
-        // Registrar compra en la base de datos
-        const response = await fetch("/api/boosts/purchase", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            wallet_address: walletAddress,
-            username,
-            quantity,
-            price_paid: totalPrice,
-            level: userLevel,
-            transaction_hash: txHash,
-          }),
-        })
+        if (txHash) {
+          // VERIFICACIÓN BLOCKCHAIN: Confirmar que la transacción existe
+          const isTransactionValid = await verifyTransactionOnBlockchain(txHash)
 
-        const data = await response.json()
+          if (isTransactionValid) {
+            // Solo ahora crear el boost
+            const response = await fetch("/api/boosts/purchase", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                wallet_address: walletAddress,
+                username,
+                quantity,
+                price_paid: totalPrice,
+                level: userLevel,
+                transaction_hash: txHash,
+              }),
+            })
 
-        if (data.success) {
-          setPurchaseSuccess(true)
-          setTimeout(() => {
-            onPurchaseSuccessAction()
-            onCloseAction()
-          }, 2000)
+            const data = await response.json()
+
+            if (data.success) {
+              setPurchaseSuccess(true)
+              setTimeout(() => {
+                onPurchaseSuccessAction()
+                onCloseAction()
+              }, 2000)
+            } else {
+              setError(data.message || t("error_registering_purchase"))
+            }
+          } else {
+            setError(t("transaction_not_confirmed"))
+          }
         } else {
-          setError(data.message || t("error_registering_purchase"))
+          setError(t("transaction_hash_missing"))
         }
       } else {
         setError(t("payment_not_completed"))
