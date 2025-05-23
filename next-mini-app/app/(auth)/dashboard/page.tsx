@@ -19,16 +19,16 @@ import { SupportSection } from "../../../src/components/dashboard/SupportSection
 import { CountryModal } from "../../../src/components/dashboard/CountryModal"
 import { WelcomeGiftModal } from "../../../src/components/dashboard/WelcomeGiftModal"
 import { LevelSection } from "../../../src/components/dashboard/LevelSection"
+// NUEVO: Importar BoostSection
+import { BoostSection } from "../../../src/components/dashboard/BoostSection"
 
 // URL base para todas las llamadas a API
 const baseUrl = "https://tribo-vault.vercel.app"
 
 // Función para obtener la URL de swap
 function getSwapUrl() {
-  // CAMBIO 1: Actualizado el link de swap
   return (
-    process.env.NEXT_PUBLIC_BUY_CDT_URL ||
-    "https://world.org/mini-app?app_id=app_25cf6ee1d9660721e651d43cf126953a&path=/?ref=tribo-vault"
+    process.env.NEXT_PUBLIC_BUY_CDT_URL || "https://worldcoin.org/mini-app?app_id=app_adf5744abe7aef9fe2a5841d4f1552d3"
   )
 }
 
@@ -62,7 +62,7 @@ export default function Dashboard() {
   const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
   const [isTelegramHovered, setIsTelegramHovered] = useState(false)
   const [isTwitterHovered, setIsTwitterHovered] = useState(false)
-  const [isRuletaBannerHovered, setIsRuletaBannerHovered] = useState(false) // Nuevo estado para el banner de ruleta
+  const [isRuletaBannerHovered, setIsRuletaBannerHovered] = useState(false)
 
   // Obtener datos del dashboard usando el hook personalizado
   const {
@@ -77,6 +77,8 @@ export default function Dashboard() {
     country,
     realtimeRewards,
     areRewardsClaimable,
+    // NUEVO: Extraer datos de boost (solo hasBoost, availableBoosts se eliminó)
+    hasBoost,
     getUserIdentifier,
     formatDate,
     fetchStakingData,
@@ -566,10 +568,29 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Nueva sección de nivel - MOVIDA AQUÍ */}
-        <LevelSection stakedAmount={stakedAmount} />
+        {/* NUEVO ORDEN: Primero ClaimSection */}
+        <ClaimSection
+          timeRemaining={timeRemaining}
+          nextClaimTime={nextClaimTime}
+          realtimeRewards={realtimeRewards}
+          isClaiming={isClaiming}
+          areRewardsClaimable={areRewardsClaimable}
+          claimSuccess={claimSuccess}
+          claimError={claimError}
+          handleClaimRewardsAction={handleClaimRewards}
+          formatDateAction={formatDate}
+          hasBoost={hasBoost} // NUEVO: Pasar hasBoost
+        />
 
-        {/* Botón de Swap WLD/CDT - MODIFICADO PARA INCLUIR LA IMAGEN DE COLABORACIÓN */}
+        {/* NUEVO: Añadir BoostSection justo después de ClaimSection */}
+        <BoostSection
+          userLevel={stakedAmount >= 10000000 ? 3 : stakedAmount >= 1000000 ? 2 : stakedAmount >= 100000 ? 1 : 0}
+          walletAddress={getUserIdentifier() || ""}
+          username={username}
+          hasBoost={hasBoost}
+        />
+
+        {/* Botón de Swap WLD/CDT */}
         <div className="mb-6">
           <Link
             href={getSwapUrl()}
@@ -623,7 +644,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* CAMBIO 2: Añadir banner de ruleta 175k */}
+        {/* Banner de ruleta 175k */}
         <div className="mb-6">
           <Link
             href="https://t.me/cryptodigitaltribe/28484"
@@ -648,20 +669,10 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Sección de reclamación */}
-        <ClaimSection
-          timeRemaining={timeRemaining}
-          nextClaimTime={nextClaimTime}
-          realtimeRewards={realtimeRewards}
-          isClaiming={isClaiming}
-          areRewardsClaimable={areRewardsClaimable}
-          claimSuccess={claimSuccess}
-          claimError={claimError}
-          handleClaimRewardsAction={handleClaimRewards}
-          formatDateAction={formatDate}
-        />
+        {/* MOVIDO: LevelSection ahora va después del banner de ruleta */}
+        <LevelSection stakedAmount={stakedAmount} />
 
-        {/* Enlace a la sección de niveles - ELIMINADO DE AQUÍ */}
+        {/* Enlace a la sección de niveles */}
         <div className="mb-6">
           <Link
             href="/rankings?tab=levels"
@@ -852,4 +863,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

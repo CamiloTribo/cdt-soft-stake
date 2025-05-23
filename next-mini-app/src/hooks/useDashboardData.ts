@@ -20,6 +20,9 @@ export const useDashboardData = () => {
   const [totalClaimed, setTotalClaimed] = useState(0)
   const [country, setCountry] = useState("")
   const [realtimeRewards, setRealtimeRewards] = useState(0)
+  // NUEVO: Estado para boosts
+  const [hasBoost, setHasBoost] = useState(false)
+  const [availableBoosts, setAvailableBoosts] = useState(0)
 
   const { session } = useWorldAuth()
   const translationValues = useTranslation()
@@ -30,6 +33,34 @@ export const useDashboardData = () => {
     if (!session || !session.user || !session.user.walletAddress) return null
     return session.user.walletAddress
   }, [session])
+
+  // NUEVA: Función para verificar boosts disponibles
+  const fetchBoostData = useCallback(async () => {
+    try {
+      const identifier = getUserIdentifier()
+      if (!identifier) return
+
+      const baseUrl = "https://tribo-vault.vercel.app"
+      const response = await fetch(`${baseUrl}/api/boosts/available?wallet_address=${identifier}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setAvailableBoosts(data.available_boosts || 0)
+          setHasBoost(data.available_boosts > 0)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching boost data:", error)
+      setHasBoost(false)
+      setAvailableBoosts(0)
+    }
+  }, [getUserIdentifier])
 
   // Función para formatear el tiempo restante
   const formatTimeRemaining = useCallback(
@@ -84,7 +115,6 @@ export const useDashboardData = () => {
   const fetchTokenPrice = useCallback(async () => {
     try {
       console.log("Obteniendo precio del token en vivo...")
-      // CAMBIO AQUÍ: URL absoluta en lugar de relativa
       const baseUrl = "https://tribo-vault.vercel.app"
       const response = await fetch(`${baseUrl}/api/token-price`, {
         cache: "no-store",
@@ -131,7 +161,6 @@ export const useDashboardData = () => {
       }
 
       const timestamp = Date.now()
-      // CAMBIO AQUÍ: URL absoluta en lugar de relativa
       const baseUrl = "https://tribo-vault.vercel.app"
       const response = await fetch(`${baseUrl}/api/staking?wallet_address=${identifier}&_t=${timestamp}`, {
         cache: "no-store",
@@ -167,7 +196,6 @@ export const useDashboardData = () => {
 
       if (!username) {
         try {
-          // CAMBIO AQUÍ: URL absoluta en lugar de relativa
           const usernameResponse = await fetch(`${baseUrl}/api/username?wallet_address=${identifier}`)
           if (usernameResponse.ok) {
             const usernameData = await usernameResponse.json()
@@ -183,10 +211,13 @@ export const useDashboardData = () => {
           console.error("Error fetching username:", error)
         }
       }
+
+      // NUEVO: Obtener datos de boosts después de obtener datos de staking
+      await fetchBoostData()
     } catch (error) {
       console.error("Error fetching staking data:", error)
     }
-  }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username])
+  }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username, fetchBoostData])
 
   // Actualizar el contador cada segundo
   useEffect(() => {
@@ -285,12 +316,16 @@ export const useDashboardData = () => {
     country,
     realtimeRewards,
     areRewardsClaimable,
+    // NUEVOS: Datos de boost
+    hasBoost,
+    availableBoosts,
     getUserIdentifier,
     formatTimeRemaining,
     formatDate,
     calculateRealtimeRewards,
     fetchTokenPrice,
     fetchStakingData,
+    fetchBoostData, // NUEVA función para actualizar boosts
     calculateUsdValue,
   }
 }

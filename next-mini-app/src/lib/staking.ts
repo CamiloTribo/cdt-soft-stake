@@ -1,50 +1,50 @@
-import { supabase, type StakingInfo } from "./supabase"
+import { supabase, type StakingInfo, hasAvailableBoosts, applyBoost } from "./supabase"
 import { getCDTBalance, sendRewards } from "./blockchain"
 import { getDailyRateForAmount } from "./levels"
 import type { TranslationKey } from "../types/translations"
 
 // Función de utilidad para reintentos
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
-  let lastError;
-  
+  let lastError
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Intento ${attempt} para ${url}`);
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      console.log(`Intento ${attempt} para ${url}`)
+      const response = await fetch(url, options)
+      if (response.ok) return response
+      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`)
     } catch (error) {
-      console.warn(`Intento ${attempt} falló:`, error);
-      lastError = error;
-      
+      console.warn(`Intento ${attempt} falló:`, error)
+      lastError = error
+
       // Esperar antes de reintentar (backoff exponencial)
       if (attempt < maxRetries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+        await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
   }
-  
-  throw lastError;
+
+  throw lastError
 }
 
 // Función para normalizar valores decimales extremadamente pequeños
 function normalizeAmount(amount: number): number {
   // Si el valor es extremadamente pequeño (menor que 1e-15), lo redondeamos a 0
   if (amount < 1e-15) {
-    console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`);
-    return 0;
+    console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`)
+    return 0
   }
-  
+
   // Para otros valores pequeños pero manejables, redondeamos a 15 decimales máximo
   // Esto evita problemas con notación científica en ethers.js
   if (amount < 0.1) {
-    const rounded = parseFloat(amount.toFixed(15));
-    console.log(`Valor pequeño normalizado: ${amount} -> ${rounded}`);
-    return rounded;
+    const rounded = Number.parseFloat(amount.toFixed(15))
+    console.log(`Valor pequeño normalizado: ${amount} -> ${rounded}`)
+    return rounded
   }
-  
-  return amount;
+
+  return amount
 }
 
 // Función para obtener la información de staking de un usuario
@@ -88,12 +88,16 @@ export async function getStakingInfo(userId: string, walletAddress?: string): Pr
     // Calculamos el tiempo hasta el próximo claim
     const nextClaimTime = calculateNextClaimTime(data.last_claim_timestamp)
 
+    // Verificamos si el usuario tiene boosts disponibles
+    const hasBoost = walletAddress ? await hasAvailableBoosts(walletAddress) : false
+
     // Añadimos esta información al objeto que devolvemos
     return {
       ...data,
       pending_rewards: pendingRewards,
       next_claim_time: nextClaimTime,
       can_claim: true, // MODIFICADO: Siempre permitir claim
+      has_boost: hasBoost, // NUEVO: Indicar si tiene boost disponible
     }
   } catch (error) {
     console.error("Error al obtener información de staking:", error)
@@ -140,11 +144,11 @@ export function calculateNextClaimTime(lastClaimTimestamp: string): Date {
 export async function claimRewards(
   userId: string,
   userAddress: string,
-): Promise<{ success: boolean; amount: number; txHash: string | null }> {
+): Promise<{ success: boolean; amount: number; txHash: string | null; boosted: boolean }> {
   try {
     // Obtener información de staking
     const stakingInfo = await getStakingInfo(userId, userAddress)
-    if (!stakingInfo) return { success: false, amount: 0, txHash: null }
+    if (!stakingInfo) return { success: false, amount: 0, txHash: null, boosted: false }
 
     // Obtener el balance actual para calcular la recompensa exacta
     const currentBalance = await getCDTBalance(userAddress)
@@ -161,17 +165,40 @@ export async function claimRewards(
     // NUEVO: Normalizar el valor de recompensa para evitar errores con valores extremadamente pequeños
     rewardAmount = normalizeAmount(rewardAmount)
 
-    if (rewardAmount <= 0) return { success: false, amount: 0, txHash: null }
+    if (rewardAmount <= 0) return { success: false, amount: 0, txHash: null, boosted: false }
 
-    console.log(`Enviando ${rewardAmount} CDT a ${userAddress} (tasa: ${dailyRate * 100}%)`)
+    // NUEVO: Verificar si el usuario tiene boosts disponibles
+    const hasBoost = await hasAvailableBoosts(userAddress)
+    let boosted = false
+    let finalRewardAmount = rewardAmount
+
+    // Si tiene boost, duplicar la recompensa y registrar el uso
+    if (hasBoost) {
+      // Obtener el username del usuario
+      const { data: userData } = await supabase.from("users").select("username").eq("address", userAddress).single()
+      const username = userData?.username || null
+
+      // Aplicar el boost
+      const boostResult = await applyBoost(userAddress, username, rewardAmount)
+
+      if (boostResult.success) {
+        finalRewardAmount = boostResult.boostedAmount
+        boosted = true
+        console.log(`Boost aplicado: ${rewardAmount} -> ${finalRewardAmount} CDT para ${userAddress}`)
+      }
+    }
+
+    console.log(
+      `Enviando ${finalRewardAmount} CDT a ${userAddress} (tasa: ${dailyRate * 100}%, boost: ${boosted ? "Sí" : "No"})`,
+    )
 
     // Enviar recompensas a través de la blockchain
-    const sendResult = await sendRewards(userAddress, rewardAmount)
+    const sendResult = await sendRewards(userAddress, finalRewardAmount)
 
     // Verificar si la transacción fue exitosa
     if (!sendResult.success || !sendResult.txHash) {
       console.error("Error en sendRewards:", sendResult.error || "Transacción fallida")
-      return { success: false, amount: 0, txHash: null }
+      return { success: false, amount: 0, txHash: null, boosted: false }
     }
 
     // Actualizar la fecha del último claim (sin total_claimed)
@@ -186,35 +213,39 @@ export async function claimRewards(
 
     if (error) {
       console.error("Error updating staking info after claim:", error)
-      return { success: false, amount: rewardAmount, txHash: sendResult.txHash }
+      return { success: false, amount: finalRewardAmount, txHash: sendResult.txHash, boosted }
     }
 
     // Sincronizar el nivel del usuario
     try {
       // Construir URL absoluta - CAMBIO AQUÍ
-      const baseUrl = 'https://tribo-vault.vercel.app'; // URL fija sin variable de entorno
-      const updateLevelUrl = `${baseUrl}/api/update-level`;
-      
+      const baseUrl = "https://tribo-vault.vercel.app" // URL fija sin variable de entorno
+      const updateLevelUrl = `${baseUrl}/api/update-level`
+
       // Usar fetchWithRetry para manejar fallos temporales
-      await fetchWithRetry(updateLevelUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await fetchWithRetry(
+        updateLevelUrl,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            address: userAddress,
+            staked_amount: currentBalance,
+          }),
         },
-        body: JSON.stringify({
-          address: userAddress,
-          staked_amount: currentBalance,
-        }),
-      }, 3); // 3 intentos máximo
+        3,
+      ) // 3 intentos máximo
     } catch (error) {
       console.error("Error syncing user level:", error)
       // No interrumpimos el flujo si falla la sincronización del nivel
     }
 
-    return { success: true, amount: rewardAmount, txHash: sendResult.txHash }
+    return { success: true, amount: finalRewardAmount, txHash: sendResult.txHash, boosted }
   } catch (error) {
     console.error("Error al reclamar recompensas:", error)
-    return { success: false, amount: 0, txHash: null }
+    return { success: false, amount: 0, txHash: null, boosted: false }
   }
 }
 
@@ -267,20 +298,24 @@ export async function updateStakedAmount(userId: string, address: string): Promi
     // Sincronizar el nivel del usuario
     try {
       // Construir URL absoluta - CAMBIO AQUÍ
-      const baseUrl = 'https://tribo-vault.vercel.app'; // URL fija sin variable de entorno
-      const updateLevelUrl = `${baseUrl}/api/update-level`;
-      
+      const baseUrl = "https://tribo-vault.vercel.app" // URL fija sin variable de entorno
+      const updateLevelUrl = `${baseUrl}/api/update-level`
+
       // Usar fetchWithRetry para manejar fallos temporales
-      await fetchWithRetry(updateLevelUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await fetchWithRetry(
+        updateLevelUrl,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            address: address,
+            staked_amount: balance,
+          }),
         },
-        body: JSON.stringify({
-          address: address,
-          staked_amount: balance,
-        }),
-      }, 3); // 3 intentos máximo
+        3,
+      ) // 3 intentos máximo
     } catch (error) {
       console.error("Error syncing user level:", error)
       // No interrumpimos el flujo si falla la sincronización del nivel
