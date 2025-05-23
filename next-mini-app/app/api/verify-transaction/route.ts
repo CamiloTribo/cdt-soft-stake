@@ -5,6 +5,22 @@ import axios from "axios"
 const ALCHEMY_API_KEY = "w-hTDCI5WQMGz4u1G0FU0XOMGJlmPSDp"
 const ALCHEMY_API_URL = `https://worldchain-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
 
+// Interfaces para tipar las respuestas
+interface TransactionReceipt {
+  status: string
+  transactionHash: string
+  blockNumber: string
+  gasUsed: string
+}
+
+interface WorldScanResponse {
+  status: string
+  hash?: string
+  transaction?: {
+    status: string
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { txHash } = await request.json()
@@ -26,7 +42,7 @@ export async function POST(request: Request) {
       })
 
       if (response.data && response.data.result) {
-        const receipt = response.data.result
+        const receipt: TransactionReceipt = response.data.result
         const isSuccessful = receipt.status === "0x1" // 0x1 = success, 0x0 = failed
 
         console.log(`Alchemy - Transacción ${isSuccessful ? "exitosa" : "fallida"}:`, receipt)
@@ -55,7 +71,7 @@ export async function POST(request: Request) {
       })
 
       if (response.ok) {
-        const data = await response.json()
+        const data: WorldScanResponse = await response.json()
         console.log("WorldScan - Respuesta:", data)
 
         const isValid = data && (data.status === "success" || data.status === "Success")

@@ -54,6 +54,38 @@ export function BoostModal({
   const totalPrice = boostPrice * quantity
   const maxQuantity = Math.min(7 - currentBoosts, 7)
 
+  // Función para buscar transacciones recientes
+  const searchRecentTransactions = async (): Promise<string | null> => {
+    try {
+      setVerificationAttempt((prev) => prev + 1)
+      
+      const response = await fetch("/api/search-recent-transactions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: walletAddress,
+          amount: totalPrice,
+          recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.txHash) {
+          console.log("Transacción encontrada:", data.txHash)
+          return data.txHash
+        }
+      }
+      
+      return null
+    } catch (error) {
+      console.error("Error buscando transacciones:", error)
+      return null
+    }
+  }
+
   const handlePurchase = async () => {
     try {
       setIsLoading(true)
@@ -77,48 +109,69 @@ export function BoostModal({
       }
 
       // Extraer el hash de la transacción
-      const txHash = result.txHash || result.transactionHash || result.hash
+      let txHash = result.txHash || result.transactionHash || result.hash
 
-      // CAMBIO PRINCIPAL: Si no hay hash pero el pago fue exitoso, 
-      // otorgar el boost de todos modos (porque el pago SÍ se procesó)
+      // Si no hay hash pero el pago fue exitoso, buscar transacciones recientes
       if (!txHash) {
-        console.log("No transaction hash received but payment was successful - granting boost anyway")
+        console.log("No transaction hash received but payment was successful")
         setVerifyingTransaction(true)
         setIsLoading(false)
         
-        // Generar un ID temporal único
-        const tempId = `manual-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
-        
-        // Registrar el boost directamente
-        const response = await fetch("/api/boosts/purchase", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            wallet_address: walletAddress,
-            username,
-            quantity,
-            price_paid: totalPrice,
-            level: userLevel,
-            transaction_hash: tempId,
-          }),
-        })
-
-        const data = await response.json()
-        setVerifyingTransaction(false)
-
-        if (data.success) {
-          setPurchaseSuccess(true)
-          setTimeout(() => {
-            onPurchaseSuccessAction()
-            onCloseAction()
-          }, 2000)
-        } else {
-          setError(data.error || t("error_registering_purchase"))
+        // Intentar buscar la transacción hasta 3 veces
+        for (let i = 0; i < 3; i++) {
+          console.log(`Intento ${i + 1} de buscar transacción reciente`)
+          
+          // Esperar 3 segundos entre intentos
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 3000))
+          }
+          
+          const foundHash = await searchRecentTransactions()
+          if (foundHash) {
+            txHash = foundHash
+            console.log("Hash encontrado:", txHash)
+            break
+          }
         }
         
-        return
+        // Si aún no hay hash después de los intentos, usar un ID temporal
+        if (!txHash) {
+          console.log("No se encontró hash después de 3 intentos")
+          
+          // Generar un ID temporal único
+          const tempId = `manual-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+          
+          // Registrar el boost con ID temporal
+          const response = await fetch("/api/boosts/purchase", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              wallet_address: walletAddress,
+              username,
+              quantity,
+              price_paid: totalPrice,
+              level: userLevel,
+              transaction_hash: tempId,
+            }),
+          })
+
+          const data = await response.json()
+          setVerifyingTransaction(false)
+
+          if (data.success) {
+            setPurchaseSuccess(true)
+            setTimeout(() => {
+              onPurchaseSuccessAction()
+              onCloseAction()
+            }, 2000)
+          } else {
+            setError(data.error || t("error_registering_purchase"))
+          }
+          
+          return
+        }
       }
 
       console.log("Transaction hash:", txHash)
@@ -128,7 +181,7 @@ export function BoostModal({
       setIsLoading(false)
       setVerificationAttempt(1)
 
-      // Verificar la transacción con Alchemy (más robusto)
+      // Verificar la transacción con Alchemy
       const verifyResponse = await fetch("/api/verify-transaction", {
         method: "POST",
         headers: {
@@ -146,7 +199,7 @@ export function BoostModal({
 
       setVerifyingTransaction(false)
 
-      // CAMBIO: Si la verificación falla pero tenemos hash (pago exitoso),
+      // Si la verificación falla pero tenemos hash (pago exitoso),
       // otorgar el boost de todos modos
       if (!verifyData.success || !verifyData.isValid) {
         console.log("Verification failed but payment was successful - granting boost anyway")
@@ -290,7 +343,7 @@ export function BoostModal({
             <p className="text-gray-300">Verificando transacción en blockchain...</p>
             <p className="text-xs text-gray-500 mt-2">
               {verificationAttempt > 0
-                ? `Verificando con Alchemy. Esto puede tomar unos segundos.`
+                ? `Intento ${verificationAttempt} de 3. Esto puede tomar unos segundos.`
                 : "Esto puede tomar unos segundos."}
             </p>
           </div>
