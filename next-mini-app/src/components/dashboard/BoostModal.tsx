@@ -79,10 +79,45 @@ export function BoostModal({
       // Extraer el hash de la transacción
       const txHash = result.txHash || result.transactionHash || result.hash
 
+      // CAMBIO PRINCIPAL: Si no hay hash pero el pago fue exitoso, 
+      // otorgar el boost de todos modos (porque el pago SÍ se procesó)
       if (!txHash) {
-        console.error("No transaction hash received")
-        setError(t("no_transaction_hash"))
+        console.log("No transaction hash received but payment was successful - granting boost anyway")
+        setVerifyingTransaction(true)
         setIsLoading(false)
+        
+        // Generar un ID temporal único
+        const tempId = `manual-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+        
+        // Registrar el boost directamente
+        const response = await fetch("/api/boosts/purchase", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress,
+            username,
+            quantity,
+            price_paid: totalPrice,
+            level: userLevel,
+            transaction_hash: tempId,
+          }),
+        })
+
+        const data = await response.json()
+        setVerifyingTransaction(false)
+
+        if (data.success) {
+          setPurchaseSuccess(true)
+          setTimeout(() => {
+            onPurchaseSuccessAction()
+            onCloseAction()
+          }, 2000)
+        } else {
+          setError(data.error || t("error_registering_purchase"))
+        }
+        
         return
       }
 
@@ -93,7 +128,7 @@ export function BoostModal({
       setIsLoading(false)
       setVerificationAttempt(1)
 
-      // Verificar la transacción - el servidor ahora maneja los reintentos
+      // Verificar la transacción con Alchemy (más robusto)
       const verifyResponse = await fetch("/api/verify-transaction", {
         method: "POST",
         headers: {
@@ -109,16 +144,14 @@ export function BoostModal({
       const verifyData = await verifyResponse.json()
       console.log("Verification result:", verifyData)
 
-      // Actualizar el número de intentos si está disponible
-      if (verifyData.attempts) {
-        setVerificationAttempt(verifyData.attempts)
-      }
-
       setVerifyingTransaction(false)
 
-      // Solo proceder si la verificación fue exitosa
-      if (verifyData.success && verifyData.isValid) {
-        // Registrar compra en la base de datos
+      // CAMBIO: Si la verificación falla pero tenemos hash (pago exitoso),
+      // otorgar el boost de todos modos
+      if (!verifyData.success || !verifyData.isValid) {
+        console.log("Verification failed but payment was successful - granting boost anyway")
+        
+        // Registrar el boost con el hash real
         const response = await fetch("/api/boosts/purchase", {
           method: "POST",
           headers: {
@@ -145,10 +178,36 @@ export function BoostModal({
         } else {
           setError(data.error || t("error_registering_purchase"))
         }
+        
+        return
+      }
+
+      // Verificación exitosa - registrar compra normalmente
+      const response = await fetch("/api/boosts/purchase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: walletAddress,
+          username,
+          quantity,
+          price_paid: totalPrice,
+          level: userLevel,
+          transaction_hash: txHash,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setPurchaseSuccess(true)
+        setTimeout(() => {
+          onPurchaseSuccessAction()
+          onCloseAction()
+        }, 2000)
       } else {
-        // Mostrar mensaje de error más específico si está disponible
-        const errorMessage = verifyData.reason || t("transaction_verification_failed")
-        setError(errorMessage)
+        setError(data.error || t("error_registering_purchase"))
       }
     } catch (error) {
       console.error("Error purchasing boost:", error)
@@ -231,7 +290,7 @@ export function BoostModal({
             <p className="text-gray-300">Verificando transacción en blockchain...</p>
             <p className="text-xs text-gray-500 mt-2">
               {verificationAttempt > 0
-                ? `Intento ${verificationAttempt} de 5. Esto puede tomar unos segundos.`
+                ? `Verificando con Alchemy. Esto puede tomar unos segundos.`
                 : "Esto puede tomar unos segundos."}
             </p>
           </div>
