@@ -6,13 +6,10 @@ export async function POST(request: Request) {
   try {
     const { wallet_address, username, level, quantity, price_paid, transaction_hash } = await request.json()
 
-    // Validar datos requeridos (transaction_hash ahora es opcional)
-    if (!wallet_address || !username || level === undefined || !quantity || !price_paid) {
+    // Validar datos requeridos
+    if (!wallet_address || !username || level === undefined || !quantity || !price_paid || !transaction_hash) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
     }
-
-    // Generar hash aleatorio si no se proporciona (para compatibilidad)
-    const tx_hash = transaction_hash || "0x" + Math.random().toString(16).substring(2, 18)
 
     // Verificar que el usuario no exceda el límite de 7 boosts
     const { data: existingBoosts, error: checkError } = await supabase
@@ -47,7 +44,7 @@ export async function POST(request: Request) {
         quantity_remaining: quantity,
         is_active: true,
         price_paid: price_paid,
-        transaction_hash: tx_hash, // Usar el hash (real o generado)
+        transaction_hash: transaction_hash,
       })
       .select()
 
