@@ -34,6 +34,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       total_boosts: totalBoosts,
+      available_boosts: totalBoosts,
       has_active_boost: hasActiveBoost,
       boosts: boosts || [],
     })
