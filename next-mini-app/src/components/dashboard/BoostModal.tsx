@@ -41,7 +41,6 @@ export function BoostModal({
   const [verifyingTransaction, setVerifyingTransaction] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [verificationAttempt, setVerificationAttempt] = useState(0)
 
   // Función para calcular precio del boost según nivel
   const getBoostPrice = (level: number): number => {
@@ -54,89 +53,10 @@ export function BoostModal({
   const totalPrice = boostPrice * quantity
   const maxQuantity = Math.min(7 - currentBoosts, 7)
 
-  // Función para verificar si una transacción existe realmente
-  const verifyTransactionExists = async (txHash: string): Promise<boolean> => {
-    try {
-      const response = await fetch("/api/verify-transaction", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ txHash }),
-      })
-
-      if (!response.ok) return false
-
-      const data = await response.json()
-      return data.success && data.isValid
-    } catch (error) {
-      console.error("Error verifying transaction:", error)
-      return false
-    }
-  }
-
-  // Función para buscar transacciones recientes
-  const searchRecentTransactions = async (): Promise<string | null> => {
-    try {
-      setVerificationAttempt((prev) => prev + 1)
-      
-      const response = await fetch("/api/search-recent-transactions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          wallet_address: walletAddress,
-          amount: totalPrice,
-          recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
-        }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.txHash) {
-          console.log("Transacción encontrada:", data.txHash)
-          
-          // VERIFICACIÓN ADICIONAL: Comprobar que la transacción existe realmente
-          const exists = await verifyTransactionExists(data.txHash)
-          if (exists) {
-            return data.txHash
-          } else {
-            console.log("La transacción encontrada no existe o no es válida")
-          }
-        }
-      }
-      
-      return null
-    } catch (error) {
-      console.error("Error buscando transacciones:", error)
-      return null
-    }
-  }
-
   const handlePurchase = async () => {
     try {
       setIsLoading(true)
       setError(null)
-
-      // VERIFICACIÓN PREVIA: Comprobar si ya hay boosts recientes para evitar duplicados
-      try {
-        const checkResponse = await fetch(`/api/boosts/recent?wallet=${walletAddress}&minutes=5`, {
-          method: "GET",
-        })
-        
-        if (checkResponse.ok) {
-          const checkData = await checkResponse.json()
-          if (checkData.hasRecentBoost) {
-            console.log("Ya hay un boost reciente para esta wallet")
-            setError("Ya has comprado un boost recientemente. Espera unos minutos.")
-            setIsLoading(false)
-            return
-          }
-        }
-      } catch (checkError) {
-        console.error("Error checking recent boosts:", checkError)
-      }
 
       // Realizar el pago con World ID
       const result = (await pay({
@@ -147,7 +67,7 @@ export function BoostModal({
 
       console.log("Payment result:", result)
 
-      // VERIFICACIÓN CRÍTICA 1: Comprobar que el pago fue exitoso según World ID
+      // VERIFICACIÓN CRÍTICA: Solo proceder si hay success Y hash
       if (!result || !result.success) {
         console.log("Payment was cancelled or failed")
         setError(t("payment_cancelled_or_failed"))
@@ -155,39 +75,13 @@ export function BoostModal({
         return
       }
 
-      // Extraer el hash de la transacción
-      let txHash = result.txHash || result.transactionHash || result.hash
-
-      // Si no hay hash, buscar transacciones recientes
+      // BLOQUEO CRÍTICO: Si no hay hash, NO otorgar boost
+      const txHash = result.txHash || result.transactionHash || result.hash
       if (!txHash) {
-        console.log("No transaction hash received but payment was successful")
-        setVerifyingTransaction(true)
+        console.error("No transaction hash received - BLOCKING BOOST")
+        setError("Error: No se recibió confirmación de la transacción. Por favor, contacta a soporte.")
         setIsLoading(false)
-        
-        // Intentar buscar la transacción hasta 3 veces
-        for (let i = 0; i < 3; i++) {
-          console.log(`Intento ${i + 1} de buscar transacción reciente`)
-          
-          // Esperar 3 segundos entre intentos
-          if (i > 0) {
-            await new Promise(resolve => setTimeout(resolve, 3000))
-          }
-          
-          const foundHash = await searchRecentTransactions()
-          if (foundHash) {
-            txHash = foundHash
-            console.log("Hash encontrado:", txHash)
-            break
-          }
-        }
-        
-        // VERIFICACIÓN CRÍTICA 2: Si no hay hash después de buscar, NO otorgar boost
-        if (!txHash) {
-          console.log("No se encontró hash después de 3 intentos")
-          setVerifyingTransaction(false)
-          setError("No se pudo verificar el pago. Por favor, contacta a soporte.")
-          return
-        }
+        return
       }
 
       console.log("Transaction hash:", txHash)
@@ -195,21 +89,33 @@ export function BoostModal({
       // Cambiar a estado de verificación
       setVerifyingTransaction(true)
       setIsLoading(false)
-      setVerificationAttempt(1)
 
-      // VERIFICACIÓN CRÍTICA 3: Verificar que la transacción existe en la blockchain
-      const isValid = await verifyTransactionExists(txHash)
-      
+      // Verificar la transacción
+      const verifyResponse = await fetch("/api/verify-transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ txHash }),
+      })
+
+      if (!verifyResponse.ok) {
+        throw new Error("Failed to verify transaction")
+      }
+
+      const verifyData = await verifyResponse.json()
+      console.log("Verification result:", verifyData)
+
       setVerifyingTransaction(false)
 
-      // Si la transacción no es válida, NO otorgar boost
-      if (!isValid) {
-        console.log("Transaction verification failed")
-        setError("La verificación de la transacción falló. Por favor, contacta a soporte.")
+      // BLOQUEO CRÍTICO: Solo otorgar boost si la verificación es exitosa
+      if (!verifyData.success || !verifyData.isValid) {
+        console.log("Transaction verification failed - BLOCKING BOOST")
+        setError("La verificación de la transacción falló. Por favor, contacta a soporte con este hash: " + txHash)
         return
       }
 
-      // VERIFICACIÓN EXITOSA: Registrar compra
+      // SOLO AQUÍ se otorga el boost
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
         headers: {
@@ -315,11 +221,7 @@ export function BoostModal({
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
             </div>
             <p className="text-gray-300">Verificando transacción en blockchain...</p>
-            <p className="text-xs text-gray-500 mt-2">
-              {verificationAttempt > 0
-                ? `Intento ${verificationAttempt} de 3. Esto puede tomar unos segundos.`
-                : "Esto puede tomar unos segundos."}
-            </p>
+            <p className="text-xs text-gray-500 mt-2">Esto puede tomar unos segundos.</p>
           </div>
         ) : isLoading ? (
           <div className="text-center py-12">
