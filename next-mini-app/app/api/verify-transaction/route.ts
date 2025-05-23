@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
     // Verificar la transacción en WorldScan con múltiples intentos
     let attempts = 0
-    const maxAttempts = 3
+    const maxAttempts = 3 // Intentar 3 veces (aproximadamente 5 segundos en total)
 
     while (attempts < maxAttempts) {
       try {
@@ -46,52 +46,87 @@ export async function POST(request: Request) {
             }
           }
 
-          return NextResponse.json({
-            success: true,
-            isValid,
-            data: data,
-            attempts: attempts + 1,
-          })
+          // Si encontramos la transacción y es válida, retornar inmediatamente
+          if (isValid) {
+            return NextResponse.json({
+              success: true,
+              isValid: true,
+              data: data,
+              attempts: attempts + 1,
+            })
+          } else {
+            // Si encontramos la transacción pero NO es válida, retornar inmediatamente como inválida
+            return NextResponse.json({
+              success: true,
+              isValid: false,
+              data: data,
+              attempts: attempts + 1,
+              reason: "Transaction found but not successful",
+            })
+          }
         } else {
           console.error(`WorldScan API error: ${response.status} - ${response.statusText}`)
 
-          // Si es 404, la transacción no existe aún
+          // Si es 404, la transacción no existe aún, esperar y reintentar
           if (response.status === 404) {
             attempts++
             if (attempts < maxAttempts) {
-              console.log("Transaction not found, waiting 3 seconds before retry...")
-              await new Promise((resolve) => setTimeout(resolve, 3000))
+              console.log("Transaction not found, waiting 2 seconds before retry...")
+              await new Promise((resolve) => setTimeout(resolve, 2000))
               continue
+            } else {
+              // Si agotamos los intentos y no encontramos la transacción, es inválida
+              return NextResponse.json({
+                success: true,
+                isValid: false,
+                reason: "Transaction not found after multiple attempts",
+                attempts: maxAttempts,
+              })
             }
           } else {
-            // Para otros errores, salir inmediatamente
-            break
+            // Para otros errores, considerar inválida
+            return NextResponse.json({
+              success: true,
+              isValid: false,
+              reason: `API error: ${response.status}`,
+              attempts: attempts + 1,
+            })
           }
         }
       } catch (fetchError) {
         console.error(`Fetch error on attempt ${attempts + 1}:`, fetchError)
         attempts++
+
         if (attempts < maxAttempts) {
           await new Promise((resolve) => setTimeout(resolve, 2000))
+        } else {
+          // Si agotamos los intentos con errores, considerar inválida
+          return NextResponse.json({
+            success: true,
+            isValid: false,
+            reason: "Error connecting to verification service",
+            attempts: maxAttempts,
+          })
         }
       }
     }
 
     // Si llegamos aquí, todos los intentos fallaron
-    console.log("All verification attempts failed, assuming transaction is valid")
     return NextResponse.json({
       success: true,
-      isValid: true, // Asumir válida si no podemos verificar
-      data: null,
+      isValid: false,
+      reason: "Could not verify transaction after multiple attempts",
       attempts: maxAttempts,
-      note: "Could not verify with WorldScan, assuming valid",
     })
   } catch (error) {
     console.error("Error in verify-transaction:", error)
-    return NextResponse.json({
-      success: true,
-      isValid: true, // En caso de error, asumir válida
-      error: "Verification service unavailable",
-    })
+    return NextResponse.json(
+      {
+        success: false,
+        isValid: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    )
   }
 }

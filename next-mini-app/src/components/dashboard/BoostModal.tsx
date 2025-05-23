@@ -38,6 +38,7 @@ export function BoostModal({
   const { pay } = useWorldAuth()
   const [quantity, setQuantity] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [verifyingTransaction, setVerifyingTransaction] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,23 +47,6 @@ export function BoostModal({
     const basePrices = [0.05, 0.5, 5, 10]
     const basePrice = basePrices[level] || basePrices[0]
     return basePrice * 0.5 // 50% de descuento
-  }
-
-  // Función para verificar transacción en WorldScan
-  const verifyTransactionOnBlockchain = async (txHash: string): Promise<boolean> => {
-    try {
-      // Esperar un poco para que la transacción se propague
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-
-      const response = await fetch(`https://worldscan.org/api/v1/tx/${txHash}`)
-      const data = await response.json()
-
-      // Verificar que la transacción existe y fue exitosa
-      return data && data.status === "success" && data.hash === txHash
-    } catch (error) {
-      console.error("Error verifying transaction:", error)
-      return false
-    }
   }
 
   const boostPrice = getBoostPrice(userLevel)
@@ -74,65 +58,96 @@ export function BoostModal({
       setIsLoading(true)
       setError(null)
 
-      // Realizar pago con World ID
+      // Realizar el pago con World ID
       const result = (await pay({
         amount: totalPrice,
         token: Tokens.WLD,
-        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x2Eb67DdFf6761bC0938e670bf1e1ed46110DDABb",
+        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })) as PaymentResult
 
-      console.log("Payment result:", result) // Para debug
+      console.log("Payment result:", result)
 
       // Verificar que el pago fue exitoso
-      if (result && result.success === true) {
-        // Intentar obtener el hash de la transacción
-        const txHash = result.txHash || result.transactionHash || result.hash
+      if (!result || !result.success) {
+        console.log("Payment was cancelled or failed")
+        setError(t("payment_cancelled_or_failed"))
+        setIsLoading(false)
+        return
+      }
 
-        if (txHash) {
-          // VERIFICACIÓN BLOCKCHAIN: Confirmar que la transacción existe
-          const isTransactionValid = await verifyTransactionOnBlockchain(txHash)
+      // Extraer el hash de la transacción
+      const txHash = result.txHash || result.transactionHash || result.hash
 
-          if (isTransactionValid) {
-            // Solo ahora crear el boost
-            const response = await fetch("/api/boosts/purchase", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                wallet_address: walletAddress,
-                username,
-                quantity,
-                price_paid: totalPrice,
-                level: userLevel,
-                transaction_hash: txHash,
-              }),
-            })
+      if (!txHash) {
+        console.error("No transaction hash received")
+        setError(t("no_transaction_hash"))
+        setIsLoading(false)
+        return
+      }
 
-            const data = await response.json()
+      console.log("Transaction hash:", txHash)
 
-            if (data.success) {
-              setPurchaseSuccess(true)
-              setTimeout(() => {
-                onPurchaseSuccessAction()
-                onCloseAction()
-              }, 2000)
-            } else {
-              setError(data.message || t("error_registering_purchase"))
-            }
-          } else {
-            setError(t("transaction_not_confirmed"))
-          }
+      // Cambiar a estado de verificación
+      setVerifyingTransaction(true)
+      setIsLoading(false)
+
+      // Esperar un poco para que la transacción se propague
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+
+      // Verificar la transacción
+      const verifyResponse = await fetch("/api/verify-transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ txHash }),
+      })
+
+      if (!verifyResponse.ok) {
+        throw new Error("Failed to verify transaction")
+      }
+
+      const verifyData = await verifyResponse.json()
+      console.log("Verification result:", verifyData)
+
+      setVerifyingTransaction(false)
+
+      // Solo proceder si la verificación fue exitosa
+      if (verifyData.success && verifyData.isValid) {
+        // Registrar compra en la base de datos
+        const response = await fetch("/api/boosts/purchase", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress,
+            username,
+            quantity,
+            price_paid: totalPrice,
+            level: userLevel,
+            transaction_hash: txHash,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+          setPurchaseSuccess(true)
+          setTimeout(() => {
+            onPurchaseSuccessAction()
+            onCloseAction()
+          }, 2000)
         } else {
-          setError(t("transaction_hash_missing"))
+          setError(data.error || t("error_registering_purchase"))
         }
       } else {
-        setError(t("payment_not_completed"))
+        setError(t("transaction_verification_failed"))
       }
     } catch (error) {
       console.error("Error purchasing boost:", error)
       setError(t("error_processing_purchase"))
-    } finally {
+      setVerifyingTransaction(false)
       setIsLoading(false)
     }
   }
@@ -142,7 +157,7 @@ export function BoostModal({
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] border border-[#4ebd0a] rounded-xl p-6 max-w-md w-full">
-        {!isLoading && !purchaseSuccess ? (
+        {!isLoading && !verifyingTransaction && !purchaseSuccess ? (
           <>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-[#4ebd0a]">{t("buy_boosts")}</h2>
@@ -202,6 +217,22 @@ export function BoostModal({
 
             {error && <div className="text-red-500 text-sm text-center mt-2">{error}</div>}
           </>
+        ) : verifyingTransaction ? (
+          <div className="text-center py-12">
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
+            </div>
+            <p className="text-gray-300">Verificando transacción en blockchain...</p>
+            <p className="text-xs text-gray-500 mt-2">Esto puede tomar unos segundos</p>
+          </div>
+        ) : isLoading ? (
+          <div className="text-center py-12">
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
+            </div>
+            <p className="text-gray-300">{t("processing_purchase")}</p>
+            <p className="text-xs text-gray-500 mt-2">{t("dont_close_window")}</p>
+          </div>
         ) : purchaseSuccess ? (
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">
@@ -216,15 +247,7 @@ export function BoostModal({
             <p className="text-gray-300 mb-6">{t("acquired_boosts").replace("{quantity}", quantity.toString())}</p>
             <p className="text-sm text-gray-400">{t("next_rewards_multiplied")}</p>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="flex justify-center mb-6">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
-            </div>
-            <p className="text-gray-300">{t("processing_purchase")}</p>
-            <p className="text-xs text-gray-500 mt-2">{t("dont_close_window")}</p>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   )
