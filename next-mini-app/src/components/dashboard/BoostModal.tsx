@@ -41,6 +41,7 @@ export function BoostModal({
   const [verifyingTransaction, setVerifyingTransaction] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [verificationAttempt, setVerificationAttempt] = useState(0)
 
   // Función para calcular precio del boost según nivel
   const getBoostPrice = (level: number): number => {
@@ -90,11 +91,9 @@ export function BoostModal({
       // Cambiar a estado de verificación
       setVerifyingTransaction(true)
       setIsLoading(false)
+      setVerificationAttempt(1)
 
-      // Esperar un poco para que la transacción se propague
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-
-      // Verificar la transacción
+      // Verificar la transacción - el servidor ahora maneja los reintentos
       const verifyResponse = await fetch("/api/verify-transaction", {
         method: "POST",
         headers: {
@@ -109,6 +108,11 @@ export function BoostModal({
 
       const verifyData = await verifyResponse.json()
       console.log("Verification result:", verifyData)
+
+      // Actualizar el número de intentos si está disponible
+      if (verifyData.attempts) {
+        setVerificationAttempt(verifyData.attempts)
+      }
 
       setVerifyingTransaction(false)
 
@@ -142,7 +146,9 @@ export function BoostModal({
           setError(data.error || t("error_registering_purchase"))
         }
       } else {
-        setError(t("transaction_verification_failed"))
+        // Mostrar mensaje de error más específico si está disponible
+        const errorMessage = verifyData.reason || t("transaction_verification_failed")
+        setError(errorMessage)
       }
     } catch (error) {
       console.error("Error purchasing boost:", error)
@@ -223,7 +229,11 @@ export function BoostModal({
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
             </div>
             <p className="text-gray-300">Verificando transacción en blockchain...</p>
-            <p className="text-xs text-gray-500 mt-2">Esto puede tomar unos segundos</p>
+            <p className="text-xs text-gray-500 mt-2">
+              {verificationAttempt > 0
+                ? `Intento ${verificationAttempt} de 5. Esto puede tomar unos segundos.`
+                : "Esto puede tomar unos segundos."}
+            </p>
           </div>
         ) : isLoading ? (
           <div className="text-center py-12">

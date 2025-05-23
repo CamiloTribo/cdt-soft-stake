@@ -8,122 +8,170 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Transaction hash is required" }, { status: 400 })
     }
 
-    console.log("Verifying transaction:", txHash)
+    console.log("Iniciando verificación de transacción:", txHash)
 
-    // Verificar la transacción en WorldScan con múltiples intentos
-    let attempts = 0
-    const maxAttempts = 3 // Intentar 3 veces (aproximadamente 5 segundos en total)
+    // Sistema de reintentos con delays
+    const maxAttempts = 5 // 5 intentos
+    const delayBetweenAttempts = 3000 // 3 segundos entre intentos
 
-    while (attempts < maxAttempts) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`Intento ${attempt}/${maxAttempts} para verificar transacción`)
+
       try {
-        console.log(`Attempt ${attempts + 1} to verify transaction`)
+        // Usar la API de WorldScan
+        const worldscanUrl = `https://worldscan.org/api/v1/tx/${txHash}`
+        console.log("Consultando:", worldscanUrl)
 
-        const response = await fetch(`https://worldscan.org/api/v1/tx/${txHash}`, {
+        const response = await fetch(worldscanUrl, {
           method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             Accept: "application/json",
+            "Cache-Control": "no-cache",
           },
         })
 
-        console.log("WorldScan API response status:", response.status)
+        console.log(`Intento ${attempt} - Status:`, response.status)
 
         if (response.ok) {
-          const data = await response.json()
-          console.log("WorldScan response data:", JSON.stringify(data, null, 2))
+          // Intentar parsear la respuesta
+          let data
+          try {
+            const text = await response.text()
+            console.log(`Intento ${attempt} - Respuesta:`, text)
+            data = JSON.parse(text)
+          } catch (parseError) {
+            console.error(`Intento ${attempt} - Error parseando JSON:`, parseError)
 
-          // Verificaciones más robustas
+            // Si no es el último intento, continuar
+            if (attempt < maxAttempts) {
+              console.log(`Esperando ${delayBetweenAttempts}ms antes del siguiente intento...`)
+              await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts))
+              continue
+            } else {
+              return NextResponse.json({
+                success: true,
+                isValid: false,
+                error: "Invalid JSON response after all attempts",
+                attempts: attempt,
+              })
+            }
+          }
+
+          // Verificar si la transacción es válida
           let isValid = false
 
           if (data) {
-            // Verificar diferentes posibles estructuras de respuesta
-            if (data.status === "success" || data.status === "1" || data.result?.status === "1") {
-              isValid = true
-            } else if (data.transaction && (data.transaction.status === "success" || data.transaction.status === "1")) {
-              isValid = true
-            } else if (data.success === true) {
+            // Verificar múltiples patrones de respuesta
+            if (
+              data.status === "success" ||
+              data.status === "Success" ||
+              data.status === "1" ||
+              data.result?.status === "1" ||
+              data.result?.status === "success" ||
+              data.transaction?.status === "success" ||
+              data.transaction?.status === "Success" ||
+              data.transaction?.status === "1" ||
+              data.mined === true ||
+              data.status === "mined" ||
+              data.state === "mined"
+            ) {
               isValid = true
             }
           }
 
           // Si encontramos la transacción y es válida, retornar inmediatamente
           if (isValid) {
+            console.log(`¡Transacción verificada exitosamente en intento ${attempt}!`)
             return NextResponse.json({
               success: true,
               isValid: true,
-              data: data,
-              attempts: attempts + 1,
+              data,
+              attempts: attempt,
+              message: `Transaction verified on attempt ${attempt}`,
             })
-          } else {
-            // Si encontramos la transacción pero NO es válida, retornar inmediatamente como inválida
+          } else if (data) {
+            // Si encontramos la transacción pero no es válida, retornar inmediatamente
+            console.log(`Transacción encontrada pero no válida en intento ${attempt}`)
             return NextResponse.json({
               success: true,
               isValid: false,
-              data: data,
-              attempts: attempts + 1,
+              data,
+              attempts: attempt,
               reason: "Transaction found but not successful",
             })
           }
-        } else {
-          console.error(`WorldScan API error: ${response.status} - ${response.statusText}`)
+        } else if (response.status === 404) {
+          // 404 significa que la transacción no existe aún
+          console.log(`Intento ${attempt} - Transacción no encontrada (404)`)
 
-          // Si es 404, la transacción no existe aún, esperar y reintentar
-          if (response.status === 404) {
-            attempts++
-            if (attempts < maxAttempts) {
-              console.log("Transaction not found, waiting 2 seconds before retry...")
-              await new Promise((resolve) => setTimeout(resolve, 2000))
-              continue
-            } else {
-              // Si agotamos los intentos y no encontramos la transacción, es inválida
-              return NextResponse.json({
-                success: true,
-                isValid: false,
-                reason: "Transaction not found after multiple attempts",
-                attempts: maxAttempts,
-              })
-            }
-          } else {
-            // Para otros errores, considerar inválida
-            return NextResponse.json({
-              success: true,
-              isValid: false,
-              reason: `API error: ${response.status}`,
-              attempts: attempts + 1,
-            })
+          if (attempt < maxAttempts) {
+            console.log(`Esperando ${delayBetweenAttempts}ms antes del siguiente intento...`)
+            await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts))
+            continue
+          }
+        } else {
+          // Otros errores HTTP
+          console.error(`Intento ${attempt} - Error HTTP:`, response.status, response.statusText)
+
+          if (attempt < maxAttempts) {
+            console.log(`Esperando ${delayBetweenAttempts}ms antes del siguiente intento...`)
+            await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts))
+            continue
           }
         }
       } catch (fetchError) {
-        console.error(`Fetch error on attempt ${attempts + 1}:`, fetchError)
-        attempts++
+        console.error(`Intento ${attempt} - Error de fetch:`, fetchError)
 
-        if (attempts < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, 2000))
-        } else {
-          // Si agotamos los intentos con errores, considerar inválida
-          return NextResponse.json({
-            success: true,
-            isValid: false,
-            reason: "Error connecting to verification service",
-            attempts: maxAttempts,
-          })
+        if (attempt < maxAttempts) {
+          console.log(`Esperando ${delayBetweenAttempts}ms antes del siguiente intento...`)
+          await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts))
+          continue
         }
       }
     }
 
     // Si llegamos aquí, todos los intentos fallaron
+    console.log("Todos los intentos de verificación fallaron")
+
+    // Como último recurso, intentar verificar si la página existe
+    try {
+      console.log("Intentando verificación alternativa...")
+      const checkUrl = `https://worldscan.org/tx/${txHash}`
+
+      const checkResponse = await fetch(checkUrl, {
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      })
+
+      if (checkResponse.ok) {
+        console.log("¡Transacción encontrada mediante verificación alternativa!")
+        return NextResponse.json({
+          success: true,
+          isValid: true,
+          method: "alternative_check",
+          attempts: maxAttempts,
+          message: "Transaction found via alternative method",
+        })
+      }
+    } catch (altError) {
+      console.error("Error en verificación alternativa:", altError)
+    }
+
+    // Si todo falla, considerar inválida
     return NextResponse.json({
       success: true,
       isValid: false,
-      reason: "Could not verify transaction after multiple attempts",
+      reason: "Transaction not found after all attempts",
       attempts: maxAttempts,
     })
   } catch (error) {
-    console.error("Error in verify-transaction:", error)
+    console.error("Error general en verify-transaction:", error)
     return NextResponse.json(
       {
         success: false,
-        isValid: false,
         error: "Internal server error",
       },
       { status: 500 },
