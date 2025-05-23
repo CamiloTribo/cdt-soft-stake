@@ -394,7 +394,7 @@ export default function Dashboard() {
   }
 
   // URL del topic de sorteos en Telegram
-  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/5474"
+  const telegramGiveawayUrl = "https://t.me/cryptodigitaltribe/1"
 
   if (isLoading) {
     return (

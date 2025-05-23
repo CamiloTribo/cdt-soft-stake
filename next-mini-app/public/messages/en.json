@@ -343,5 +343,7 @@
   "error_processing_purchase": "Error processing your purchase",
   "claim_with_boost": "Claim Rewards (x2)",
   "boost_active_x2": "x2",
-  "boosted_by_x2": "Boosted by BOOSTER TRIBER"
+  "boosted_by_x2": "Boosted by BOOSTER TRIBER",
+  "transaction_not_confirmed": "Transaction not confirmed on blockchain",
+  "transaction_hash_missing": "Could not obtain transaction hash"
 }

@@ -339,3 +339,5 @@ export type TranslationKey =
   | "claim_with_boost"
 | "boost_active_x2"
 | "boosted_by_x2"
+| "transaction_not_confirmed"
+| "transaction_hash_missing"
