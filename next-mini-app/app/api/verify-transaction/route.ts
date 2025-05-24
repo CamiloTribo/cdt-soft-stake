@@ -5,7 +5,12 @@ import axios from "axios"
 const ALCHEMY_API_KEY = "w-hTDCI5WQMGz4u1G0FU0XOMGJlmPSDp"
 const ALCHEMY_API_URL = `https://worldchain-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
 
+// Añadir un log al inicio para ver si se llama al endpoint
+console.log("🔍 VERIFY-TRANSACTION: Módulo cargado")
+
 export async function POST(request: Request) {
+  console.log("🔍 VERIFY-TRANSACTION: Endpoint llamado")
+
   try {
     const { txHash } = await request.json()
 

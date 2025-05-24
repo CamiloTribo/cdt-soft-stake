@@ -1,7 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/src/lib/supabase"
 
+// Añadir un log al inicio para ver si se llama al endpoint
+console.log("🛒 PURCHASE: Módulo cargado")
+
 export async function POST(request: NextRequest) {
+  console.log("🛒 PURCHASE: Endpoint llamado")
+
   try {
     console.log("🛒 PURCHASE: Iniciando registro de compra de boost")
     const { userId, quantity, tx_hash } = await request.json()
