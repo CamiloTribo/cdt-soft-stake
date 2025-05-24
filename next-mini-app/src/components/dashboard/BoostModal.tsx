@@ -69,7 +69,13 @@ export function BoostModal({
         recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })) as PaymentResult
 
-      console.log("💰 BOOST: Resultado del pago:", JSON.stringify(result))
+      // Logs detallados para depurar la respuesta de pay()
+      console.log("💰 BOOST: Resultado completo del pago:", JSON.stringify(result, null, 2))
+      console.log("💰 BOOST: Tipo de resultado:", typeof result)
+      console.log("💰 BOOST: Es objeto?", result !== null && typeof result === "object")
+      console.log("💰 BOOST: Tiene success?", result && "success" in result)
+      console.log("💰 BOOST: Valor de success:", result && result.success)
+      console.log("💰 BOOST: Tiene hash?", result && (result.txHash || result.transactionHash || result.hash))
 
       // VERIFICACIÓN CRÍTICA: Solo proceder si hay success Y hash
       if (!result || !result.success) {
@@ -104,6 +110,8 @@ export function BoostModal({
         try {
           // Verificar la transacción
           console.log(`🔍 BOOST: Intento de verificación ${verificationAttempts + 1} de ${maxAttempts}`)
+          console.log(`🔍 BOOST: Llamando a /api/verify-transaction con txHash: ${txHash}`)
+
           const verifyResponse = await fetch("/api/verify-transaction", {
             method: "POST",
             headers: {
@@ -111,6 +119,8 @@ export function BoostModal({
             },
             body: JSON.stringify({ txHash }),
           })
+
+          console.log(`🔍 BOOST: Respuesta de fetch: status=${verifyResponse.status}, ok=${verifyResponse.ok}`)
 
           if (!verifyResponse.ok) {
             console.error(`❌ BOOST: Error en respuesta de verificación: ${verifyResponse.status}`)
@@ -145,6 +155,7 @@ export function BoostModal({
           verificationAttempts++
         } catch (error) {
           console.error(`❌ BOOST: Error en intento de verificación ${verificationAttempts + 1}:`, error)
+          console.error(`❌ BOOST: Stack trace:`, error instanceof Error ? error.stack : "No stack trace")
           verificationAttempts++
 
           // Esperar antes de reintentar
@@ -169,6 +180,12 @@ export function BoostModal({
 
       // SOLO AQUÍ se otorga el boost
       console.log("🎁 BOOST: Verificación exitosa, procediendo a registrar la compra del boost")
+      console.log("🎁 BOOST: Llamando a /api/boosts/purchase con:", {
+        userId: walletAddress,
+        quantity,
+        tx_hash: txHash,
+      })
+
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
         headers: {
@@ -180,6 +197,8 @@ export function BoostModal({
           tx_hash: txHash,
         }),
       })
+
+      console.log(`🎁 BOOST: Respuesta de fetch: status=${response.status}, ok=${response.ok}`)
 
       const data = await response.json()
       console.log("🎁 BOOST: Respuesta del registro de compra:", JSON.stringify(data))
@@ -197,6 +216,7 @@ export function BoostModal({
       }
     } catch (error) {
       console.error("❌ BOOST: Error general en el proceso de compra:", error)
+      console.error("❌ BOOST: Stack trace:", error instanceof Error ? error.stack : "No stack trace")
       setError(t("error_processing_purchase"))
       setVerifyingTransaction(false)
       setIsLoading(false)
