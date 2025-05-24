@@ -647,7 +647,7 @@ export default function Dashboard() {
         {/* Banner de ruleta 175k */}
         <div className="mb-6">
           <Link
-            href="https://t.me/cryptodigitaltribe/28484"
+            href="https://t.me/cryptodigitaltribe/1"
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl"
