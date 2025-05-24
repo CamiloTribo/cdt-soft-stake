@@ -79,7 +79,9 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
                 <h3 className="text-xl font-bold text-[#4ebd0a] flex items-center">
                   🚀 {t("boost_your_power")}
                   {hasBoost && (
-                    <span className="ml-2 text-sm bg-[#4ebd0a] text-black px-2 py-1 rounded-full">{t("active")}</span>
+                    <span className="ml-2 text-sm bg-[#4ebd0a] text-black px-2 py-1 rounded-full">
+                      {t("active")}
+                    </span>
                   )}
                 </h3>
                 <p className="text-gray-400 text-sm">{t("multiply_x2_rewards")}</p>
@@ -109,22 +111,20 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
           {/* Información de precio */}
           <div className="flex justify-between items-center mb-4">
             <div>
-              <p className="text-sm text-gray-400">
-                {t("price_for")} {currentLevelName}:
-              </p>
+              <p className="text-sm text-gray-400">{t("price_for")} {currentLevelName}:</p>
               <p className="text-lg font-bold text-white">
                 {boostPrice} WLD
                 <span className="text-sm text-[#4ebd0a] ml-2">{t("fifty_percent_off")}</span>
               </p>
             </div>
 
-            {/* BOTÓN ACTIVADO */}
+            {/* BOTÓN DESACTIVADO */}
             {availableBoosts < 7 && (
               <button
-                onClick={() => setShowModal(true)}
-                className="bg-[#4ebd0a] hover:bg-[#3da008] text-black font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+                disabled={true}
+                className="bg-gray-500 text-black font-bold py-3 px-6 rounded-full cursor-not-allowed"
               >
-                {t("buy_boost")}
+                Temporalmente desactivado
               </button>
             )}
           </div>
@@ -136,11 +136,17 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
               <p className="text-gray-400 text-sm">{t("use_boosts_next_week")}</p>
             </div>
           )}
+
+          {/* MENSAJE DE MANTENIMIENTO */}
+          <div className="mt-4 p-3 bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 rounded-lg">
+            <p className="text-sm text-amber-500 font-medium">🔧 Servicio temporalmente desactivado</p>
+            <p className="text-xs text-gray-400">Estamos mejorando el sistema. Vuelve pronto.</p>
+          </div>
         </div>
       </div>
 
-      {/* Modal activado */}
-      {showModal && (
+      {/* Modal desactivado - no se abrirá */}
+      {false && showModal && (
         <BoostModal
           isOpen={showModal}
           onCloseAction={() => setShowModal(false)}
