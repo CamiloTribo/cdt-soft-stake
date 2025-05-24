@@ -139,7 +139,7 @@ export async function purchaseBoosts(
   level: number,
   quantity: number,
   pricePaid: number,
-  transactionHash: string,
+  tx_hash: string,
 ): Promise<boolean> {
   try {
     const { error } = await supabase.from("boosts").insert({
@@ -149,7 +149,7 @@ export async function purchaseBoosts(
       quantity_remaining: quantity,
       is_active: true,
       price_paid: pricePaid,
-      transaction_hash: transactionHash,
+      tx_hash: tx_hash,
     })
 
     if (error) {

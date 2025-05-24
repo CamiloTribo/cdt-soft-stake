@@ -7,14 +7,15 @@ import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
 import { useTranslation } from "../TranslationProvider"
 
-// Definir interfaz para el resultado de pago
+// Modificar la interfaz PaymentResult para asegurar que capturamos correctamente el hash
 interface PaymentResult {
   success: boolean
-  txHash?: string
+  txHash?: string // Cambiado de transaction_hash a txHash para consistencia
   transactionHash?: string
   hash?: string
 }
 
+// Modificar la interfaz BoostModalProps para mantener consistencia
 interface BoostModalProps {
   isOpen: boolean
   onCloseAction: () => void
@@ -53,6 +54,7 @@ export function BoostModal({
   const totalPrice = boostPrice * quantity
   const maxQuantity = Math.min(7 - currentBoosts, 7)
 
+  // Modificar la función handlePurchase para mejorar la verificación
   const handlePurchase = async () => {
     try {
       setIsLoading(true)
@@ -90,28 +92,61 @@ export function BoostModal({
       setVerifyingTransaction(true)
       setIsLoading(false)
 
-      // Verificar la transacción
-      const verifyResponse = await fetch("/api/verify-transaction", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ txHash }),
-      })
+      // Mejorar la verificación de la transacción con polling
+      let verificationAttempts = 0
+      const maxAttempts = 5
+      let isVerified = false
 
-      if (!verifyResponse.ok) {
-        throw new Error("Failed to verify transaction")
+      while (verificationAttempts < maxAttempts && !isVerified) {
+        try {
+          // Verificar la transacción
+          const verifyResponse = await fetch("/api/verify-transaction", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ txHash }),
+          })
+
+          if (!verifyResponse.ok) {
+            throw new Error("Failed to verify transaction")
+          }
+
+          const verifyData = await verifyResponse.json()
+          console.log(`Verification attempt ${verificationAttempts + 1} result:`, verifyData)
+
+          // Si la verificación es exitosa, salir del bucle
+          if (verifyData.success && verifyData.isValid) {
+            isVerified = true
+            break
+          }
+
+          // Si no se ha verificado aún, esperar antes de reintentar
+          if (!isVerified && verificationAttempts < maxAttempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 3000)) // Esperar 3 segundos entre intentos
+          }
+
+          verificationAttempts++
+        } catch (error) {
+          console.error(`Verification attempt ${verificationAttempts + 1} failed:`, error)
+          verificationAttempts++
+
+          // Esperar antes de reintentar
+          if (verificationAttempts < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 3000))
+          }
+        }
       }
-
-      const verifyData = await verifyResponse.json()
-      console.log("Verification result:", verifyData)
 
       setVerifyingTransaction(false)
 
       // BLOQUEO CRÍTICO: Solo otorgar boost si la verificación es exitosa
-      if (!verifyData.success || !verifyData.isValid) {
-        console.log("Transaction verification failed - BLOCKING BOOST")
-        setError("La verificación de la transacción falló. Por favor, contacta a soporte con este hash: " + txHash)
+      if (!isVerified) {
+        console.log("Transaction verification failed after multiple attempts - BLOCKING BOOST")
+        setError(
+          "La verificación de la transacción falló después de varios intentos. Por favor, contacta a soporte con este hash: " +
+            txHash,
+        )
         return
       }
 
@@ -127,7 +162,7 @@ export function BoostModal({
           quantity,
           price_paid: totalPrice,
           level: userLevel,
-          transaction_hash: txHash,
+          tx_hash: txHash, // Cambiado de transaction_hash a tx_hash
         }),
       })
 
@@ -250,4 +285,3 @@ export function BoostModal({
     </div>
   )
 }
-
