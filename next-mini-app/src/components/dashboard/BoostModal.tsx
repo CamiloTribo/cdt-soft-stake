@@ -21,7 +21,7 @@ interface BoostModalProps {
   onCloseAction: () => void
   userLevel: number
   walletAddress: string
-  username: string
+  username: string // Mantenemos esto en la interfaz por si se necesita en el futuro
   currentBoosts: number
   onPurchaseSuccessAction: () => void
 }
@@ -31,7 +31,7 @@ export function BoostModal({
   onCloseAction,
   userLevel,
   walletAddress,
-  username,
+  // username, // Comentado para evitar el error de ESLint
   currentBoosts,
   onPurchaseSuccessAction,
 }: BoostModalProps) {
@@ -175,12 +175,9 @@ export function BoostModal({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          wallet_address: walletAddress,
-          username,
+          userId: walletAddress, // Cambiado de wallet_address a userId
           quantity,
-          price_paid: totalPrice,
-          level: userLevel,
-          tx_hash: txHash, // Cambiado de transaction_hash a tx_hash
+          tx_hash: txHash,
         }),
       })
 
