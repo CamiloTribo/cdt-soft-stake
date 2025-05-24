@@ -57,21 +57,23 @@ export function BoostModal({
   // Modificar la función handlePurchase para mejorar la verificación
   const handlePurchase = async () => {
     try {
+      console.log("🚀 BOOST: Iniciando proceso de compra de boost")
       setIsLoading(true)
       setError(null)
 
       // Realizar el pago con World ID
+      console.log("💰 BOOST: Iniciando pago con World ID, cantidad:", totalPrice, "WLD")
       const result = (await pay({
         amount: totalPrice,
         token: Tokens.WLD,
         recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })) as PaymentResult
 
-      console.log("Payment result:", result)
+      console.log("💰 BOOST: Resultado del pago:", JSON.stringify(result))
 
       // VERIFICACIÓN CRÍTICA: Solo proceder si hay success Y hash
       if (!result || !result.success) {
-        console.log("Payment was cancelled or failed")
+        console.log("❌ BOOST: Pago cancelado o fallido")
         setError(t("payment_cancelled_or_failed"))
         setIsLoading(false)
         return
@@ -80,13 +82,13 @@ export function BoostModal({
       // BLOQUEO CRÍTICO: Si no hay hash, NO otorgar boost
       const txHash = result.txHash || result.transactionHash || result.hash
       if (!txHash) {
-        console.error("No transaction hash received - BLOCKING BOOST")
+        console.error("❌ BOOST: No se recibió hash de transacción - BLOQUEANDO BOOST")
         setError("Error: No se recibió confirmación de la transacción. Por favor, contacta a soporte.")
         setIsLoading(false)
         return
       }
 
-      console.log("Transaction hash:", txHash)
+      console.log("🔑 BOOST: Hash de transacción obtenido:", txHash)
 
       // Cambiar a estado de verificación
       setVerifyingTransaction(true)
@@ -97,9 +99,11 @@ export function BoostModal({
       const maxAttempts = 5
       let isVerified = false
 
+      console.log("🔍 BOOST: Iniciando verificación de transacción con polling")
       while (verificationAttempts < maxAttempts && !isVerified) {
         try {
           // Verificar la transacción
+          console.log(`🔍 BOOST: Intento de verificación ${verificationAttempts + 1} de ${maxAttempts}`)
           const verifyResponse = await fetch("/api/verify-transaction", {
             method: "POST",
             headers: {
@@ -109,30 +113,43 @@ export function BoostModal({
           })
 
           if (!verifyResponse.ok) {
-            throw new Error("Failed to verify transaction")
+            console.error(`❌ BOOST: Error en respuesta de verificación: ${verifyResponse.status}`)
+            throw new Error(`Failed to verify transaction: ${verifyResponse.status}`)
           }
 
           const verifyData = await verifyResponse.json()
-          console.log(`Verification attempt ${verificationAttempts + 1} result:`, verifyData)
+          console.log(
+            `🔍 BOOST: Resultado de verificación (intento ${verificationAttempts + 1}):`,
+            JSON.stringify(verifyData),
+          )
 
           // Si la verificación es exitosa, salir del bucle
           if (verifyData.success && verifyData.isValid) {
+            console.log("✅ BOOST: Verificación exitosa!")
             isVerified = true
             break
+          } else {
+            console.log(
+              `❌ BOOST: Verificación fallida (intento ${verificationAttempts + 1}):`,
+              verifyData.success ? "Success=true" : "Success=false",
+              verifyData.isValid ? "isValid=true" : "isValid=false",
+            )
           }
 
           // Si no se ha verificado aún, esperar antes de reintentar
           if (!isVerified && verificationAttempts < maxAttempts - 1) {
+            console.log(`⏱️ BOOST: Esperando 3 segundos antes del siguiente intento...`)
             await new Promise((resolve) => setTimeout(resolve, 3000)) // Esperar 3 segundos entre intentos
           }
 
           verificationAttempts++
         } catch (error) {
-          console.error(`Verification attempt ${verificationAttempts + 1} failed:`, error)
+          console.error(`❌ BOOST: Error en intento de verificación ${verificationAttempts + 1}:`, error)
           verificationAttempts++
 
           // Esperar antes de reintentar
           if (verificationAttempts < maxAttempts) {
+            console.log(`⏱️ BOOST: Esperando 3 segundos antes del siguiente intento después de error...`)
             await new Promise((resolve) => setTimeout(resolve, 3000))
           }
         }
@@ -142,7 +159,7 @@ export function BoostModal({
 
       // BLOQUEO CRÍTICO: Solo otorgar boost si la verificación es exitosa
       if (!isVerified) {
-        console.log("Transaction verification failed after multiple attempts - BLOCKING BOOST")
+        console.log("❌ BOOST: Verificación fallida después de múltiples intentos - BLOQUEANDO BOOST")
         setError(
           "La verificación de la transacción falló después de varios intentos. Por favor, contacta a soporte con este hash: " +
             txHash,
@@ -151,6 +168,7 @@ export function BoostModal({
       }
 
       // SOLO AQUÍ se otorga el boost
+      console.log("🎁 BOOST: Verificación exitosa, procediendo a registrar la compra del boost")
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
         headers: {
@@ -167,18 +185,21 @@ export function BoostModal({
       })
 
       const data = await response.json()
+      console.log("🎁 BOOST: Respuesta del registro de compra:", JSON.stringify(data))
 
       if (data.success) {
+        console.log("✅ BOOST: Compra registrada exitosamente!")
         setPurchaseSuccess(true)
         setTimeout(() => {
           onPurchaseSuccessAction()
           onCloseAction()
         }, 2000)
       } else {
+        console.error("❌ BOOST: Error al registrar la compra:", data.error)
         setError(data.error || t("error_registering_purchase"))
       }
     } catch (error) {
-      console.error("Error purchasing boost:", error)
+      console.error("❌ BOOST: Error general en el proceso de compra:", error)
       setError(t("error_processing_purchase"))
       setVerifyingTransaction(false)
       setIsLoading(false)
