@@ -63,12 +63,12 @@ export const useDashboardData = () => {
   }, [getUserIdentifier])
 
   // NUEVA: Función para registrar la compra de boosts después del pago con WLD
-  const registerBoostPurchase = useCallback(async (quantity: number, txHash: string): Promise<boolean> => {
+  const registerBoostPurchase = useCallback(async (quantity: number): Promise<boolean> => {
     try {
       const identifier = getUserIdentifier()
       if (!identifier) return false
 
-      console.log("🚀 Registrando compra de boost:", quantity, "con hash:", txHash)
+      console.log("🚀 Registrando compra de boost:", quantity)
       
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
@@ -78,7 +78,6 @@ export const useDashboardData = () => {
         body: JSON.stringify({
           userId: identifier,
           quantity,
-          tx_hash: txHash,
         }),
       })
 

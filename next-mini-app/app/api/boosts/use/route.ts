@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       username: username,
       claim_amount_base: claim_amount,
       claim_amount_boosted: boostedAmount,
-      timestamp: new Date().toISOString(), // Añadir timestamp
+      timestamp: new Date().toISOString(),
     })
 
     if (usageError) {

@@ -83,9 +83,8 @@ export function BoostModal({
         return
       }
 
-      // Registrar directamente la compra del boost con el hash de la transacción
+      // Registrar directamente la compra del boost (sin hash)
       console.log("🎁 BOOST: Pago exitoso, procediendo a registrar la compra del boost")
-      console.log("🎁 BOOST: Hash de transacción:", finalPayload.hash)
       
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
@@ -94,8 +93,7 @@ export function BoostModal({
         },
         body: JSON.stringify({
           userId: walletAddress,
-          quantity,
-          tx_hash: finalPayload.hash,
+          quantity
         }),
       })
 

@@ -40,7 +40,6 @@ export type Boost = {
   quantity_remaining: number
   is_active: boolean
   price_paid: number
-  tx_hash: string
   purchased_at: string
   created_at: string
 }
@@ -157,7 +156,6 @@ export async function purchaseBoosts(
   level: number,
   quantity: number,
   pricePaid: number,
-  tx_hash: string,
 ): Promise<boolean> {
   try {
     const { error } = await supabase.from("boosts").insert({
@@ -168,7 +166,6 @@ export async function purchaseBoosts(
       quantity_remaining: quantity,
       is_active: true,
       price_paid: pricePaid,
-      tx_hash: tx_hash,
       purchased_at: new Date().toISOString(),
     })
 

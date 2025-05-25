@@ -8,7 +8,6 @@ export interface Boost {
   is_active: boolean
   purchased_at: string
   price_paid: number
-  transaction_hash: string
   created_at: string
 }
 
@@ -29,7 +28,6 @@ export interface PurchaseBoostRequest {
   level: number
   quantity: number
   price_paid: number
-  transaction_hash: string
 }
 
 export interface BoostResponse {
