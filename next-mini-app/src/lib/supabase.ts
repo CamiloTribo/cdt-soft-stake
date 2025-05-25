@@ -10,8 +10,11 @@ export type User = {
   id: string
   address: string
   username: string | null
-  verification_level?: "wallet" | "human" | "orb" // Añadido campo de nivel de verificación
-  country?: string | null // Añadido campo de país
+  verification_level?: "wallet" | "human" | "orb"
+  country?: string | null
+  user_id?: string // Añadido para coincidir con la estructura real
+  level?: number // Añadido para coincidir con la estructura real
+  boosts_purchased?: number // Añadido para coincidir con la estructura real
   created_at: string
 }
 
@@ -23,14 +26,28 @@ export type StakingInfo = {
   pending_rewards?: number
   next_claim_time?: Date
   can_claim?: boolean
-  has_boost?: boolean // NUEVO: Indicar si tiene boost disponible
+  has_boost?: boolean
+  created_at: string
+}
+
+// Tipo para la tabla de boosts
+export type Boost = {
+  id: string
+  user_id: string
+  username?: string | null
+  wallet_address?: string
+  level_at_purchase: number
+  quantity_remaining: number
+  is_active: boolean
+  price_paid: number
+  tx_hash: string
+  purchased_at: string
   created_at: string
 }
 
 // Función para obtener un usuario por su dirección de wallet
 export async function getUserByAddress(address: string): Promise<User | null> {
   try {
-    // Cambiado de .single() a .maybeSingle() para evitar errores cuando no hay resultados
     const { data, error } = await supabase.from("users").select("*").eq("address", address).maybeSingle()
 
     if (error) {
@@ -58,7 +75,7 @@ export async function createUser(address: string, username = "", verification_le
         },
       ])
       .select()
-      .maybeSingle() // Cambiado a maybeSingle()
+      .maybeSingle()
 
     if (error) {
       // Si el error es porque el usuario ya existe, intentamos obtenerlo
@@ -108,7 +125,7 @@ export async function updateVerificationLevel(userId: string, verificationLevel:
   }
 }
 
-// ==================== NUEVAS FUNCIONES PARA BOOSTS ====================
+// ==================== FUNCIONES PARA BOOSTS ====================
 
 // Función para obtener los boosts disponibles de un usuario
 export async function getUserAvailableBoosts(userId: string): Promise<number> {
@@ -118,6 +135,7 @@ export async function getUserAvailableBoosts(userId: string): Promise<number> {
       .select("quantity_remaining")
       .eq("user_id", userId)
       .eq("is_active", true)
+      .gt("quantity_remaining", 0)
 
     if (error) {
       console.error("Error fetching available boosts:", error)
@@ -145,11 +163,13 @@ export async function purchaseBoosts(
     const { error } = await supabase.from("boosts").insert({
       user_id: userId,
       username: username,
+      wallet_address: userId, // userId es la wallet address
       level_at_purchase: level,
       quantity_remaining: quantity,
       is_active: true,
       price_paid: pricePaid,
       tx_hash: tx_hash,
+      purchased_at: new Date().toISOString(),
     })
 
     if (error) {
@@ -164,7 +184,7 @@ export async function purchaseBoosts(
   }
 }
 
-// Función para usar un boost (RENOMBRADA para evitar confusión con React Hooks)
+// Función para usar un boost
 export async function applyBoost(
   userId: string,
   username: string | null,
@@ -182,11 +202,11 @@ export async function applyBoost(
       .limit(1)
 
     if (boostError || !boostData || boostData.length === 0) {
-      console.error("Error fetching boost or no boosts available:", boostError)
       return { success: false, boostedAmount: claimAmount }
     }
 
     const boostId = boostData[0].id
+    const currentQuantity = boostData[0].quantity_remaining
 
     // 2. Registrar el uso del boost
     const { error: usageError } = await supabase.from("boost_usage").insert({
@@ -195,6 +215,7 @@ export async function applyBoost(
       username: username,
       claim_amount_base: claimAmount,
       claim_amount_boosted: claimAmount * 2, // x2 boost
+      timestamp: new Date().toISOString(),
     })
 
     if (usageError) {
@@ -203,9 +224,13 @@ export async function applyBoost(
     }
 
     // 3. Actualizar la cantidad de boosts restantes
+    const newQuantity = currentQuantity - 1
     const { error: updateError } = await supabase
       .from("boosts")
-      .update({ quantity_remaining: boostData[0].quantity_remaining - 1 })
+      .update({ 
+        quantity_remaining: newQuantity,
+        is_active: newQuantity > 0 // Desactivar si ya no quedan boosts
+      })
       .eq("id", boostId)
 
     if (updateError) {

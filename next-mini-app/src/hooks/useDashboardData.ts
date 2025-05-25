@@ -62,6 +62,43 @@ export const useDashboardData = () => {
     }
   }, [getUserIdentifier])
 
+  // NUEVA: Función para registrar la compra de boosts después del pago con WLD
+  const registerBoostPurchase = useCallback(async (quantity: number, txHash: string): Promise<boolean> => {
+    try {
+      const identifier = getUserIdentifier()
+      if (!identifier) return false
+
+      console.log("🚀 Registrando compra de boost:", quantity, "con hash:", txHash)
+      
+      const response = await fetch("/api/boosts/purchase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: identifier,
+          quantity,
+          tx_hash: txHash,
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        console.log("✅ Compra de boost registrada con éxito")
+        // Actualizar el estado local de boosts
+        await fetchBoostData()
+        return true
+      } else {
+        console.error("❌ Error al registrar la compra de boost:", data.error)
+        return false
+      }
+    } catch (error) {
+      console.error("Error en registerBoostPurchase:", error)
+      return false
+    }
+  }, [getUserIdentifier, fetchBoostData])
+
   // Función para formatear el tiempo restante
   const formatTimeRemaining = useCallback(
     (targetDate: Date) => {
@@ -326,6 +363,7 @@ export const useDashboardData = () => {
     fetchTokenPrice,
     fetchStakingData,
     fetchBoostData, // NUEVA función para actualizar boosts
+    registerBoostPurchase, // NUEVA función para registrar compras de boosts
     calculateUsdValue,
   }
 }
