@@ -1,94 +1,89 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/src/lib/supabase"
 
-// Añadir un log al inicio para ver si se llama al endpoint
-console.log("🛒 PURCHASE: Módulo cargado")
-
 export async function POST(request: NextRequest) {
-  console.log("🛒 PURCHASE: Endpoint llamado")
-
   try {
-    console.log("🛒 PURCHASE: Iniciando registro de compra de boost")
     const { userId, quantity, tx_hash } = await request.json()
-
-    console.log("🛒 PURCHASE: Request recibido:", { userId, quantity, tx_hash })
 
     // Validar parámetros
     if (!userId || !quantity || !tx_hash) {
-      console.error("❌ PURCHASE: Parámetros faltantes:", { userId, quantity, tx_hash })
       return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
     }
 
     // Verificar que quantity sea un número válido
-    if (typeof quantity !== "number" || quantity < 1) {
-      console.error("❌ PURCHASE: Cantidad inválida:", quantity)
+    if (typeof quantity !== "number" || quantity < 1 || quantity > 7) {
       return NextResponse.json({ error: "Invalid quantity" }, { status: 400 })
     }
 
-    // Verificar si el usuario existe
-    console.log("🛒 PURCHASE: Verificando si existe el usuario:", userId)
+    // Verificar si el usuario existe y obtener su información
     const { data: user, error: userError } = await supabase
       .from("users")
-      .select("id, boosts_purchased")
+      .select("id, user_id, username, level, boosts_purchased")
       .eq("user_id", userId)
       .single()
 
     if (userError || !user) {
-      console.error("❌ PURCHASE: Usuario no encontrado:", userError)
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    console.log("✅ PURCHASE: Usuario encontrado:", user)
-
     // Verificar si ya existe una transacción con este hash
-    console.log("🛒 PURCHASE: Verificando si el tx_hash ya fue procesado:", tx_hash)
-    const { data: existingBoost } = await supabase.from("boosts").select("id").eq("tx_hash", tx_hash).single()
+    const { data: existingBoost } = await supabase
+      .from("boosts")
+      .select("id")
+      .eq("tx_hash", tx_hash)
+      .single()
 
     if (existingBoost) {
-      console.log("⚠️ PURCHASE: Transacción ya procesada:", tx_hash)
       return NextResponse.json({ error: "Transaction already processed" }, { status: 400 })
     }
 
+    // Verificar que el usuario no exceda el límite de 7 boosts
+    const currentBoosts = user.boosts_purchased || 0
+    if (currentBoosts + quantity > 7) {
+      return NextResponse.json({ error: "Exceeds maximum boost limit" }, { status: 400 })
+    }
+
+    // Calcular el precio según el nivel del usuario
+    const getBoostPrice = (level: number): number => {
+      if (level === 0) return 0.023
+      if (level === 1) return 0.23
+      if (level === 2) return 1.23
+      if (level === 3) return 5
+      return 0.023 // Precio por defecto
+    }
+
+    const pricePerBoost = getBoostPrice(user.level || 0)
+    const totalPrice = pricePerBoost * quantity
+
     // Registrar la compra de boost
-    console.log("🛒 PURCHASE: Insertando boost en la base de datos")
     const { data: boost, error: boostError } = await supabase
       .from("boosts")
       .insert({
         user_id: userId,
+        username: user.username || "",
+        wallet_address: userId, // userId es la wallet address
+        level_at_purchase: user.level || 0,
         quantity_remaining: quantity,
+        is_active: true,
         tx_hash: tx_hash,
-        price_paid: 0.23 * quantity, // Precio por boost
-        status: "success",
+        price_paid: totalPrice,
+        purchased_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
       })
       .select()
       .single()
 
     if (boostError) {
-      console.error("❌ PURCHASE: Error al crear boost:", boostError)
+      console.error("Error creating boost:", boostError)
       return NextResponse.json({ error: "Failed to create boost" }, { status: 500 })
     }
 
-    console.log("✅ PURCHASE: Boost creado exitosamente:", boost)
-
     // Actualizar el contador de boosts comprados del usuario
-    const newBoostsPurchased = (user.boosts_purchased || 0) + quantity
-    console.log("🛒 PURCHASE: Actualizando contador de boosts del usuario:", {
-      anterior: user.boosts_purchased || 0,
-      nuevo: newBoostsPurchased,
-    })
-
-    const { error: updateError } = await supabase
+    const newBoostsPurchased = currentBoosts + quantity
+    await supabase
       .from("users")
       .update({ boosts_purchased: newBoostsPurchased })
       .eq("user_id", userId)
-
-    if (updateError) {
-      console.error("⚠️ PURCHASE: Error al actualizar contador de boosts (no crítico):", updateError)
-      // No devolvemos error aquí porque el boost ya se creó
-    }
-
-    console.log("✅ PURCHASE: Compra de boost completada exitosamente:", boost)
 
     return NextResponse.json({
       success: true,
@@ -96,7 +91,7 @@ export async function POST(request: NextRequest) {
       message: `Successfully purchased ${quantity} boost(s)`,
     })
   } catch (error) {
-    console.error("❌ PURCHASE: Error general en la compra:", error)
+    console.error("Error in boost purchase:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

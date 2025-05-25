@@ -20,7 +20,7 @@ export const useDashboardData = () => {
   const [totalClaimed, setTotalClaimed] = useState(0)
   const [country, setCountry] = useState("")
   const [realtimeRewards, setRealtimeRewards] = useState(0)
-  // NUEVO: Estado para boosts
+  // Estado para boosts
   const [hasBoost, setHasBoost] = useState(false)
   const [availableBoosts, setAvailableBoosts] = useState(0)
 
@@ -28,19 +28,21 @@ export const useDashboardData = () => {
   const translationValues = useTranslation()
   const { t: translation } = translationValues
 
+  // URL base para las API
+  const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://tribo-vault.vercel.app"
+
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
     if (!session || !session.user || !session.user.walletAddress) return null
     return session.user.walletAddress
   }, [session])
 
-  // NUEVA: Función para verificar boosts disponibles
+  // Función para verificar boosts disponibles
   const fetchBoostData = useCallback(async () => {
     try {
       const identifier = getUserIdentifier()
       if (!identifier) return
 
-      const baseUrl = "https://tribo-vault.vercel.app"
       const response = await fetch(`${baseUrl}/api/boosts/available?wallet_address=${identifier}`, {
         cache: "no-store",
         headers: {
@@ -52,15 +54,19 @@ export const useDashboardData = () => {
         const data = await response.json()
         if (data.success) {
           setAvailableBoosts(data.available_boosts || 0)
-          setHasBoost(data.available_boosts > 0)
+          setHasBoost(data.has_active_boost || false)
+        } else {
+          console.error("Error en respuesta de boosts:", data.error)
         }
+      } else {
+        console.error("Error al obtener boosts:", response.status)
       }
     } catch (error) {
       console.error("Error fetching boost data:", error)
       setHasBoost(false)
       setAvailableBoosts(0)
     }
-  }, [getUserIdentifier])
+  }, [getUserIdentifier, baseUrl])
 
   // Función para formatear el tiempo restante
   const formatTimeRemaining = useCallback(
@@ -114,8 +120,6 @@ export const useDashboardData = () => {
   // Función para obtener el precio del token
   const fetchTokenPrice = useCallback(async () => {
     try {
-      console.log("Obteniendo precio del token en vivo...")
-      const baseUrl = "https://tribo-vault.vercel.app"
       const response = await fetch(`${baseUrl}/api/token-price`, {
         cache: "no-store",
         headers: {
@@ -149,19 +153,17 @@ export const useDashboardData = () => {
     } catch (error) {
       console.error("Error al obtener el precio del token:", error)
     }
-  }, [t, cdtPrice])
+  }, [t, cdtPrice, baseUrl])
 
   // Función optimizada para obtener datos de staking
   const fetchStakingData = useCallback(async () => {
     try {
       const identifier = getUserIdentifier()
       if (!identifier) {
-        console.error("No se pudo obtener identificador de usuario")
         return
       }
 
       const timestamp = Date.now()
-      const baseUrl = "https://tribo-vault.vercel.app"
       const response = await fetch(`${baseUrl}/api/staking?wallet_address=${identifier}&_t=${timestamp}`, {
         cache: "no-store",
         headers: {
@@ -212,12 +214,12 @@ export const useDashboardData = () => {
         }
       }
 
-      // NUEVO: Obtener datos de boosts después de obtener datos de staking
+      // Obtener datos de boosts después de obtener datos de staking
       await fetchBoostData()
     } catch (error) {
       console.error("Error fetching staking data:", error)
     }
-  }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username, fetchBoostData])
+  }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username, fetchBoostData, baseUrl])
 
   // Actualizar el contador cada segundo
   useEffect(() => {
@@ -316,7 +318,7 @@ export const useDashboardData = () => {
     country,
     realtimeRewards,
     areRewardsClaimable,
-    // NUEVOS: Datos de boost
+    // Datos de boost
     hasBoost,
     availableBoosts,
     getUserIdentifier,
@@ -325,7 +327,7 @@ export const useDashboardData = () => {
     calculateRealtimeRewards,
     fetchTokenPrice,
     fetchStakingData,
-    fetchBoostData, // NUEVA función para actualizar boosts
+    fetchBoostData,
     calculateUsdValue,
   }
 }

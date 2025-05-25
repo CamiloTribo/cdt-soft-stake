@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
     const boost = availableBoosts[0] as Boost
     const boostedAmount = claim_amount * 2 // x2 boost
+    const currentQuantity = boost.quantity_remaining
 
     // Registrar el uso del boost
     const { error: usageError } = await supabase.from("boost_usage").insert({
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
       username: username,
       claim_amount_base: claim_amount,
       claim_amount_boosted: boostedAmount,
+      timestamp: new Date().toISOString(), // Añadir timestamp
     })
 
     if (usageError) {
@@ -47,9 +49,13 @@ export async function POST(request: Request) {
     }
 
     // Reducir la cantidad de boosts disponibles
+    const newQuantity = currentQuantity - 1
     const { error: updateError } = await supabase
       .from("boosts")
-      .update({ quantity_remaining: boost.quantity_remaining - 1 })
+      .update({ 
+        quantity_remaining: newQuantity,
+        is_active: newQuantity > 0 // Desactivar si ya no quedan boosts
+      })
       .eq("id", boost.id)
 
     if (updateError) {
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
       success: true,
       original_amount: claim_amount,
       boosted_amount: boostedAmount,
-      boosts_remaining: boost.quantity_remaining - 1,
+      boosts_remaining: newQuantity,
     })
   } catch (error) {
     console.error("Error using boost:", error)

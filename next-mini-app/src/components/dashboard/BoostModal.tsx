@@ -7,15 +7,7 @@ import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
 import { useTranslation } from "../TranslationProvider"
 
-// Modificar la interfaz PaymentResult para asegurar que capturamos correctamente el hash
-interface PaymentResult {
-  success: boolean
-  txHash?: string // Cambiado de transaction_hash a txHash para consistencia
-  transactionHash?: string
-  hash?: string
-}
-
-// Modificar la interfaz BoostModalProps para mantener consistencia
+// Interfaz BoostModalProps para mantener consistencia
 interface BoostModalProps {
   isOpen: boolean
   onCloseAction: () => void
@@ -39,169 +31,76 @@ export function BoostModal({
   const { pay } = useWorldAuth()
   const [quantity, setQuantity] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
-  const [verifyingTransaction, setVerifyingTransaction] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Función para calcular precio del boost según nivel
+  // Función para calcular precio original del boost según nivel
+  const getOriginalPrice = (level: number): number => {
+    if (level === 0) return 0.05  // Precio original nivel 0
+    if (level === 1) return 0.5   // Precio original nivel 1
+    if (level === 2) return 5     // Precio original nivel 2
+    if (level === 3) return 10    // Precio original nivel 3
+    return 0.05 // Precio por defecto
+  }
+
+  // Función para calcular precio con descuento
   const getBoostPrice = (level: number): number => {
-    const basePrices = [0.05, 0.5, 5, 10]
-    const basePrice = basePrices[level] || basePrices[0]
-    return basePrice * 0.5 // 50% de descuento
+    if (level === 0) return 0.0123
+    if (level === 1) return 0.123
+    if (level === 2) return 1.23
+    if (level === 3) return 5
+    return 0.0123 // Precio por defecto
   }
 
   const boostPrice = getBoostPrice(userLevel)
+  const originalPrice = getOriginalPrice(userLevel)
   const totalPrice = boostPrice * quantity
+  const totalOriginalPrice = originalPrice * quantity
   const maxQuantity = Math.min(7 - currentBoosts, 7)
 
-  // Modificar la función handlePurchase para mejorar la verificación
+  // Función handlePurchase simplificada usando finalPayload
   const handlePurchase = async () => {
     try {
       console.log("🚀 BOOST: Iniciando proceso de compra de boost")
       setIsLoading(true)
       setError(null)
 
-      // Realizar el pago con World ID
+      // Realizar el pago con World ID usando la nueva versión que devuelve finalPayload
       console.log("💰 BOOST: Iniciando pago con World ID, cantidad:", totalPrice, "WLD")
-      const result = (await pay({
+      const { finalPayload } = await pay({
         amount: totalPrice,
         token: Tokens.WLD,
         recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
-      })) as PaymentResult
+      })
 
-      // Logs detallados para depurar la respuesta de pay()
-      console.log("💰 BOOST: Resultado completo del pago:", JSON.stringify(result, null, 2))
-      console.log("💰 BOOST: Tipo de resultado:", typeof result)
-      console.log("💰 BOOST: Es objeto?", result !== null && typeof result === "object")
-      console.log("💰 BOOST: Tiene success?", result && "success" in result)
-      console.log("💰 BOOST: Valor de success:", result && result.success)
-      console.log("💰 BOOST: Tiene hash?", result && (result.txHash || result.transactionHash || result.hash))
+      console.log("💰 BOOST: Resultado del pago:", finalPayload)
 
-      // VERIFICACIÓN CRÍTICA: Solo proceder si hay success Y hash
-      if (!result || !result.success) {
+      // Verificar si el pago fue exitoso
+      if (!finalPayload || finalPayload.status === 'error') {
         console.log("❌ BOOST: Pago cancelado o fallido")
         setError(t("payment_cancelled_or_failed"))
         setIsLoading(false)
         return
       }
 
-      // BLOQUEO CRÍTICO: Si no hay hash, NO otorgar boost
-      const txHash = result.txHash || result.transactionHash || result.hash
-      if (!txHash) {
-        console.error("❌ BOOST: No se recibió hash de transacción - BLOQUEANDO BOOST")
-        setError("Error: No se recibió confirmación de la transacción. Por favor, contacta a soporte.")
-        setIsLoading(false)
-        return
-      }
-
-      console.log("🔑 BOOST: Hash de transacción obtenido:", txHash)
-
-      // Cambiar a estado de verificación
-      setVerifyingTransaction(true)
-      setIsLoading(false)
-
-      // Mejorar la verificación de la transacción con polling
-      let verificationAttempts = 0
-      const maxAttempts = 5
-      let isVerified = false
-
-      console.log("🔍 BOOST: Iniciando verificación de transacción con polling")
-      while (verificationAttempts < maxAttempts && !isVerified) {
-        try {
-          // Verificar la transacción
-          console.log(`🔍 BOOST: Intento de verificación ${verificationAttempts + 1} de ${maxAttempts}`)
-          console.log(`🔍 BOOST: Llamando a /api/verify-transaction con txHash: ${txHash}`)
-
-          const verifyResponse = await fetch("/api/verify-transaction", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ txHash }),
-          })
-
-          console.log(`🔍 BOOST: Respuesta de fetch: status=${verifyResponse.status}, ok=${verifyResponse.ok}`)
-
-          if (!verifyResponse.ok) {
-            console.error(`❌ BOOST: Error en respuesta de verificación: ${verifyResponse.status}`)
-            throw new Error(`Failed to verify transaction: ${verifyResponse.status}`)
-          }
-
-          const verifyData = await verifyResponse.json()
-          console.log(
-            `🔍 BOOST: Resultado de verificación (intento ${verificationAttempts + 1}):`,
-            JSON.stringify(verifyData),
-          )
-
-          // Si la verificación es exitosa, salir del bucle
-          if (verifyData.success && verifyData.isValid) {
-            console.log("✅ BOOST: Verificación exitosa!")
-            isVerified = true
-            break
-          } else {
-            console.log(
-              `❌ BOOST: Verificación fallida (intento ${verificationAttempts + 1}):`,
-              verifyData.success ? "Success=true" : "Success=false",
-              verifyData.isValid ? "isValid=true" : "isValid=false",
-            )
-          }
-
-          // Si no se ha verificado aún, esperar antes de reintentar
-          if (!isVerified && verificationAttempts < maxAttempts - 1) {
-            console.log(`⏱️ BOOST: Esperando 3 segundos antes del siguiente intento...`)
-            await new Promise((resolve) => setTimeout(resolve, 3000)) // Esperar 3 segundos entre intentos
-          }
-
-          verificationAttempts++
-        } catch (error) {
-          console.error(`❌ BOOST: Error en intento de verificación ${verificationAttempts + 1}:`, error)
-          console.error(`❌ BOOST: Stack trace:`, error instanceof Error ? error.stack : "No stack trace")
-          verificationAttempts++
-
-          // Esperar antes de reintentar
-          if (verificationAttempts < maxAttempts) {
-            console.log(`⏱️ BOOST: Esperando 3 segundos antes del siguiente intento después de error...`)
-            await new Promise((resolve) => setTimeout(resolve, 3000))
-          }
-        }
-      }
-
-      setVerifyingTransaction(false)
-
-      // BLOQUEO CRÍTICO: Solo otorgar boost si la verificación es exitosa
-      if (!isVerified) {
-        console.log("❌ BOOST: Verificación fallida después de múltiples intentos - BLOQUEANDO BOOST")
-        setError(
-          "La verificación de la transacción falló después de varios intentos. Por favor, contacta a soporte con este hash: " +
-            txHash,
-        )
-        return
-      }
-
-      // SOLO AQUÍ se otorga el boost
-      console.log("🎁 BOOST: Verificación exitosa, procediendo a registrar la compra del boost")
-      console.log("🎁 BOOST: Llamando a /api/boosts/purchase con:", {
-        userId: walletAddress,
-        quantity,
-        tx_hash: txHash,
-      })
-
+      // Registrar directamente la compra del boost con el hash de la transacción
+      console.log("🎁 BOOST: Pago exitoso, procediendo a registrar la compra del boost")
+      console.log("🎁 BOOST: Hash de transacción:", finalPayload.hash)
+      
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: walletAddress, // Cambiado de wallet_address a userId
+          userId: walletAddress,
           quantity,
-          tx_hash: txHash,
+          tx_hash: finalPayload.hash,
         }),
       })
 
-      console.log(`🎁 BOOST: Respuesta de fetch: status=${response.status}, ok=${response.ok}`)
-
       const data = await response.json()
-      console.log("🎁 BOOST: Respuesta del registro de compra:", JSON.stringify(data))
+      console.log("🎁 BOOST: Respuesta del registro de compra:", data)
 
       if (data.success) {
         console.log("✅ BOOST: Compra registrada exitosamente!")
@@ -215,20 +114,24 @@ export function BoostModal({
         setError(data.error || t("error_registering_purchase"))
       }
     } catch (error) {
-      console.error("❌ BOOST: Error general en el proceso de compra:", error)
-      console.error("❌ BOOST: Stack trace:", error instanceof Error ? error.stack : "No stack trace")
+      console.error("❌ BOOST: Error en el proceso de compra:", error)
       setError(t("error_processing_purchase"))
-      setVerifyingTransaction(false)
+    } finally {
       setIsLoading(false)
     }
   }
 
   if (!isOpen) return null
 
+  // Función para formatear el precio sin ceros innecesarios
+  const formatPrice = (price: number): string => {
+    return price.toString().replace(/\.0+$/, '')
+  }
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] border border-[#4ebd0a] rounded-xl p-6 max-w-md w-full">
-        {!isLoading && !verifyingTransaction && !purchaseSuccess ? (
+        {!isLoading && !purchaseSuccess ? (
           <>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-[#4ebd0a]">{t("buy_boosts")}</h2>
@@ -248,7 +151,8 @@ export function BoostModal({
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-300">{t("price_per_boost")}:</span>
                   <span className="text-[#4ebd0a] font-bold">
-                    {boostPrice} WLD <span className="text-sm">({t("fifty_percent_off")})</span>
+                    <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
+                    {formatPrice(boostPrice)} WLD <span className="text-sm">({t("fifty_percent_off")})</span>
                   </span>
                 </div>
               </div>
@@ -273,7 +177,10 @@ export function BoostModal({
 
               <div className="text-center mb-6">
                 <p className="text-sm text-gray-300">{t("total_to_pay")}:</p>
-                <p className="text-3xl font-bold text-[#4ebd0a]">{totalPrice.toFixed(3)} WLD</p>
+                <p className="text-3xl font-bold text-[#4ebd0a]">
+                  <span className="line-through text-gray-500 text-xl mr-2">{formatPrice(totalOriginalPrice)} WLD</span>
+                  {formatPrice(totalPrice)} WLD
+                </p>
               </div>
 
               <button
@@ -288,14 +195,6 @@ export function BoostModal({
 
             {error && <div className="text-red-500 text-sm text-center mt-2">{error}</div>}
           </>
-        ) : verifyingTransaction ? (
-          <div className="text-center py-12">
-            <div className="flex justify-center mb-6">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
-            </div>
-            <p className="text-gray-300">Verificando transacción en blockchain...</p>
-            <p className="text-xs text-gray-500 mt-2">Esto puede tomar unos segundos.</p>
-          </div>
         ) : isLoading ? (
           <div className="text-center py-12">
             <div className="flex justify-center mb-6">
