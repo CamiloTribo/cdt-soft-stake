@@ -347,5 +347,6 @@
 
   "payment_cancelled_or_failed": "Payment was cancelled or failed",
   "no_transaction_hash": "No transaction hash received",
-  "transaction_verification_failed": "Transaction verification failed"
+  "transaction_verification_failed": "Transaction verification failed",
+  "off": "OFF"
 }

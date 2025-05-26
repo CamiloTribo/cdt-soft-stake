@@ -343,3 +343,4 @@ export type TranslationKey =
   | "payment_cancelled_or_failed"
   | "no_transaction_hash"
   | "transaction_verification_failed"
+| "off"

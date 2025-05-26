@@ -22,7 +22,6 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
   // Función para obtener boosts disponibles
   const fetchAvailableBoosts = useCallback(async () => {
     try {
-      // ✅ Corregido: Faltaban las comillas en la URL
       const response = await fetch(`/api/boosts/available?wallet_address=${walletAddress}`)
       const data = await response.json()
 
@@ -60,10 +59,16 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
     return 0.0123 // Precio por defecto
   }
 
+  // Función para obtener el porcentaje de descuento según el nivel
+  const getDiscountPercentage = (level: number): number => {
+    return level === 3 ? 50 : 75
+  }
+
   const levelNames = [t("tribers"), t("cryptotribers"), t("millotribers"), t("legendarytribers")]
   const currentLevelName = levelNames[userLevel] || t("tribers")
   const boostPrice = getBoostPrice(userLevel)
   const originalPrice = getOriginalPrice(userLevel)
+  const discountPercentage = getDiscountPercentage(userLevel)
 
   // Función para formatear el precio sin ceros innecesarios
   const formatPrice = (price: number): string => {
@@ -133,7 +138,7 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
               <p className="text-lg font-bold text-white">
                 <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
                 {formatPrice(boostPrice)} WLD
-                <span className="text-sm text-[#4ebd0a] ml-2">{t("fifty_percent_off")}</span>
+                <span className="text-sm text-[#4ebd0a] ml-2">{discountPercentage}% {t("off")}</span>
               </p>
             </div>
 

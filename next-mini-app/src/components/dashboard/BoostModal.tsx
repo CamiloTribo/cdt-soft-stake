@@ -52,11 +52,17 @@ export function BoostModal({
     return 0.0123 // Precio por defecto
   }
 
+  // Función para obtener el porcentaje de descuento según el nivel
+  const getDiscountPercentage = (level: number): number => {
+    return level === 3 ? 50 : 75
+  }
+
   const boostPrice = getBoostPrice(userLevel)
   const originalPrice = getOriginalPrice(userLevel)
   const totalPrice = boostPrice * quantity
   const totalOriginalPrice = originalPrice * quantity
   const maxQuantity = Math.min(7 - currentBoosts, 7)
+  const discountPercentage = getDiscountPercentage(userLevel)
 
   // Función handlePurchase simplificada usando finalPayload
   const handlePurchase = async () => {
@@ -151,7 +157,7 @@ export function BoostModal({
                   <span className="text-gray-300">{t("price_per_boost")}:</span>
                   <span className="text-[#4ebd0a] font-bold">
                     <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
-                    {formatPrice(boostPrice)} WLD <span className="text-sm">({t("fifty_percent_off")})</span>
+                    {formatPrice(boostPrice)} WLD <span className="text-sm">({discountPercentage}% {t("off")})</span>
                   </span>
                 </div>
               </div>
