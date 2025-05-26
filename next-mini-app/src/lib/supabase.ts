@@ -129,6 +129,8 @@ export async function updateVerificationLevel(userId: string, verificationLevel:
 // Función para obtener los boosts disponibles de un usuario
 export async function getUserAvailableBoosts(userId: string): Promise<number> {
   try {
+    console.log(`🔍 getUserAvailableBoosts: Buscando boosts para userId: ${userId}`)
+    
     const { data, error } = await supabase
       .from("boosts")
       .select("quantity_remaining")
@@ -137,14 +139,16 @@ export async function getUserAvailableBoosts(userId: string): Promise<number> {
       .gt("quantity_remaining", 0)
 
     if (error) {
-      console.error("Error fetching available boosts:", error)
+      console.error("❌ getUserAvailableBoosts: Error fetching available boosts:", error)
       return 0
     }
 
-    // Sumar todos los boosts disponibles
-    return data.reduce((total: number, boost: { quantity_remaining: number }) => total + boost.quantity_remaining, 0)
+    const total = data.reduce((total: number, boost: { quantity_remaining: number }) => total + boost.quantity_remaining, 0)
+    console.log(`✅ getUserAvailableBoosts: Total boosts disponibles: ${total}`)
+    
+    return total
   } catch (error) {
-    console.error("Error in getUserAvailableBoosts:", error)
+    console.error("💥 getUserAvailableBoosts: Error general:", error)
     return 0
   }
 }
@@ -188,56 +192,100 @@ export async function applyBoost(
   claimAmount: number,
 ): Promise<{ success: boolean; boostedAmount: number }> {
   try {
+    console.log(`🚀 BOOST APPLY: ===== INICIANDO APLICACIÓN DE BOOST =====`)
+    console.log(`🚀 BOOST APPLY: userId: ${userId}`)
+    console.log(`🚀 BOOST APPLY: username: ${username}`)
+    console.log(`🚀 BOOST APPLY: claimAmount: ${claimAmount}`)
+    console.log(`🚀 BOOST APPLY: timestamp: ${new Date().toISOString()}`)
+
     // 1. Obtener el boost más antiguo disponible
+    console.log(`🔍 BOOST APPLY: Paso 1 - Buscando boosts disponibles...`)
     const { data: boostData, error: boostError } = await supabase
       .from("boosts")
-      .select("id, quantity_remaining")
+      .select("id, quantity_remaining, username, level_at_purchase, purchased_at")
       .eq("user_id", userId)
       .eq("is_active", true)
       .gt("quantity_remaining", 0)
       .order("purchased_at", { ascending: true })
       .limit(1)
 
-    if (boostError || !boostData || boostData.length === 0) {
+    console.log(`🔍 BOOST APPLY: Query error:`, boostError)
+    console.log(`🔍 BOOST APPLY: Query result:`, boostData)
+
+    if (boostError) {
+      console.error(`❌ BOOST APPLY: Error en consulta de boosts:`, boostError)
       return { success: false, boostedAmount: claimAmount }
     }
 
-    const boostId = boostData[0].id
-    const currentQuantity = boostData[0].quantity_remaining
+    if (!boostData || boostData.length === 0) {
+      console.log(`❌ BOOST APPLY: No se encontraron boosts disponibles para ${userId}`)
+      return { success: false, boostedAmount: claimAmount }
+    }
+
+    const boost = boostData[0]
+    const boostId = boost.id
+    const currentQuantity = boost.quantity_remaining
+    
+    console.log(`✅ BOOST APPLY: Boost encontrado!`)
+    console.log(`✅ BOOST APPLY: - ID: ${boostId}`)
+    console.log(`✅ BOOST APPLY: - Cantidad actual: ${currentQuantity}`)
+    console.log(`✅ BOOST APPLY: - Nivel de compra: ${boost.level_at_purchase}`)
+    console.log(`✅ BOOST APPLY: - Fecha de compra: ${boost.purchased_at}`)
 
     // 2. Registrar el uso del boost
-    const { error: usageError } = await supabase.from("boost_usage").insert({
+    console.log(`📝 BOOST APPLY: Paso 2 - Registrando uso en boost_usage...`)
+    const usageData = {
       boost_id: boostId,
       user_id: userId,
       username: username,
       claim_amount_base: claimAmount,
-      claim_amount_boosted: claimAmount * 2, // x2 boost
+      claim_amount_boosted: claimAmount * 2,
       timestamp: new Date().toISOString(),
-    })
+    }
+    console.log(`📝 BOOST APPLY: Datos a insertar:`, usageData)
+
+    const { error: usageError } = await supabase.from("boost_usage").insert(usageData)
 
     if (usageError) {
-      console.error("Error registering boost usage:", usageError)
+      console.error(`❌ BOOST APPLY: Error registrando uso en boost_usage:`, usageError)
       return { success: false, boostedAmount: claimAmount }
     }
+    console.log(`✅ BOOST APPLY: Uso registrado correctamente en boost_usage`)
 
     // 3. Actualizar la cantidad de boosts restantes
     const newQuantity = currentQuantity - 1
+    console.log(`🔄 BOOST APPLY: Paso 3 - Actualizando cantidad de boosts`)
+    console.log(`🔄 BOOST APPLY: Cantidad anterior: ${currentQuantity}`)
+    console.log(`🔄 BOOST APPLY: Cantidad nueva: ${newQuantity}`)
+    console.log(`🔄 BOOST APPLY: Será activo: ${newQuantity > 0}`)
+    
+    const updateData = {
+      quantity_remaining: newQuantity,
+      is_active: newQuantity > 0
+    }
+    console.log(`🔄 BOOST APPLY: Datos de actualización:`, updateData)
+
     const { error: updateError } = await supabase
       .from("boosts")
-      .update({ 
-        quantity_remaining: newQuantity,
-        is_active: newQuantity > 0 // Desactivar si ya no quedan boosts
-      })
+      .update(updateData)
       .eq("id", boostId)
 
     if (updateError) {
-      console.error("Error updating boost quantity:", updateError)
+      console.error(`❌ BOOST APPLY: Error actualizando cantidad de boost:`, updateError)
       return { success: false, boostedAmount: claimAmount }
     }
 
-    return { success: true, boostedAmount: claimAmount * 2 }
+    const finalAmount = claimAmount * 2
+    console.log(`🎉 BOOST APPLY: ===== BOOST APLICADO EXITOSAMENTE =====`)
+    console.log(`🎉 BOOST APPLY: Cantidad original: ${claimAmount}`)
+    console.log(`🎉 BOOST APPLY: Cantidad con boost: ${finalAmount}`)
+    console.log(`🎉 BOOST APPLY: Boosts restantes: ${newQuantity}`)
+    console.log(`🎉 BOOST APPLY: ===============================================`)
+
+    return { success: true, boostedAmount: finalAmount }
   } catch (error) {
-    console.error("Error in applyBoost:", error)
+    console.error(`💥 BOOST APPLY: Error general en applyBoost:`, error)
+    console.error(`💥 BOOST APPLY: Stack trace:`, error instanceof Error ? error.stack : 'No stack trace')
     return { success: false, boostedAmount: claimAmount }
   }
 }
@@ -267,6 +315,8 @@ export async function invalidateBoostsOnLevelUp(userId: string, newLevel: number
 // Función para verificar si un usuario tiene boosts disponibles
 export async function hasAvailableBoosts(userId: string): Promise<boolean> {
   try {
+    console.log(`🔍 hasAvailableBoosts: Verificando boosts para userId: ${userId}`)
+    
     const { count, error } = await supabase
       .from("boosts")
       .select("*", { count: "exact", head: true })
@@ -275,13 +325,16 @@ export async function hasAvailableBoosts(userId: string): Promise<boolean> {
       .gt("quantity_remaining", 0)
 
     if (error) {
-      console.error("Error checking available boosts:", error)
+      console.error("❌ hasAvailableBoosts: Error checking available boosts:", error)
       return false
     }
 
-    return count !== null && count > 0
+    const hasBoosts = count !== null && count > 0
+    console.log(`✅ hasAvailableBoosts: Usuario ${userId} tiene boosts: ${hasBoosts} (count: ${count})`)
+    
+    return hasBoosts
   } catch (error) {
-    console.error("Error in hasAvailableBoosts:", error)
+    console.error("💥 hasAvailableBoosts: Error general:", error)
     return false
   }
 }
