@@ -568,7 +568,15 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* NUEVO ORDEN: Primero ClaimSection */}
+        {/* ORDEN INTERCAMBIADO: Primero BoostSection */}
+        <BoostSection
+          userLevel={stakedAmount >= 10000000 ? 3 : stakedAmount >= 1000000 ? 2 : stakedAmount >= 100000 ? 1 : 0}
+          walletAddress={getUserIdentifier() || ""}
+          username={username}
+          hasBoost={hasBoost}
+        />
+
+        {/* ORDEN INTERCAMBIADO: Ahora ClaimSection */}
         <ClaimSection
           timeRemaining={timeRemaining}
           nextClaimTime={nextClaimTime}
@@ -580,14 +588,6 @@ export default function Dashboard() {
           handleClaimRewardsAction={handleClaimRewards}
           formatDateAction={formatDate}
           hasBoost={hasBoost} // NUEVO: Pasar hasBoost
-        />
-
-        {/* NUEVO: Añadir BoostSection justo después de ClaimSection */}
-        <BoostSection
-          userLevel={stakedAmount >= 10000000 ? 3 : stakedAmount >= 1000000 ? 2 : stakedAmount >= 100000 ? 1 : 0}
-          walletAddress={getUserIdentifier() || ""}
-          username={username}
-          hasBoost={hasBoost}
         />
 
         {/* Botón de Swap WLD/CDT */}
