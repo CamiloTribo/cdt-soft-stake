@@ -12,9 +12,9 @@ export type User = {
   username: string | null
   verification_level?: "wallet" | "human" | "orb"
   country?: string | null
-  user_id?: string // Añadido para coincidir con la estructura real
-  level?: number // Añadido para coincidir con la estructura real
-  boosts_purchased?: number // Añadido para coincidir con la estructura real
+  // user_id?: string // ✅ Eliminado - redundante con address
+  // level?: number // ✅ Eliminado - no existe en la tabla
+  // boosts_purchased?: number // ✅ Eliminado - no existe en la tabla
   created_at: string
 }
 
@@ -35,7 +35,7 @@ export type Boost = {
   id: string
   user_id: string
   username?: string | null
-  wallet_address?: string
+  // wallet_address?: string // ✅ Eliminado - redundante con user_id
   level_at_purchase: number
   quantity_remaining: number
   is_active: boolean
@@ -161,7 +161,7 @@ export async function purchaseBoosts(
     const { error } = await supabase.from("boosts").insert({
       user_id: userId,
       username: username,
-      wallet_address: userId, // userId es la wallet address
+      // wallet_address: userId, // ✅ Eliminado - redundante con user_id
       level_at_purchase: level,
       quantity_remaining: quantity,
       is_active: true,

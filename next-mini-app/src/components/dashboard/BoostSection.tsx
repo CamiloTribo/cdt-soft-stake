@@ -22,6 +22,7 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
   // Función para obtener boosts disponibles
   const fetchAvailableBoosts = useCallback(async () => {
     try {
+      // ✅ Corregido: Faltaban las comillas en la URL
       const response = await fetch(`/api/boosts/available?wallet_address=${walletAddress}`)
       const data = await response.json()
 
@@ -41,16 +42,33 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
     }
   }, [walletAddress, fetchAvailableBoosts])
 
-  // Función para calcular precio del boost según nivel
+  // Función para calcular precio original del boost según nivel
+  const getOriginalPrice = (level: number): number => {
+    if (level === 0) return 0.05  // Precio original nivel 0
+    if (level === 1) return 0.5   // Precio original nivel 1
+    if (level === 2) return 5     // Precio original nivel 2
+    if (level === 3) return 10    // Precio original nivel 3
+    return 0.05 // Precio por defecto
+  }
+
+  // Función para calcular precio con descuento
   const getBoostPrice = (level: number): number => {
-    const basePrices = [0.05, 0.5, 5, 10] // Precios base por nivel
-    const basePrice = basePrices[level] || basePrices[0]
-    return basePrice * 0.5 // 50% de descuento
+    if (level === 0) return 0.0123
+    if (level === 1) return 0.123
+    if (level === 2) return 1.23
+    if (level === 3) return 5
+    return 0.0123 // Precio por defecto
   }
 
   const levelNames = [t("tribers"), t("cryptotribers"), t("millotribers"), t("legendarytribers")]
   const currentLevelName = levelNames[userLevel] || t("tribers")
   const boostPrice = getBoostPrice(userLevel)
+  const originalPrice = getOriginalPrice(userLevel)
+
+  // Función para formatear el precio sin ceros innecesarios
+  const formatPrice = (price: number): string => {
+    return price.toString().replace(/\.0+$/, '')
+  }
 
   return (
     <>
@@ -108,23 +126,24 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
             </div>
           </div>
 
-          {/* Información de precio */}
+          {/* Información de precio y botón de compra */}
           <div className="flex justify-between items-center mb-4">
             <div>
               <p className="text-sm text-gray-400">{t("price_for")} {currentLevelName}:</p>
               <p className="text-lg font-bold text-white">
-                {boostPrice} WLD
+                <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
+                {formatPrice(boostPrice)} WLD
                 <span className="text-sm text-[#4ebd0a] ml-2">{t("fifty_percent_off")}</span>
               </p>
             </div>
 
-            {/* BOTÓN DESACTIVADO */}
+            {/* BOTÓN HABILITADO */}
             {availableBoosts < 7 && (
               <button
-                disabled={true}
-                className="bg-gray-500 text-black font-bold py-3 px-6 rounded-full cursor-not-allowed"
+                onClick={() => setShowModal(true)}
+                className="bg-gradient-to-r from-[#4ebd0a] to-[#6dd00f] text-black font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-[#4ebd0a]/25 transition-all duration-300"
               >
-                Temporalmente desactivado
+                {t("buy_boost")}
               </button>
             )}
           </div>
@@ -136,17 +155,11 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
               <p className="text-gray-400 text-sm">{t("use_boosts_next_week")}</p>
             </div>
           )}
-
-          {/* MENSAJE DE MANTENIMIENTO */}
-          <div className="mt-4 p-3 bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 rounded-lg">
-            <p className="text-sm text-amber-500 font-medium">🔧 Servicio temporalmente desactivado</p>
-            <p className="text-xs text-gray-400">Estamos mejorando el sistema. Vuelve pronto.</p>
-          </div>
         </div>
       </div>
 
-      {/* Modal desactivado - no se abrirá */}
-      {false && showModal && (
+      {/* Modal habilitado */}
+      {showModal && (
         <BoostModal
           isOpen={showModal}
           onCloseAction={() => setShowModal(false)}

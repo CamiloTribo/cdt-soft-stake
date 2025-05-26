@@ -34,6 +34,14 @@ export const useDashboardData = () => {
     return session.user.walletAddress
   }, [session])
 
+  // Función para calcular el nivel basado en el staked amount
+  const getUserLevel = useCallback(() => {
+    if (stakedAmount >= 10000000) return 3
+    if (stakedAmount >= 1000000) return 2
+    if (stakedAmount >= 100000) return 1
+    return 0
+  }, [stakedAmount])
+
   // NUEVA: Función para verificar boosts disponibles
   const fetchBoostData = useCallback(async () => {
     try {
@@ -70,6 +78,9 @@ export const useDashboardData = () => {
 
       console.log("🚀 Registrando compra de boost:", quantity)
       
+      // Obtener el nivel actual del usuario
+      const level = getUserLevel()
+      
       const response = await fetch("/api/boosts/purchase", {
         method: "POST",
         headers: {
@@ -78,6 +89,7 @@ export const useDashboardData = () => {
         body: JSON.stringify({
           userId: identifier,
           quantity,
+          level // ✅ Añadir el nivel del usuario
         }),
       })
 
@@ -96,7 +108,7 @@ export const useDashboardData = () => {
       console.error("Error en registerBoostPurchase:", error)
       return false
     }
-  }, [getUserIdentifier, fetchBoostData])
+  }, [getUserIdentifier, getUserLevel, fetchBoostData])
 
   // Función para formatear el tiempo restante
   const formatTimeRemaining = useCallback(
@@ -356,6 +368,7 @@ export const useDashboardData = () => {
     hasBoost,
     availableBoosts,
     getUserIdentifier,
+    getUserLevel, // ✅ Exportar la función de nivel
     formatTimeRemaining,
     formatDate,
     calculateRealtimeRewards,

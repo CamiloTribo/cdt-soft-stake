@@ -93,7 +93,8 @@ export function BoostModal({
         },
         body: JSON.stringify({
           userId: walletAddress,
-          quantity
+          quantity,
+          level: userLevel // ✅ Añadir el nivel del usuario
         }),
       })
 

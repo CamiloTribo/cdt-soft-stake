@@ -5,7 +5,7 @@ import type { Boost } from "@/src/types/boost"
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const wallet_address = searchParams.get("wallet_address")
+    const wallet_address = searchParams.get("wallet_address") // ⚠️ Inconsistencia en el nombre
 
     if (!wallet_address) {
       return NextResponse.json({ success: false, error: "Wallet address is required" }, { status: 400 })
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     const { data: boosts, error } = await supabase
       .from("boosts")
       .select("*")
-      .eq("user_id", wallet_address)
+      .eq("user_id", wallet_address) // ✅ Correcto, en boosts se usa "user_id"
       .eq("is_active", true)
       .gt("quantity_remaining", 0)
       .order("purchased_at", { ascending: true })

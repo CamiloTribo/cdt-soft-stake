@@ -4,7 +4,7 @@ import type { Boost } from "@/src/types/boost"
 
 export async function POST(request: Request) {
   try {
-    const { wallet_address, username, claim_amount } = await request.json()
+    const { wallet_address, username, claim_amount } = await request.json() // ⚠️ Inconsistencia en el nombre
 
     if (!wallet_address || !username || !claim_amount) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const { data: availableBoosts, error: fetchError } = await supabase
       .from("boosts")
       .select("*")
-      .eq("user_id", wallet_address)
+      .eq("user_id", wallet_address) // ✅ Correcto, en boosts se usa "user_id"
       .eq("is_active", true)
       .gt("quantity_remaining", 0)
       .order("purchased_at", { ascending: true })
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     // Registrar el uso del boost
     const { error: usageError } = await supabase.from("boost_usage").insert({
       boost_id: boost.id,
-      user_id: wallet_address,
+      user_id: wallet_address, // ✅ Correcto, en boost_usage se usa "user_id"
       username: username,
       claim_amount_base: claim_amount,
       claim_amount_boosted: boostedAmount,

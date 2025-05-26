@@ -23,11 +23,11 @@ export interface BoostUsage {
 }
 
 export interface PurchaseBoostRequest {
-  wallet_address: string
-  username: string
+  userId: string  // ✅ Cambiado de wallet_address a userId para consistencia
+  username?: string
   level: number
   quantity: number
-  price_paid: number
+  price_paid?: number
 }
 
 export interface BoostResponse {
