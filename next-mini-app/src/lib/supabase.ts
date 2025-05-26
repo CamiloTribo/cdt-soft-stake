@@ -240,7 +240,7 @@ export async function applyBoost(
       username: username,
       claim_amount_base: claimAmount,
       claim_amount_boosted: claimAmount * 2,
-      timestamp: new Date().toISOString(),
+      // ✅ SOLUCIONADO: Eliminamos timestamp - created_at se llena automáticamente
     }
     console.log(`📝 BOOST APPLY: Datos a insertar:`, usageData)
 
