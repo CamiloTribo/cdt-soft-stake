@@ -37,7 +37,7 @@ export function BoostModal({
   // Función para calcular precio original del boost según nivel
   const getOriginalPrice = (level: number): number => {
     if (level === 0) return 0.05  // Precio original nivel 0
-    if (level === 1) return 0.5   // Precio original nivel 1
+    if (level === 1) return 2.5   // Precio original nivel 1
     if (level === 2) return 5     // Precio original nivel 2
     if (level === 3) return 10    // Precio original nivel 3
     return 0.05 // Precio por defecto
@@ -45,16 +45,18 @@ export function BoostModal({
 
   // Función para calcular precio con descuento
   const getBoostPrice = (level: number): number => {
-    if (level === 0) return 0.0123
-    if (level === 1) return 0.123
-    if (level === 2) return 1.23
-    if (level === 3) return 5
-    return 0.0123 // Precio por defecto
+    if (level === 0) return 0.02
+    if (level === 1) return 0.20
+    if (level === 2) return 2
+    if (level === 3) return 7
+    return 0.02 // Precio por defecto
   }
 
   // Función para obtener el porcentaje de descuento según el nivel
   const getDiscountPercentage = (level: number): number => {
-    return level === 3 ? 50 : 75
+    const originalPrice = getOriginalPrice(level);
+    const boostPrice = getBoostPrice(level);
+    return Math.round(((originalPrice - boostPrice) / originalPrice) * 100);
   }
 
   const boostPrice = getBoostPrice(userLevel)
