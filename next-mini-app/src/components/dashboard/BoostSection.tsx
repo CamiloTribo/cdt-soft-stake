@@ -44,7 +44,7 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
   // Función para calcular precio original del boost según nivel
   const getOriginalPrice = (level: number): number => {
     if (level === 0) return 0.05  // Precio original nivel 0
-    if (level === 1) return 2.5   // Precio original nivel 1
+    if (level === 1) return 0.5   // ✅ Precio original nivel 1 (CORREGIDO)
     if (level === 2) return 5     // Precio original nivel 2
     if (level === 3) return 10    // Precio original nivel 3
     return 0.05 // Precio por defecto
@@ -53,7 +53,7 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
   // Función para calcular precio con descuento
   const getBoostPrice = (level: number): number => {
     if (level === 0) return 0.02
-    if (level === 1) return 0.20
+    if (level === 1) return 0.20  // ✅ Precio con descuento nivel 1
     if (level === 2) return 2
     if (level === 3) return 7
     return 0.02 // Precio por defecto
@@ -140,7 +140,7 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
               <p className="text-lg font-bold text-white">
                 <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
                 {formatPrice(boostPrice)} WLD
-                <span className="text-sm text-[#4ebd0a] ml-2">{discountPercentage}% {t("off")}</span>
+                <span className="text-sm text-[#ff1744] ml-2">{discountPercentage}% {t("off")}</span>
               </p>
             </div>
 
