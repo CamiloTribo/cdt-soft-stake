@@ -52,11 +52,11 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
 
   // Función para calcular precio con descuento
   const getBoostPrice = (level: number): number => {
-    if (level === 0) return 0.02
+    if (level === 0) return 0.045  // ✅ CAMBIADO DE 0.02 A 0.045
     if (level === 1) return 0.20  // ✅ Precio con descuento nivel 1
     if (level === 2) return 2
     if (level === 3) return 7
-    return 0.02 // Precio por defecto
+    return 0.045 // ✅ CAMBIADO DE 0.02 A 0.045 (precio por defecto)
   }
 
   // Función para obtener el porcentaje de descuento según el nivel

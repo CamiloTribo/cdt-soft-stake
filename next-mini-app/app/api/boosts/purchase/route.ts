@@ -51,13 +51,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Exceeds maximum boost limit" }, { status: 400 })
     }
 
-    // Calcular el precio según el nivel del usuario
+    // Calcular el precio según el nivel del usuario - ✅ PRECIOS CORREGIDOS
     const getBoostPrice = (userLevel: number): number => {
-      if (userLevel === 0) return 0.0123
-      if (userLevel === 1) return 0.123
-      if (userLevel === 2) return 1.23
-      if (userLevel === 3) return 5
-      return 0.0123 // Precio por defecto
+      if (userLevel === 0) return 0.045  // ✅ CORREGIDO: era 0.0123, ahora 0.045
+      if (userLevel === 1) return 0.20   // ✅ CORREGIDO: era 0.123, ahora 0.20
+      if (userLevel === 2) return 2      // ✅ CORREGIDO: era 1.23, ahora 2
+      if (userLevel === 3) return 7      // ✅ CORREGIDO: era 5, ahora 7
+      return 0.045 // ✅ CORREGIDO: Precio por defecto
     }
 
     const pricePerBoost = getBoostPrice(level || 0) // ✅ Usar el nivel del request
