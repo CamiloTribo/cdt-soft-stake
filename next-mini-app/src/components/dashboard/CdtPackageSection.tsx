@@ -14,22 +14,14 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
   const { t } = useTranslation()
   const [showModal, setShowModal] = useState(false)
 
-  // 🚨 KILL SWITCH - Cambiar a false para desactivar la funcionalidad
-  const CDT_PACKAGES_ENABLED = true
+  // 🚨 DESACTIVADO COMPLETAMENTE - NO FUNCIONA
 
   // Validación básica antes de abrir el modal
-  const handleOpenModal = () => {
-    if (!CDT_PACKAGES_ENABLED) {
-      console.log("🔒 CDT PACKAGES: Feature disabled by kill switch")
-      return
-    }
-
-    if (!walletAddress || !username) {
-      console.error("❌ CDT PACKAGE: Missing wallet address or username")
-      return
-    }
-    setShowModal(true)
-  }
+  // const handleOpenModal = () => {
+  //   // BLOQUEADO COMPLETAMENTE
+  //   console.log("🚨 CDT PACKAGES: DESACTIVADO - EN MANTENIMIENTO")
+  //   return
+  // }
 
   return (
     <>
@@ -43,65 +35,55 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Image src="/TOKEN CDT.png" alt="CDT Token" width={60} height={60} className="drop-shadow-lg" />
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full animate-ping"></div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 rounded-full"></div>
               </div>
 
               <div>
-                <h3 className="text-xl font-bold text-secondary flex items-center">💰 {t("buy_cdt_packages")}</h3>
-                <p className="text-gray-400 text-sm">{t("get_cdt_instantly")}</p>
+                <h3 className="text-xl font-bold text-gray-400 flex items-center">🔧 {t("buy_cdt_packages")}</h3>
+                <p className="text-gray-500 text-sm">Funcionalidad en mantenimiento</p>
               </div>
             </div>
           </div>
 
           {/* Información del paquete */}
-          <div className="bg-black/30 rounded-lg p-4 mb-4">
+          <div className="bg-black/30 rounded-lg p-4 mb-4 opacity-50">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-300">{t("package_price")}:</span>
-              <span className="text-secondary font-bold text-lg">0.1 WLD</span>
+              <span className="text-gray-500">{t("package_price")}:</span>
+              <span className="text-gray-500 font-bold text-lg">0.1 WLD</span>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-gray-300">{t("cdt_amount")}:</span>
-              <span className="text-secondary font-bold text-lg">50 CDT</span>
+              <span className="text-gray-500">{t("cdt_amount")}:</span>
+              <span className="text-gray-500 font-bold text-lg">50 CDT</span>
             </div>
           </div>
 
-          {/* Botón de compra con sistema de seguridad */}
-          {CDT_PACKAGES_ENABLED ? (
-            <button
-              onClick={handleOpenModal}
-              disabled={!walletAddress || !username}
-              className="w-full bg-gradient-to-r from-secondary to-[#ff4081] text-white font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-secondary/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {t("buy_cdt_package")}
-            </button>
-          ) : (
-            <div className="w-full bg-gray-600 text-gray-300 font-bold py-3 px-6 rounded-full text-center cursor-not-allowed">
-              <div className="flex items-center justify-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 6v6l4 2"></path>
-                </svg>
-                🔧 En mantenimiento
-              </div>
-              <p className="text-xs mt-1 opacity-75">Funcionalidad temporalmente deshabilitada</p>
+          {/* BOTÓN COMPLETAMENTE DESACTIVADO */}
+          <div className="w-full bg-gray-600 text-gray-300 font-bold py-3 px-6 rounded-full text-center cursor-not-allowed">
+            <div className="flex items-center justify-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+              🔧 EN MANTENIMIENTO
             </div>
-          )}
+            <p className="text-xs mt-1 opacity-75">Funcionalidad temporalmente deshabilitada</p>
+          </div>
         </div>
       </div>
 
-      {/* Modal - Solo se muestra si está habilitado */}
-      {showModal && CDT_PACKAGES_ENABLED && (
+      {/* MODAL COMPLETAMENTE BLOQUEADO */}
+      {false && showModal && (
         <CdtPackageModal
           isOpen={showModal}
           onCloseAction={() => setShowModal(false)}
