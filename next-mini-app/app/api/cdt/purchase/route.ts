@@ -10,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export async function POST(request: NextRequest) {
   try {
     console.log("🛒 CDT PURCHASE: Endpoint llamado")
-    const { userId, username, wldAmount, cdtAmount, txHash } = await request.json()
+    const { userId, username, wldAmount, cdtAmount } = await request.json() // ✅ Quitar txHash
 
     // Validar parámetros
     if (!userId || !wldAmount || !cdtAmount) {
@@ -29,11 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid CDT amount" }, { status: 400 })
     }
 
-    // Validar txHash si se proporciona
-    if (txHash && (typeof txHash !== "string" || txHash.length < 10)) {
-      console.error("❌ CDT PURCHASE: TxHash inválido:", txHash)
-      return NextResponse.json({ error: "Invalid transaction hash" }, { status: 400 })
-    }
+    // ✅ ELIMINAR VALIDACIÓN DE TXHASH - Como en boosts, confiamos en pay()
 
     // Buscar al usuario usando la función helper
     console.log("🔍 CDT PURCHASE: Buscando usuario con address:", userId)
@@ -47,6 +43,7 @@ export async function POST(request: NextRequest) {
     console.log("✅ CDT PURCHASE: Usuario encontrado:", user)
 
     // Verificar si ya existe una compra pendiente para este usuario
+    console.log("🔍 CDT PURCHASE: Verificando compras pendientes")
     const { data: existingPurchase, error: existingError } = await supabase
       .from("cdt_purchases")
       .select("id")
@@ -73,7 +70,7 @@ export async function POST(request: NextRequest) {
         username: username || user.username || "",
         wld_amount: wldAmount,
         cdt_amount: cdtAmount,
-        tx_hash: txHash || "",
+        tx_hash: "", // ✅ Vacío - no tenemos hash de WLD
         is_claimed: false,
         purchased_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
@@ -88,7 +85,8 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ CDT PURCHASE: Compra creada exitosamente:", purchase)
 
-    // Registrar la transacción usando user.id
+    // Registrar la transacción usando user.id (sin hash)
+    console.log("📝 CDT PURCHASE: Registrando transacción")
     try {
       const { error: txError } = await supabase.from("transactions").insert([
         {
@@ -98,7 +96,7 @@ export async function POST(request: NextRequest) {
           type: "purchase",
           amount: wldAmount,
           token_type: "WLD",
-          tx_hash: txHash || "",
+          tx_hash: "", // ✅ Vacío - confiamos en pay()
           status: "success",
           description: `Compra de ${cdtAmount} CDT por ${wldAmount} WLD`,
         },
@@ -106,12 +104,15 @@ export async function POST(request: NextRequest) {
 
       if (txError) {
         console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", txError)
+      } else {
+        console.log("✅ CDT PURCHASE: Transacción registrada exitosamente")
       }
     } catch (error) {
       console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", error)
     }
 
     // Actualizar estadísticas del usuario (total_purchased)
+    console.log("📊 CDT PURCHASE: Actualizando estadísticas del usuario")
     try {
       const { data: userData, error: userError } = await supabase
         .from("users")
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error("⚠️ CDT PURCHASE: Error updating total_purchased:", updateError)
         } else {
-          console.log(`Total purchased updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
+          console.log(`✅ CDT PURCHASE: Total purchased updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
         }
       }
     } catch (error) {
@@ -142,6 +143,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       purchaseId: purchase.id,
+      purchase: purchase, // ✅ Añadir purchase como en boosts
       message: `Successfully purchased ${cdtAmount} CDT for ${wldAmount} WLD`,
     })
   } catch (error) {

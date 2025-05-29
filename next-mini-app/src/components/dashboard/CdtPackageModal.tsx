@@ -34,14 +34,16 @@ export function CdtPackageModal({
   const WLD_AMOUNT = 0.1
   const CDT_AMOUNT = 50
 
-  // Función para comprar CDT (mejorada)
+  // Función para comprar CDT (CORREGIDA siguiendo patrón de BoostModal)
   const handlePurchase = async () => {
     try {
+      console.log("🚀 CDT: Iniciando proceso de compra de paquete CDT")
       setIsLoading(true)
       setError(null)
 
       // Validaciones previas
       if (!walletAddress || !username) {
+        console.error("❌ CDT: Datos de usuario faltantes")
         setError(t("missing_user_data"))
         setIsLoading(false)
         return
@@ -57,23 +59,16 @@ export function CdtPackageModal({
 
       console.log("💰 CDT: Resultado del pago:", finalPayload)
 
-      // 2. Verificar pago (mejorado)
-      if (!finalPayload || finalPayload.status === "error") {
+      // ✅ VERIFICACIÓN CORREGIDA - Solo como en BoostModal
+      if (!finalPayload || finalPayload.status === 'error') {
         console.log("❌ CDT: Pago cancelado o fallido")
         setError(t("payment_cancelled_or_failed"))
         setIsLoading(false)
         return
       }
 
-      // Validaciones adicionales del pago
-      if (!finalPayload.txHash && !finalPayload.transactionHash) {
-        console.log("❌ CDT: Pago sin hash de transacción")
-        setError(t("payment_invalid_no_hash"))
-        setIsLoading(false)
-        return
-      }
-
-      // 3. Registrar compra en backend
+      // ✅ SI LLEGA AQUÍ = PAGO EXITOSO (como en BoostModal)
+      // 2. Registrar compra en backend
       console.log("🎁 CDT: Pago exitoso, procediendo a registrar la compra")
       const response = await fetch("/api/cdt/purchase", {
         method: "POST",
@@ -85,7 +80,6 @@ export function CdtPackageModal({
           username: username,
           wldAmount: WLD_AMOUNT,
           cdtAmount: CDT_AMOUNT,
-          txHash: finalPayload.txHash || finalPayload.transactionHash || "",
         }),
       })
 
@@ -95,7 +89,7 @@ export function CdtPackageModal({
       if (data.success) {
         console.log("✅ CDT: Compra registrada exitosamente!")
         setPurchaseSuccess(true)
-        setPurchaseId(data.purchaseId)
+        setPurchaseId(data.purchase?.id)
         setClaimReady(true)
       } else {
         console.error("❌ CDT: Error al registrar la compra:", data.error)
@@ -109,7 +103,7 @@ export function CdtPackageModal({
     }
   }
 
-  // Función para reclamar CDT (mejorada)
+  // Función para reclamar CDT (sin cambios)
   const handleClaim = async () => {
     if (!purchaseId) {
       setError(t("no_purchase_id"))
@@ -122,7 +116,7 @@ export function CdtPackageModal({
 
       console.log(`🎁 CDT: Usuario ${username} reclamando compra ${purchaseId}`)
 
-      const response = await fetch("/api/cdt/claim", {
+      const response = await fetch("/api/cdt-purchases/claim", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
