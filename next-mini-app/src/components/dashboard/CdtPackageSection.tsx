@@ -14,8 +14,16 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
   const { t } = useTranslation()
   const [showModal, setShowModal] = useState(false)
 
+  // 🚨 KILL SWITCH - Cambiar a false para desactivar la funcionalidad
+  const CDT_PACKAGES_ENABLED = true
+
   // Validación básica antes de abrir el modal
   const handleOpenModal = () => {
+    if (!CDT_PACKAGES_ENABLED) {
+      console.log("🔒 CDT PACKAGES: Feature disabled by kill switch")
+      return
+    }
+
     if (!walletAddress || !username) {
       console.error("❌ CDT PACKAGE: Missing wallet address or username")
       return
@@ -58,19 +66,42 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
             </div>
           </div>
 
-          {/* Botón de compra */}
-          <button
-            onClick={handleOpenModal}
-            disabled={!walletAddress || !username}
-            className="w-full bg-gradient-to-r from-secondary to-[#ff4081] text-white font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-secondary/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {t("buy_cdt_package")}
-          </button>
+          {/* Botón de compra con sistema de seguridad */}
+          {CDT_PACKAGES_ENABLED ? (
+            <button
+              onClick={handleOpenModal}
+              disabled={!walletAddress || !username}
+              className="w-full bg-gradient-to-r from-secondary to-[#ff4081] text-white font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-secondary/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t("buy_cdt_package")}
+            </button>
+          ) : (
+            <div className="w-full bg-gray-600 text-gray-300 font-bold py-3 px-6 rounded-full text-center cursor-not-allowed">
+              <div className="flex items-center justify-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>
+                🔧 En mantenimiento
+              </div>
+              <p className="text-xs mt-1 opacity-75">Funcionalidad temporalmente deshabilitada</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
+      {/* Modal - Solo se muestra si está habilitado */}
+      {showModal && CDT_PACKAGES_ENABLED && (
         <CdtPackageModal
           isOpen={showModal}
           onCloseAction={() => setShowModal(false)}
