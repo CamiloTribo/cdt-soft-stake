@@ -651,3 +651,95 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
+
+/* =================================
+   EFECTOS CDT - COMPRA DE PAQUETES
+   ================================= */
+
+.cdt-package-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  width: 0;
+  height: 0;
+}
+
+.cdt-package-token {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-image: url("/TOKEN CDT.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: cdtPackageExplode 2s ease-out forwards;
+  animation-delay: var(--delay);
+  transform-origin: center;
+}
+
+@keyframes cdtPackageExplode {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1) rotate(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(-50% + cos(var(--angle)) * var(--distance)),
+        calc(-50% + sin(var(--angle)) * var(--distance))
+      )
+      scale(0.8) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* =================================
+   EFECTOS CDT - ORIGINALES
+   ================================= */
+
+.cdt-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  width: 0;
+  height: 0;
+}
+
+.cdt-token {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-image: url("/TOKEN CDT.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: cdtExplode 2s ease-out forwards;
+  animation-delay: var(--delay);
+  transform-origin: center;
+}
+
+@keyframes cdtExplode {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1) rotate(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(-50% + cos(var(--angle)) * var(--distance)),
+        calc(-50% + sin(var(--angle)) * var(--distance))
+      )
+      scale(0.8) rotate(360deg);
+    opacity: 0;
+  }
+}

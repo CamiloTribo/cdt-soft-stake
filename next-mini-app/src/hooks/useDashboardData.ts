@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { useWorldAuth } from "next-world-auth/react"
 import { useTranslation } from "../../src/components/TranslationProvider"
+import { getPendingCdtPurchases, getCdtPurchaseStats } from "@/src/lib/supabase" // ✅ Importar funciones
+import { type CdtPurchase } from "@/src/lib/supabase" // ✅ Importar tipo CdtPurchase
 
 export const useDashboardData = () => {
   const { t } = useTranslation()
@@ -23,6 +25,14 @@ export const useDashboardData = () => {
   // NUEVO: Estado para boosts
   const [hasBoost, setHasBoost] = useState(false)
   const [availableBoosts, setAvailableBoosts] = useState(0)
+  // ✅ NUEVO: Estado para compras CDT
+  const [pendingCdtPurchases, setPendingCdtPurchases] = useState<CdtPurchase[]>([]) // ✅ Tipo especificado
+  const [cdtPurchaseStats, setCdtPurchaseStats] = useState({
+    totalPurchases: 0,
+    totalWldSpent: 0,
+    totalCdtPurchased: 0,
+    pendingClaims: 0,
+  })
 
   const { session } = useWorldAuth()
   const translationValues = useTranslation()
@@ -267,6 +277,27 @@ export const useDashboardData = () => {
     }
   }, [getUserIdentifier, t, pendingRewards, lastClaimDate, username, fetchBoostData])
 
+  // ✅ NUEVO: Función para obtener datos de compras CDT
+  const fetchCdtPurchaseData = useCallback(async () => {
+    try {
+      const identifier = getUserIdentifier()
+      if (!identifier) {
+        console.error("No se pudo obtener identificador de usuario")
+        return
+      }
+
+      // Obtener compras pendientes
+      const pendingPurchases = await getPendingCdtPurchases(identifier)
+      setPendingCdtPurchases(pendingPurchases)
+
+      // Obtener estadísticas de compras
+      const stats = await getCdtPurchaseStats(identifier)
+      setCdtPurchaseStats(stats)
+    } catch (error) {
+      console.error("Error fetching CDT purchase data:", error)
+    }
+  }, [getUserIdentifier])
+
   // Actualizar el contador cada segundo
   useEffect(() => {
     if (!nextClaimTime) return
@@ -302,6 +333,7 @@ export const useDashboardData = () => {
       try {
         await fetchStakingData()
         await fetchTokenPrice()
+        await fetchCdtPurchaseData() // ✅ Cargar datos de compras CDT
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -314,12 +346,14 @@ export const useDashboardData = () => {
     const handleFocus = () => {
       fetchStakingData()
       fetchTokenPrice()
+      fetchCdtPurchaseData() // ✅ Actualizar datos de compras CDT
     }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         fetchStakingData()
         fetchTokenPrice()
+        fetchCdtPurchaseData() // ✅ Actualizar datos de compras CDT
       }
     }
 
@@ -329,6 +363,7 @@ export const useDashboardData = () => {
     const interval = setInterval(() => {
       fetchStakingData()
       fetchTokenPrice()
+      fetchCdtPurchaseData() // ✅ Actualizar datos de compras CDT
     }, 10000)
 
     return () => {
@@ -337,7 +372,7 @@ export const useDashboardData = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       clearInterval(interval)
     }
-  }, [fetchStakingData, fetchTokenPrice])
+  }, [fetchStakingData, fetchTokenPrice, fetchCdtPurchaseData])
 
   // Verificar si las recompensas están disponibles para reclamar
   const areRewardsClaimable = nextClaimTime ? new Date() >= nextClaimTime : false
@@ -377,5 +412,8 @@ export const useDashboardData = () => {
     fetchBoostData, // NUEVA función para actualizar boosts
     registerBoostPurchase, // NUEVA función para registrar compras de boosts
     calculateUsdValue,
+    // ✅ NUEVOS: Datos de compras CDT
+    pendingCdtPurchases,
+    cdtPurchaseStats,
   }
 }

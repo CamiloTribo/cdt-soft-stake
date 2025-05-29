@@ -21,6 +21,8 @@ import { WelcomeGiftModal } from "../../../src/components/dashboard/WelcomeGiftM
 import { LevelSection } from "../../../src/components/dashboard/LevelSection"
 // NUEVO: Importar BoostSection
 import { BoostSection } from "../../../src/components/dashboard/BoostSection"
+// ✅ AÑADIDO: Importar CdtPackageSection
+import { CdtPackageSection } from "../../../src/components/dashboard/CdtPackageSection"
 
 // URL base para todas las llamadas a API
 const baseUrl = "https://tribo-vault.vercel.app"
@@ -62,7 +64,6 @@ export default function Dashboard() {
   const [isWebsiteHovered, setIsWebsiteHovered] = useState(false)
   const [isTelegramHovered, setIsTelegramHovered] = useState(false)
   const [isTwitterHovered, setIsTwitterHovered] = useState(false)
-  const [isRuletaBannerHovered, setIsRuletaBannerHovered] = useState(false)
 
   // Obtener datos del dashboard usando el hook personalizado
   const {
@@ -644,32 +645,13 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Banner de ruleta 175k */}
-        <div className="mb-6">
-          <Link
-            href="https://t.me/cryptodigitaltribe/1"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl"
-            onMouseEnter={() => setIsRuletaBannerHovered(true)}
-            onMouseLeave={() => setIsRuletaBannerHovered(false)}
-          >
-            <div className={`transition-transform duration-500 ${isRuletaBannerHovered ? "scale-105" : "scale-100"}`}>
-              <Image
-                src="/ruleta 175k.png"
-                alt="Ruleta 175k"
-                width={1200}
-                height={400}
-                className="w-full h-auto object-cover rounded-xl"
-              />
-            </div>
-            <div className="absolute bottom-4 right-4 bg-primary text-black px-4 py-2 rounded-full font-bold text-sm shadow-lg transform transition-transform duration-300 hover:scale-105">
-              Participar ahora
-            </div>
-          </Link>
-        </div>
+        {/* ✅ NUEVA SECCIÓN: Paquetes CDT (reemplaza el banner de ruleta) */}
+        <CdtPackageSection 
+          walletAddress={getUserIdentifier() || ""}
+          username={username}
+        />
 
-        {/* MOVIDO: LevelSection ahora va después del banner de ruleta */}
+        {/* MOVIDO: LevelSection ahora va después de la nueva sección */}
         <LevelSection stakedAmount={stakedAmount} />
 
         {/* Enlace a la sección de niveles */}

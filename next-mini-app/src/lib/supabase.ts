@@ -12,9 +12,6 @@ export type User = {
   username: string | null
   verification_level?: "wallet" | "human" | "orb"
   country?: string | null
-  // user_id?: string // ✅ Eliminado - redundante con address
-  // level?: number // ✅ Eliminado - no existe en la tabla
-  // boosts_purchased?: number // ✅ Eliminado - no existe en la tabla
   created_at: string
 }
 
@@ -35,12 +32,26 @@ export type Boost = {
   id: string
   user_id: string
   username?: string | null
-  // wallet_address?: string // ✅ Eliminado - redundante con user_id
   level_at_purchase: number
   quantity_remaining: number
   is_active: boolean
   price_paid: number
   purchased_at: string
+  created_at: string
+}
+
+// ✅ NUEVO: Tipo para compras de CDT
+export type CdtPurchase = {
+  id: string
+  user_id: string
+  username?: string | null
+  wld_amount: number
+  cdt_amount: number
+  tx_hash?: string | null
+  delivery_tx_hash?: string | null
+  is_claimed: boolean
+  purchased_at: string
+  claimed_at?: string | null
   created_at: string
 }
 
@@ -165,7 +176,6 @@ export async function purchaseBoosts(
     const { error } = await supabase.from("boosts").insert({
       user_id: userId,
       username: username,
-      // wallet_address: userId, // ✅ Eliminado - redundante con user_id
       level_at_purchase: level,
       quantity_remaining: quantity,
       is_active: true,
@@ -240,7 +250,6 @@ export async function applyBoost(
       username: username,
       claim_amount_base: claimAmount,
       claim_amount_boosted: claimAmount * 2,
-      // ✅ SOLUCIONADO: Eliminamos timestamp - created_at se llena automáticamente
     }
     console.log(`📝 BOOST APPLY: Datos a insertar:`, usageData)
 
@@ -336,6 +345,98 @@ export async function hasAvailableBoosts(userId: string): Promise<boolean> {
   } catch (error) {
     console.error("💥 hasAvailableBoosts: Error general:", error)
     return false
+  }
+}
+
+// ==================== FUNCIONES PARA COMPRAS CDT ✅ NUEVO ====================
+
+// Función para obtener compras pendientes de claim
+export async function getPendingCdtPurchases(userId: string): Promise<CdtPurchase[]> {
+  try {
+    console.log(`🔍 getPendingCdtPurchases: Buscando compras pendientes para userId: ${userId}`)
+    
+    const { data, error } = await supabase
+      .from("cdt_purchases")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("is_claimed", false)
+      .order("purchased_at", { ascending: false })
+
+    if (error) {
+      console.error("❌ getPendingCdtPurchases: Error fetching pending CDT purchases:", error)
+      return []
+    }
+
+    console.log(`✅ getPendingCdtPurchases: Encontradas ${data?.length || 0} compras pendientes`)
+    return data || []
+  } catch (error) {
+    console.error("💥 getPendingCdtPurchases: Error general:", error)
+    return []
+  }
+}
+
+// Función para obtener historial de compras CDT
+export async function getCdtPurchaseHistory(userId: string): Promise<CdtPurchase[]> {
+  try {
+    console.log(`🔍 getCdtPurchaseHistory: Obteniendo historial para userId: ${userId}`)
+    
+    const { data, error } = await supabase
+      .from("cdt_purchases")
+      .select("*")
+      .eq("user_id", userId)
+      .order("purchased_at", { ascending: false })
+
+    if (error) {
+      console.error("❌ getCdtPurchaseHistory: Error fetching CDT purchase history:", error)
+      return []
+    }
+
+    console.log(`✅ getCdtPurchaseHistory: Encontradas ${data?.length || 0} compras en total`)
+    return data || []
+  } catch (error) {
+    console.error("💥 getCdtPurchaseHistory: Error general:", error)
+    return []
+  }
+}
+
+// Función para obtener estadísticas de compras CDT del usuario
+export async function getCdtPurchaseStats(userId: string): Promise<{
+  totalPurchases: number
+  totalWldSpent: number
+  totalCdtPurchased: number
+  pendingClaims: number
+}> {
+  try {
+    console.log(`📊 getCdtPurchaseStats: Obteniendo estadísticas para userId: ${userId}`)
+    
+    const { data, error } = await supabase
+      .from("cdt_purchases")
+      .select("wld_amount, cdt_amount, is_claimed")
+      .eq("user_id", userId)
+
+    if (error) {
+      console.error("❌ getCdtPurchaseStats: Error fetching CDT purchase stats:", error)
+      return { totalPurchases: 0, totalWldSpent: 0, totalCdtPurchased: 0, pendingClaims: 0 }
+    }
+
+    const stats = data.reduce(
+      (acc, purchase) => {
+        acc.totalPurchases += 1
+        acc.totalWldSpent += purchase.wld_amount
+        acc.totalCdtPurchased += purchase.cdt_amount
+        if (!purchase.is_claimed) {
+          acc.pendingClaims += 1
+        }
+        return acc
+      },
+      { totalPurchases: 0, totalWldSpent: 0, totalCdtPurchased: 0, pendingClaims: 0 }
+    )
+
+    console.log(`✅ getCdtPurchaseStats: Estadísticas calculadas:`, stats)
+    return stats
+  } catch (error) {
+    console.error("💥 getCdtPurchaseStats: Error general:", error)
+    return { totalPurchases: 0, totalWldSpent: 0, totalCdtPurchased: 0, pendingClaims: 0 }
   }
 }
 

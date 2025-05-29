@@ -346,5 +346,22 @@
   "payment_cancelled_or_failed": "El pago fue cancelado o falló",
   "no_transaction_hash": "No se recibió hash de transacción",
   "transaction_verification_failed": "La verificación de la transacción falló",
-  "off": "DESCUENTO"
+  "off": "DESCUENTO",
+  "buy_cdt_packages": "Comprar Paquetes CDT",
+"get_cdt_instantly": "Obtén CDT al instante",
+"package_price": "Precio del paquete",
+"cdt_amount": "Cantidad de CDT",
+"buy_cdt_package": "Comprar Paquete CDT",
+"error_claiming_cdt": "Error al reclamar CDT",
+"get_cdt_instantly_desc": "Compra CDT de forma rápida y segura con WLD",
+"price": "Precio",
+"you_receive": "Recibes",
+"claim_your_cdt_now": "¡Reclama tus CDT ahora!",
+"claim_50_cdt": "Reclamar 50 CDT",
+"cdt_claimed": "¡CDT Reclamados!",
+"cdt_added_to_balance": "50 CDT han sido añadidos a tu balance",
+"enjoy_your_cdt": "¡Disfruta tus nuevos CDT!",
+"missing_user_data": "Faltan datos del usuario",
+"payment_invalid_no_hash": "Pago inválido: sin hash de transacción",
+"no_purchase_id": "No se encontró ID de compra"
 }

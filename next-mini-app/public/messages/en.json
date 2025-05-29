@@ -348,6 +348,18 @@
   "payment_cancelled_or_failed": "Payment was cancelled or failed",
   "no_transaction_hash": "No transaction hash received",
   "transaction_verification_failed": "Transaction verification failed",
-  "off": "OFF"
+  "off": "OFF",
+  "error_claiming_cdt": "Error claiming CDT",
+"get_cdt_instantly_desc": "Buy CDT quickly and securely with WLD",
+"price": "Price",
+"you_receive": "You receive",
+"claim_your_cdt_now": "Claim your CDT now!",
+"claim_50_cdt": "Claim 50 CDT",
+"cdt_claimed": "CDT Claimed!",
+"cdt_added_to_balance": "50 CDT have been added to your balance",
+"enjoy_your_cdt": "Enjoy your new CDT!",
+"missing_user_data": "Missing user data",
+"payment_invalid_no_hash": "Invalid payment: no transaction hash",
+"no_purchase_id": "Purchase ID not found"
 }
 
