@@ -10,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export async function POST(request: NextRequest) {
   try {
     console.log("🛒 CDT PURCHASE: Endpoint llamado")
-    const { userId, username, wldAmount, cdtAmount } = await request.json() // ✅ Quitar txHash
+    const { userId, username, wldAmount, cdtAmount } = await request.json()
 
     // Validar parámetros
     if (!userId || !wldAmount || !cdtAmount) {
@@ -28,8 +28,6 @@ export async function POST(request: NextRequest) {
       console.error("❌ CDT PURCHASE: CDT amount inválido:", cdtAmount)
       return NextResponse.json({ error: "Invalid CDT amount" }, { status: 400 })
     }
-
-    // ✅ ELIMINAR VALIDACIÓN DE TXHASH - Como en boosts, confiamos en pay()
 
     // Buscar al usuario usando la función helper
     console.log("🔍 CDT PURCHASE: Buscando usuario con address:", userId)
@@ -70,7 +68,7 @@ export async function POST(request: NextRequest) {
         username: username || user.username || "",
         wld_amount: wldAmount,
         cdt_amount: cdtAmount,
-        tx_hash: "", // ✅ Vacío - no tenemos hash de WLD
+        tx_hash: "", // Vacío - no tenemos hash de WLD
         is_claimed: false,
         purchased_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
@@ -85,18 +83,18 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ CDT PURCHASE: Compra creada exitosamente:", purchase)
 
-    // Registrar la transacción usando user.id (sin hash)
+    // ✅ REGISTRAR TRANSACCIÓN SIN username
     console.log("📝 CDT PURCHASE: Registrando transacción")
     try {
       const { error: txError } = await supabase.from("transactions").insert([
         {
           user_id: user.id,
           wallet_address: userId,
-          username: username || user.username || "",
+          // ❌ QUITADO: username: username || user.username || "",
           type: "purchase",
           amount: wldAmount,
           token_type: "WLD",
-          tx_hash: "", // ✅ Vacío - confiamos en pay()
+          tx_hash: "", // Vacío - confiamos en pay()
           status: "success",
           description: `Compra de ${cdtAmount} CDT por ${wldAmount} WLD`,
         },
@@ -143,7 +141,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       purchaseId: purchase.id,
-      purchase: purchase, // ✅ Añadir purchase como en boosts
+      purchase: purchase,
       message: `Successfully purchased ${cdtAmount} CDT for ${wldAmount} WLD`,
     })
   } catch (error) {

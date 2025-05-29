@@ -31,31 +31,6 @@ function getErrorMessage(error: unknown): string {
   return String(error);
 }
 
-// Función de utilidad para reintentos
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
-  let lastError;
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(`Intento ${attempt} para ${url}`);
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
-    } catch (error) {
-      console.warn(`Intento ${attempt} falló:`, error);
-      lastError = error;
-      
-      // Esperar antes de reintentar (backoff exponencial)
-      if (attempt < maxRetries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }
-  
-  throw lastError;
-}
-
 export async function POST(request: Request) {
   try {
     console.log("🎁 CDT CLAIM: Endpoint llamado")
@@ -107,12 +82,11 @@ export async function POST(request: Request) {
       console.log(`💸 CDT CLAIM: Enviando ${purchase.cdt_amount} CDT al usuario ${username} (${userId})`)
       claimResult = await sendRewards(userId, purchase.cdt_amount)
     } catch (error: unknown) {
-      console.error("Error en sendRewards:", error)
+      console.error("❌ CDT CLAIM: Error en sendRewards:", error)
       
-      // Si el error es por un valor decimal inválido, proporcionamos un mensaje más claro
       const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("invalid decimal value")) {
-        console.log("Detectado error de valor decimal inválido")
+        console.log("❌ CDT CLAIM: Detectado error de valor decimal inválido")
         
         return NextResponse.json({
           success: false,
@@ -121,7 +95,6 @@ export async function POST(request: Request) {
         }, { status: 400 })
       }
       
-      // Si es otro tipo de error, lo propagamos
       throw error
     }
 
@@ -140,13 +113,13 @@ export async function POST(request: Request) {
 
     console.log("✅ CDT CLAIM: CDT enviado exitosamente:", claimResult)
 
-    // Actualizar el estado de la compra a reclamada
+    // ✅ USAR tx_hash en lugar de delivery_tx_hash
     const { error: updateError } = await supabase
       .from("cdt_purchases")
       .update({ 
         is_claimed: true, 
         claimed_at: new Date().toISOString(),
-        delivery_tx_hash: claimResult.txHash
+        tx_hash: claimResult.txHash  // ✅ Usar tx_hash para delivery
       })
       .eq("id", purchaseId)
 
@@ -155,27 +128,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Failed to update purchase" }, { status: 500 })
     }
 
-    // Registrar la transacción de entrega de CDT
-    const { error: txError } = await supabase.from("transactions").insert([
-      {
-        user_id: user.id,
-        wallet_address: userId,
-        username: username || user.username || "",
-        type: "receive",
-        amount: purchase.cdt_amount, // ✅ USAR purchase.cdt_amount
-        token_type: "CDT",
-        tx_hash: claimResult.txHash,
-        status: "success",
-        description: `${username || user.username} reclamó ${purchase.cdt_amount} CDT del paquete comprado`,
-      },
-    ])
+    console.log("✅ CDT CLAIM: Compra actualizada exitosamente")
 
-    if (txError) {
-      console.error("⚠️ CDT CLAIM: Error registering transaction:", txError)
-      // Continuamos aunque falle el registro de la transacción
+    // ✅ REGISTRAR TRANSACCIÓN SIN username (por ahora)
+    console.log("📝 CDT CLAIM: Registrando transacción")
+    try {
+      const { error: txError } = await supabase.from("transactions").insert([
+        {
+          user_id: user.id,
+          wallet_address: userId,
+          type: "receive",
+          amount: purchase.cdt_amount,
+          token_type: "CDT",
+          tx_hash: claimResult.txHash,
+          status: "success",
+          description: `Reclamación de ${purchase.cdt_amount} CDT del paquete comprado`,
+        },
+      ])
+
+      if (txError) {
+        console.error("⚠️ CDT CLAIM: Error registering transaction (no crítico):", txError)
+      } else {
+        console.log("✅ CDT CLAIM: Transacción registrada exitosamente")
+      }
+    } catch (error) {
+      console.error("⚠️ CDT CLAIM: Error registering transaction (no crítico):", error)
     }
 
     // Actualizar el total_claimed del usuario
+    console.log("📊 CDT CLAIM: Actualizando total_claimed del usuario")
     try {
       const { data: userData, error: userError } = await supabase
         .from("users")
@@ -185,7 +166,7 @@ export async function POST(request: Request) {
 
       if (!userError && userData) {
         const currentTotal = userData.total_claimed || 0
-        const newTotal = currentTotal + purchase.cdt_amount // ✅ USAR purchase.cdt_amount
+        const newTotal = currentTotal + purchase.cdt_amount
 
         const { error: updateError } = await supabase
           .from("users")
@@ -195,47 +176,18 @@ export async function POST(request: Request) {
         if (updateError) {
           console.error("⚠️ CDT CLAIM: Error updating total_claimed:", updateError)
         } else {
-          console.log(`Total claimed updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
+          console.log(`✅ CDT CLAIM: Total claimed updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
         }
       }
     } catch (error) {
       console.error("⚠️ CDT CLAIM: Error updating user stats (no crítico):", error)
     }
 
-    // Sincronizar el nivel del usuario después del claim
-    try {
-      const baseUrl = "https://tribo-vault.vercel.app";
-      const updateLevelUrl = `${baseUrl}/api/update-level`;
-      
-      // Obtener el balance actual
-      const { data: stakingData } = await supabase
-        .from("staking_info")
-        .select("staked_amount")
-        .eq("user_id", user.id)
-        .single();
-        
-      if (stakingData) {
-        await fetchWithRetry(updateLevelUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            address: userId,
-            staked_amount: stakingData.staked_amount,
-          }),
-        }, 3);
-      }
-    } catch (error) {
-      console.error("⚠️ CDT CLAIM: Error syncing user level after claim:", error);
-      // No interrumpimos el flujo principal si falla la sincronización
-    }
-
     console.log("✅ CDT CLAIM: CDT reclamado exitosamente")
     return NextResponse.json({
       success: true,
       message: "¡CDT reclamados correctamente!",
-      cdtAmount: purchase.cdt_amount, // ✅ USAR purchase.cdt_amount
+      cdtAmount: purchase.cdt_amount,
       txHash: claimResult.txHash,
     })
   } catch (error: unknown) {

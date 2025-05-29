@@ -40,7 +40,7 @@ export type Boost = {
   created_at: string
 }
 
-// ✅ NUEVO: Tipo para compras de CDT
+// ✅ CORREGIDO: Tipo para compras de CDT (sin delivery_tx_hash)
 export type CdtPurchase = {
   id: string
   user_id: string
@@ -48,7 +48,6 @@ export type CdtPurchase = {
   wld_amount: number
   cdt_amount: number
   tx_hash?: string | null
-  delivery_tx_hash?: string | null
   is_claimed: boolean
   purchased_at: string
   claimed_at?: string | null
