@@ -40,7 +40,7 @@ export default function MaintenanceMode() {
           <p className="text-sm text-gray-400">Mantente informado:</p>
           <div className="flex justify-center space-x-4">
             <a
-              href="https://t.me/tribovault"
+              href="https://t.me/cryptodigitaltribe"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -48,7 +48,7 @@ export default function MaintenanceMode() {
               📱 Telegram
             </a>
             <a
-              href="https://twitter.com/tribovault"
+              href="https://twitter.com/tribocdt"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
