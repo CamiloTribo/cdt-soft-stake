@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getUserByAddress } from "@/src/lib/supabase"
-import { claimRewards } from "@/src/lib/staking" // ✅ Importar claimRewards
+import { sendFixedCDT } from "@/src/lib/blockchain" // ✅ Importar sendFixedCDT en lugar de claimRewards
 import { createClient } from "@supabase/supabase-js"
 
 // Crear cliente de Supabase
@@ -77,14 +77,14 @@ export async function POST(request: Request) {
 
     console.log("✅ CDT CLAIM: Compra encontrada:", purchase)
 
-    // ✅ USAR claimRewards() en lugar de sendRewards()
+    // ✅ USAR sendFixedCDT() para enviar cantidad fija de CDT
     let claimResult;
     try {
-      console.log(`💸 CDT CLAIM: Reclamando CDT para el usuario ${userId}`)
-      claimResult = await claimRewards(user.id, userId) // ✅ USAR claimRewards
-      console.log("✅ CDT CLAIM: claimRewards result:", claimResult);
+      console.log(`💰 CDT CLAIM: Enviando cantidad FIJA de ${purchase.cdt_amount} CDT para el usuario ${userId}`)
+      claimResult = await sendFixedCDT(userId, purchase.cdt_amount) // ✅ USAR sendFixedCDT con cantidad fija
+      console.log("✅ CDT CLAIM: sendFixedCDT result:", claimResult);
     } catch (error: unknown) {
-      console.error("❌ CDT CLAIM: Error en claimRewards:", error)
+      console.error("❌ CDT CLAIM: Error en sendFixedCDT:", error)
       
       const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("invalid decimal value")) {
@@ -101,17 +101,18 @@ export async function POST(request: Request) {
     }
 
     // Verificación mejorada del resultado
-    if (!claimResult || !claimResult.success || !claimResult.txHash) {
-      console.error("❌ CDT CLAIM: Error en claimRewards:", claimResult)
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Failed to deliver CDT",
-          details: claimResult ? `Amount: ${claimResult.amount}, TxHash: ${claimResult.txHash}` : "No result",
-        },
-        { status: 400 },
-      )
-    }
+   // Verificación mejorada del resultado
+if (!claimResult || !claimResult.success || !claimResult.txHash) {
+  console.error("❌ CDT CLAIM: Error en sendFixedCDT:", claimResult)
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Failed to deliver CDT",
+      details: claimResult ? `Amount: ${purchase.cdt_amount}, TxHash: ${claimResult.txHash}` : "No result",
+    },
+    { status: 400 },
+  )
+}
 
     console.log("✅ CDT CLAIM: CDT reclamado exitosamente:", claimResult)
 

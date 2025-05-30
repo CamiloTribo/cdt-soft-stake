@@ -16,22 +16,22 @@ let nonceUpdateTime = 0
 // Función para convertir valores en notación científica a formato decimal completo
 function formatDecimal(num: number): string {
   // Convertir a string con 18 decimales fijos (precisión de Ethereum)
-  const str = num.toFixed(18);
+  const str = num.toFixed(18)
   // Eliminar ceros finales y punto decimal si no hay decimales
-  return str.replace(/\.?0+$/, "");
+  return str.replace(/\.?0+$/, "")
 }
 
 // Función para normalizar valores decimales extremadamente pequeños
 function normalizeAmount(amount: number): number {
   // Si el valor es extremadamente pequeño (menor que 1e-18), lo redondeamos a 0
   if (amount < 1e-18) {
-    console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`);
-    return 0;
+    console.log(`Valor extremadamente pequeño detectado: ${amount}, normalizando a 0`)
+    return 0
   }
-  
+
   // Para valores pequeños pero significativos, mantenemos el valor original
   // pero nos aseguramos de que se pueda representar correctamente
-  return amount;
+  return amount
 }
 
 // Función para obtener el balance de CDT de una dirección
@@ -150,18 +150,18 @@ export async function sendRewards(
   amount: number,
 ): Promise<{ success: boolean; txHash: string | null; error?: string }> {
   // Normalizar el monto antes de procesarlo
-  const normalizedAmount = normalizeAmount(amount);
-  
-  console.log(`Enviando ${normalizedAmount} CDT a ${toAddress} (valor original: ${amount})`);
+  const normalizedAmount = normalizeAmount(amount)
+
+  console.log(`Enviando ${normalizedAmount} CDT a ${toAddress} (valor original: ${amount})`)
 
   // Si el monto normalizado es 0, no enviamos la transacción
   if (normalizedAmount <= 0) {
-    console.log("Monto normalizado es 0, no se enviará la transacción");
+    console.log("Monto normalizado es 0, no se enviará la transacción")
     return {
       success: false,
       txHash: null,
       error: "Monto demasiado pequeño para procesar",
-    };
+    }
   }
 
   try {
@@ -212,11 +212,11 @@ export async function sendRewards(
 
     // Crear los datos de la transacción (llamada a la función transfer del contrato)
     const iface = new ethers.utils.Interface(CDT_ABI)
-    
+
     // CAMBIO IMPORTANTE: Convertir a formato decimal completo para evitar notación científica
-    const formattedAmount = formatDecimal(normalizedAmount);
-    console.log(`Valor formateado para ethers: ${formattedAmount}`);
-    
+    const formattedAmount = formatDecimal(normalizedAmount)
+    console.log(`Valor formateado para ethers: ${formattedAmount}`)
+
     try {
       // Usar el valor formateado para la conversión a wei
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18)
@@ -276,30 +276,30 @@ export async function sendRewards(
       throw new Error("Respuesta inesperada de Alchemy")
     } catch (parseError) {
       // Si hay un error al parsear el valor, intentamos con un enfoque alternativo
-      console.error("Error al parsear el valor, intentando enfoque alternativo:", parseError);
-      
+      console.error("Error al parsear el valor, intentando enfoque alternativo:", parseError)
+
       // Convertir a un valor más grande y luego ajustar las unidades
       // Por ejemplo, si tenemos 1e-9, lo multiplicamos por 1e9 para obtener 1
       // y luego usamos 9 decimales menos (18-9=9)
-      let adjustedDecimals = 18;
-      let adjustedAmount = normalizedAmount;
-      
+      let adjustedDecimals = 18
+      let adjustedAmount = normalizedAmount
+
       // Si el valor es muy pequeño, ajustamos
       if (normalizedAmount < 1e-6) {
-        const exponent = Math.floor(Math.log10(normalizedAmount));
-        const adjustment = Math.abs(exponent);
-        adjustedAmount = normalizedAmount * Math.pow(10, adjustment);
-        adjustedDecimals = Math.max(18 - adjustment, 0);
-        console.log(`Ajustando valor: ${normalizedAmount} -> ${adjustedAmount} con ${adjustedDecimals} decimales`);
+        const exponent = Math.floor(Math.log10(normalizedAmount))
+        const adjustment = Math.abs(exponent)
+        adjustedAmount = normalizedAmount * Math.pow(10, adjustment)
+        adjustedDecimals = Math.max(18 - adjustment, 0)
+        console.log(`Ajustando valor: ${normalizedAmount} -> ${adjustedAmount} con ${adjustedDecimals} decimales`)
       }
-      
+
       // Convertir a string con formato fijo
-      const adjustedAmountStr = adjustedAmount.toString();
-      
+      const adjustedAmountStr = adjustedAmount.toString()
+
       // Usar el valor ajustado para la conversión a wei
-      const amountInWei = ethers.utils.parseUnits(adjustedAmountStr, adjustedDecimals);
-      const data = iface.encodeFunctionData("transfer", [toAddress, amountInWei]);
-      
+      const amountInWei = ethers.utils.parseUnits(adjustedAmountStr, adjustedDecimals)
+      const data = iface.encodeFunctionData("transfer", [toAddress, amountInWei])
+
       // Crear la transacción con el nuevo data
       const tx = {
         to: CDT_CONTRACT_ADDRESS,
@@ -311,11 +311,11 @@ export async function sendRewards(
         value: "0x0",
       }
 
-      console.log("Transacción a firmar (enfoque alternativo):", tx);
+      console.log("Transacción a firmar (enfoque alternativo):", tx)
 
       // Firmar la transacción sin usar un proveedor
-      const signedTx = await wallet.signTransaction(tx);
-      console.log("Transacción firmada (enfoque alternativo):", signedTx);
+      const signedTx = await wallet.signTransaction(tx)
+      console.log("Transacción firmada (enfoque alternativo):", signedTx)
 
       // Enviar la transacción usando la API de Alchemy
       const sendResponse = await axios.post(ALCHEMY_API_URL, {
@@ -323,19 +323,19 @@ export async function sendRewards(
         id: 1,
         method: "eth_sendRawTransaction",
         params: [signedTx],
-      });
+      })
 
-      console.log("Respuesta de envío (enfoque alternativo):", JSON.stringify(sendResponse.data, null, 2));
+      console.log("Respuesta de envío (enfoque alternativo):", JSON.stringify(sendResponse.data, null, 2))
 
       if (sendResponse.data && sendResponse.data.result) {
-        const txHash = sendResponse.data.result;
-        console.log("Transacción enviada (enfoque alternativo). Hash:", txHash);
-        return { success: true, txHash };
+        const txHash = sendResponse.data.result
+        console.log("Transacción enviada (enfoque alternativo). Hash:", txHash)
+        return { success: true, txHash }
       } else if (sendResponse.data && sendResponse.data.error) {
-        throw new Error(`Error de Alchemy (enfoque alternativo): ${JSON.stringify(sendResponse.data.error)}`);
+        throw new Error(`Error de Alchemy (enfoque alternativo): ${JSON.stringify(sendResponse.data.error)}`)
       }
 
-      throw new Error("Respuesta inesperada de Alchemy (enfoque alternativo)");
+      throw new Error("Respuesta inesperada de Alchemy (enfoque alternativo)")
     }
   } catch (error) {
     console.error("Error al enviar recompensas:", error)
@@ -347,4 +347,15 @@ export async function sendRewards(
       error: error instanceof Error ? error.message : "Error desconocido al enviar recompensas",
     }
   }
+}
+
+// Función específica para enviar una cantidad fija de CDT (para compras de paquetes)
+export async function sendFixedCDT(
+  toAddress: string,
+  fixedAmount: number,
+): Promise<{ success: boolean; txHash: string | null; error?: string }> {
+  console.log(`💰 FIXED CDT: Enviando cantidad FIJA de ${fixedAmount} CDT a ${toAddress}`)
+
+  // Usar directamente sendRewards() sin cálculos de staking, boosts o niveles
+  return sendRewards(toAddress, fixedAmount)
 }
