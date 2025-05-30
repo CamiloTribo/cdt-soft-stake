@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useTranslation } from "../../../src/components/TranslationProvider"
+import { showCDTEffect } from "../../utils/cdtEffects"
 
 interface ClaimSectionProps {
   timeRemaining: string
@@ -13,7 +14,7 @@ interface ClaimSectionProps {
   claimError: string | null
   handleClaimRewardsAction: () => Promise<void>
   formatDateAction: (date: Date) => string
-  hasBoost?: boolean // Nueva prop para indicar si hay boost activo
+  hasBoost?: boolean
 }
 
 export const ClaimSection: React.FC<ClaimSectionProps> = ({
@@ -26,20 +27,27 @@ export const ClaimSection: React.FC<ClaimSectionProps> = ({
   claimError,
   handleClaimRewardsAction,
   formatDateAction,
-  hasBoost = false, // Valor por defecto: false
+  hasBoost = false,
 }) => {
   const { t } = useTranslation()
   
-  // Calcular recompensas con boost (x2)
   const boostedRewards = hasBoost ? realtimeRewards * 2 : realtimeRewards
+
+  const handleClaimWithEffect = async () => {
+    try {
+      await handleClaimRewardsAction()
+      showCDTEffect()
+    } catch (error) {
+      console.error("Error en claim:", error)
+    }
+  }
 
   return (
     <div className="mb-6 dashboard-card p-6">
       <h2 className="text-xl font-semibold mb-4 text-center text-primary">{t("next_claim")}</h2>
 
-      {/* Botón de reclamar - Mejorado */}
       <button
-        onClick={handleClaimRewardsAction}
+        onClick={handleClaimWithEffect}
         disabled={isClaiming || !areRewardsClaimable}
         className={`w-full px-4 py-4 rounded-full text-xl font-medium mb-5 transition-all duration-300 ${
           isClaiming
@@ -91,7 +99,6 @@ export const ClaimSection: React.FC<ClaimSectionProps> = ({
           </span>
         )}
         
-        {/* Efecto de rayos para el botón cuando hay boost */}
         {hasBoost && areRewardsClaimable && !isClaiming && (
           <>
             <span className="absolute -top-1 -right-1 w-3 h-8 bg-[#4ebd0a] rotate-45 opacity-70"></span>
@@ -100,10 +107,8 @@ export const ClaimSection: React.FC<ClaimSectionProps> = ({
         )}
       </button>
 
-      {/* Fecha y barra de progreso - Mejorada */}
       {nextClaimTime ? (
         <div className="flex flex-col items-center mb-5">
-          {/* Fecha del próximo claim */}
           <div className="text-sm text-gray-400 mb-3">
             {nextClaimTime ? formatDateAction(nextClaimTime) : t("date_not_available")}
           </div>
@@ -145,18 +150,15 @@ export const ClaimSection: React.FC<ClaimSectionProps> = ({
         <p className="text-xl mb-6 text-center text-white">{t("no_claims_yet")}</p>
       )}
 
-      {/* Cantidad a reclamar - Mejorada con boost */}
       <div className="text-center mb-5 relative">
         <p className="text-lg text-gray-300 mb-2">{t("available_rewards")}</p>
         
         {hasBoost ? (
           <div className="relative">
-            {/* Indicador de boost */}
             <div className="absolute -top-4 -right-4 bg-[#4ebd0a] text-black text-xs font-bold rounded-full px-2 py-1 flex items-center animate-pulse">
               🚀 {t("boost_active_x2")}
             </div>
             
-            {/* Recompensas con boost */}
             <div className="flex flex-col items-center">
               <p className="text-sm text-gray-400 line-through mb-1">
                 {realtimeRewards.toFixed(6)} <span>CDT</span>
@@ -176,7 +178,6 @@ export const ClaimSection: React.FC<ClaimSectionProps> = ({
         )}
       </div>
 
-      {/* Mensajes de éxito/error para claim - Mejorados */}
       {claimSuccess && !claimError && !isClaiming && (
         <div className="mt-4 p-3 bg-black/80 border border-primary rounded-full animate-pulse">
           <p className="text-sm font-medium text-primary text-center">{claimSuccess}</p>
