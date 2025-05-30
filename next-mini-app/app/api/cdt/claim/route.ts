@@ -130,31 +130,6 @@ export async function POST(request: Request) {
 
     console.log("✅ CDT CLAIM: Compra actualizada exitosamente")
 
-    // ✅ REGISTRAR TRANSACCIÓN SIN username
-    // console.log("📝 CDT CLAIM: Registrando transacción")
-    // try {
-    //   const { error: txError } = await supabase.from("transactions").insert([
-    //     {
-    //       user_id: user.id,
-    //       wallet_address: userId,
-    //       type: "receive",
-    //       amount: purchase.cdt_amount,
-    //       token_type: "CDT",
-    //       tx_hash: claimResult.txHash,
-    //       status: "success",
-    //       description: `Reclamación de ${purchase.cdt_amount} CDT del paquete comprado`,
-    //     },
-    //   ])
-
-    //   if (txError) {
-    //     console.error("⚠️ CDT CLAIM: Error registering transaction:", txError)
-    //   } else {
-    //     console.log("✅ CDT CLAIM: Transacción registrada exitosamente")
-    //   }
-    // } catch (error) {
-    //   console.error("⚠️ CDT CLAIM: Error registering transaction:", error)
-    // }
-
     // Actualizar el total_claimed del usuario
     console.log("📊 CDT CLAIM: Actualizando total_claimed del usuario")
     try {
