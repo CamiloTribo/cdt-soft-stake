@@ -25,7 +25,13 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="relative">
-                <Image src="/TOKEN CDT.png" alt="CDT Token" width={60} height={60} className="drop-shadow-lg" />
+                <Image
+                  src="/BOX_TRIBO VAULT_CDT.png"
+                  alt="CDT Package Box"
+                  width={60}
+                  height={60}
+                  className="drop-shadow-lg"
+                />
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full animate-ping"></div>
               </div>
 

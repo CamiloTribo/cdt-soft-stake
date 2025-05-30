@@ -14,12 +14,7 @@ interface CdtPackageModalProps {
   username: string
 }
 
-export function CdtPackageModal({ 
-  isOpen, 
-  onCloseAction, 
-  walletAddress, 
-  username
-}: CdtPackageModalProps) {
+export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username }: CdtPackageModalProps) {
   const { t } = useTranslation()
   const { pay } = useWorldAuth()
   const [isLoading, setIsLoading] = useState(false)
@@ -60,7 +55,7 @@ export function CdtPackageModal({
       console.log("💰 CDT: Resultado del pago:", finalPayload)
 
       // ✅ VERIFICACIÓN CORREGIDA - Solo como en BoostModal
-      if (!finalPayload || finalPayload.status === 'error') {
+      if (!finalPayload || finalPayload.status === "error") {
         console.log("❌ CDT: Pago cancelado o fallido")
         setError(t("payment_cancelled_or_failed"))
         setIsLoading(false)
@@ -105,7 +100,7 @@ export function CdtPackageModal({
 
   // Función para reclamar CDT (sin cambios)
   const handleClaim = async () => {
-    console.log("🎁 CDT: handleClaim llamado", { walletAddress, purchaseId }); // ✅ LOG 1
+    console.log("🎁 CDT: handleClaim llamado", { walletAddress, purchaseId }) // ✅ LOG 1
     if (!purchaseId) {
       setError(t("no_purchase_id"))
       return
@@ -172,7 +167,7 @@ export function CdtPackageModal({
 
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <Image src="/TOKEN CDT.png" alt="CDT Token" width={120} height={120} />
+                <Image src="/BOX_TRIBO VAULT_CDT.png" alt="CDT Package Box" width={120} height={120} />
                 <div className="absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-10 h-10 flex items-center justify-center">
                   50
                 </div>
@@ -221,7 +216,7 @@ export function CdtPackageModal({
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">
               <div className="relative">
-                <Image src="/TOKEN CDT.png" alt="CDT Token" width={150} height={150} />
+                <Image src="/BOX_TRIBO VAULT_CDT.png" alt="CDT Package Box" width={150} height={150} />
                 <div className="absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center animate-pulse">
                   50
                 </div>
@@ -274,7 +269,7 @@ export function CdtPackageModal({
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">
               <div className="relative animate-bounce">
-                <Image src="/TOKEN CDT.png" alt="CDT Token" width={150} height={150} />
+                <Image src="/BOX_TRIBO VAULT_CDT.png" alt="CDT Package Box" width={150} height={150} />
                 <div className="absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center">
                   +50
                 </div>
