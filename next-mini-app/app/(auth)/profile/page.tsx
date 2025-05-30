@@ -8,6 +8,7 @@ import { useTranslation } from "../../../src/components/TranslationProvider"
 import { CountrySelector } from "../../../src/components/CountrySelector"
 import { CountryFlag } from "../../../src/components/CountryFlag"
 import { LevelSection } from "../../../src/components/dashboard/LevelSection"
+import { ReferralStats } from "../../../src/components/ReferralStats" // ✅ Importar ReferralStats
 
 // Mantenemos los tipos existentes
 type UserStats = {
@@ -49,7 +50,7 @@ export default function Profile() {
     referralCount: 0,
   })
   const [isCopied, setIsCopied] = useState(false)
-  const [cdtPrice, setCdtPrice] = useState<number | null>(null)
+  const [cdtPrice, setCdtPrice] = useState<number | null>(null) // ✅ CORREGIDO
   const [lastClaimDate, setLastClaimDate] = useState<string | null>(null)
 
   // Estado para el país
@@ -547,46 +548,10 @@ export default function Profile() {
             {/* Separador */}
             <div className={cardSeparatorClass}></div>
 
-            {/* ❌ CÓDIGO OBSOLETO - Sistema de códigos */}
-            {/* 
-            <div>
-              <p className="text-sm text-gray-300 mb-3">{t("invited_by_friend")}</p>
-
-              <form onSubmit={handleReferralSubmit}>
-                <div className="flex w-full">
-                  <input
-                    type="text"
-                    value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value)}
-                    placeholder={t("referral_code")}
-                    className="flex-1 min-w-0 bg-black border border-gray-700 rounded-l-full px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#4ebd0a]"
-                    aria-label={t("referral_code")}
-                  />
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`whitespace-nowrap px-4 py-2 rounded-r-full font-medium transition-colors ${
-                      isSubmitting ? "bg-gray-700 cursor-not-allowed" : "bg-[#4ebd0a] hover:bg-[#4ebd0a]/80 text-black"
-                    }`}
-                    aria-disabled={isSubmitting}
-                  >
-                    {isSubmitting ? t("sending") : t("register")}
-                  </button>
-                </div>
-
-                {referralError && (
-                  <p className="text-sm text-red-500 mt-2" role="alert">
-                    {referralError}
-                  </p>
-                )}
-                {referralSuccess && (
-                  <p className="text-sm text-[#4ebd0a] mt-2" role="alert">
-                    {t("referral_registered")}
-                  </p>
-                )}
-              </form>
-            </div>
-            */}
+            {/* ✅ COMPONENTE ReferralStats AÑADIDO CORRECTAMENTE */}
+            {getUserIdentifier() && (
+              <ReferralStats userId={getUserIdentifier() as string} />
+            )}
           </div>
 
           {/* Selector de país */}

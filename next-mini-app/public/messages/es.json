@@ -363,5 +363,9 @@
 "enjoy_your_cdt": "¡Disfruta tus nuevos CDT!",
 "missing_user_data": "Faltan datos del usuario",
 "payment_invalid_no_hash": "Pago inválido: sin hash de transacción",
-"no_purchase_id": "No se encontró ID de compra"
+"no_purchase_id": "No se encontró ID de compra",
+  "error_fetching_referral_earnings": "Error al obtener ganancias por referidos",
+  "loading_referral_earnings": "Cargando ganancias por referidos...",
+  "referral_earnings": "Ganancias por Referidos",
+  "total_earned_from_referrals": "Total ganado por referidos"
 }

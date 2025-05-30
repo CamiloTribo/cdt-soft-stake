@@ -360,6 +360,10 @@
 "enjoy_your_cdt": "Enjoy your new CDT!",
 "missing_user_data": "Missing user data",
 "payment_invalid_no_hash": "Invalid payment: no transaction hash",
-"no_purchase_id": "Purchase ID not found"
+"no_purchase_id": "Purchase ID not found",
+  "error_fetching_referral_earnings": "Error fetching referral earnings",
+  "loading_referral_earnings": "Loading referral earnings...",
+  "referral_earnings": "Referral Earnings",
+  "total_earned_from_referrals": "Total earned from referrals"
 }
 

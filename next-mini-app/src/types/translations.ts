@@ -361,3 +361,7 @@ export type TranslationKey =
 | "missing_user_data"
 | "payment_invalid_no_hash"
 | "no_purchase_id"
+  | "error_fetching_referral_earnings"
+  | "loading_referral_earnings"
+  | "referral_earnings"
+  | "total_earned_from_referrals";
