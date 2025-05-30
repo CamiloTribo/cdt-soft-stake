@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getUserByAddress } from "@/src/lib/supabase"
 import { sendFixedCDT } from "@/src/lib/blockchain" // ✅ Importar sendFixedCDT en lugar de claimRewards
+import { sendRewards } from "@/src/lib/blockchain" // ✅ Importar sendRewards para referidos
 import { createClient } from "@supabase/supabase-js"
 
 // Crear cliente de Supabase
@@ -101,18 +102,17 @@ export async function POST(request: Request) {
     }
 
     // Verificación mejorada del resultado
-   // Verificación mejorada del resultado
-if (!claimResult || !claimResult.success || !claimResult.txHash) {
-  console.error("❌ CDT CLAIM: Error en sendFixedCDT:", claimResult)
-  return NextResponse.json(
-    {
-      success: false,
-      error: "Failed to deliver CDT",
-      details: claimResult ? `Amount: ${purchase.cdt_amount}, TxHash: ${claimResult.txHash}` : "No result",
-    },
-    { status: 400 },
-  )
-}
+    if (!claimResult || !claimResult.success || !claimResult.txHash) {
+      console.error("❌ CDT CLAIM: Error en sendFixedCDT:", claimResult)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to deliver CDT",
+          details: claimResult ? `Amount: ${purchase.cdt_amount}, TxHash: ${claimResult.txHash}` : "No result",
+        },
+        { status: 400 },
+      )
+    }
 
     console.log("✅ CDT CLAIM: CDT reclamado exitosamente:", claimResult)
 
@@ -160,6 +160,87 @@ if (!claimResult || !claimResult.success || !claimResult.txHash) {
     } catch (error) {
       console.error("⚠️ CDT CLAIM: Error updating user stats (no crítico):", error)
     }
+
+    // ===== INICIO: CÓDIGO PARA RECOMPENSAS DE REFERIDOS =====
+    try {
+      // 1. Verificar si el usuario tiene un referente
+      console.log("🔍 REFERRAL: Verificando si el usuario tiene referente...");
+      const { data: referralData, error: referralError } = await supabase
+        .from("referrals")
+        .select("referrer_id, referrer_username")
+        .eq("referred_id", user.id)
+        .maybeSingle();
+
+      if (referralError) {
+        console.error("❌ REFERRAL: Error al buscar referente:", referralError);
+      } 
+      else if (referralData && referralData.referrer_id) {
+        // 2. Calcular 1% de la recompensa
+        const referralReward = purchase.cdt_amount * 0.01;
+        console.log(`💰 REFERRAL: Calculando 1% de ${purchase.cdt_amount} = ${referralReward} CDT`);
+
+        // 3. Obtener dirección del referente
+        const referrerUser = await getUserByAddress(referralData.referrer_id);
+        if (!referrerUser) {
+          console.error("❌ REFERRAL: No se pudo obtener datos del referente");
+        } else {
+          // 4. Enviar recompensa al referente
+          console.log(`💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username}`);
+          const referralSendResult = await sendRewards(referralData.referrer_id, referralReward);
+
+          if (referralSendResult.success) {
+            console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`);
+            
+            // 5. Registrar en la tabla referral_rewards
+            const { error: rewardError } = await supabase.from("referral_rewards").insert({
+              referrer_id: referralData.referrer_id,
+              referred_id: user.id,
+              claim_amount: purchase.cdt_amount,
+              reward_amount: referralReward,
+              tx_hash: referralSendResult.txHash,
+              created_at: new Date().toISOString()
+            });
+
+            if (rewardError) {
+              console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError);
+            } else {
+              console.log("✅ REFERRAL: Recompensa registrada correctamente");
+            }
+
+            // 6. OPCIONAL: Registrar también en transactions para el referente
+            try {
+              const { error: txError } = await supabase.from("transactions").insert({
+                user_id: referrerUser.id,
+                wallet_address: referralData.referrer_id,
+                type: "referral_reward",
+                amount: referralReward,
+                token_type: "CDT",
+                tx_hash: referralSendResult.txHash,
+                status: "success",
+                description: `Recompensa por referido: ${user.username || user.address}`,
+              });
+
+              if (txError) {
+                console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
+              } else {
+                console.log("✅ REFERRAL: Transacción registrada para el referente");
+              }
+            } catch (txError) {
+              console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
+            }
+
+          } else {
+            console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error);
+          }
+        }
+      } else {
+        console.log("ℹ️ REFERRAL: El usuario no tiene referente");
+      }
+    } catch (referralError) {
+      console.error("❌ REFERRAL: Error general en proceso de recompensa:", referralError);
+      // No interrumpimos el flujo principal si falla la recompensa
+    }
+    // ===== FIN: CÓDIGO PARA RECOMPENSAS DE REFERIDOS =====
 
     console.log("✅ CDT CLAIM: CDT reclamado exitosamente")
     return NextResponse.json({
