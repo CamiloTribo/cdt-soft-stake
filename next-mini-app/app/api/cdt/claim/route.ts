@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getUserByAddress } from "@/src/lib/supabase"
-import { sendRewards } from "@/src/lib/blockchain"
+import { claimRewards } from "@/src/lib/staking" // ✅ Importar claimRewards
 import { createClient } from "@supabase/supabase-js"
 
 // Crear cliente de Supabase
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     
     // Obtener datos del body
     const body = await request.json()
-    const { userId, username, purchaseId } = body
+    const { userId, purchaseId } = body // ✅ Quitar username
 
     // Validar parámetros
     if (!userId || !purchaseId) {
@@ -76,13 +76,13 @@ export async function POST(request: Request) {
 
     console.log("✅ CDT CLAIM: Compra encontrada:", purchase)
 
-    // Enviar CDT usando blockchain.ts
+    // ✅ USAR claimRewards() en lugar de sendRewards()
     let claimResult;
     try {
-      console.log(`💸 CDT CLAIM: Enviando ${purchase.cdt_amount} CDT al usuario ${username} (${userId})`)
-      claimResult = await sendRewards(userId, purchase.cdt_amount)
+      console.log(`💸 CDT CLAIM: Reclamando CDT para el usuario ${userId}`)
+      claimResult = await claimRewards(user.id, userId) // ✅ USAR claimRewards
     } catch (error: unknown) {
-      console.error("❌ CDT CLAIM: Error en sendRewards:", error)
+      console.error("❌ CDT CLAIM: Error en claimRewards:", error)
       
       const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("invalid decimal value")) {
@@ -100,18 +100,18 @@ export async function POST(request: Request) {
 
     // Verificación mejorada del resultado
     if (!claimResult || !claimResult.success || !claimResult.txHash) {
-      console.error("❌ CDT CLAIM: Error en sendRewards:", claimResult)
+      console.error("❌ CDT CLAIM: Error en claimRewards:", claimResult)
       return NextResponse.json(
         {
           success: false,
           error: "Failed to deliver CDT",
-          details: claimResult ? `TxHash: ${claimResult.txHash}` : "No result",
+          details: claimResult ? `Amount: ${claimResult.amount}, TxHash: ${claimResult.txHash}` : "No result",
         },
         { status: 400 },
       )
     }
 
-    console.log("✅ CDT CLAIM: CDT enviado exitosamente:", claimResult)
+    console.log("✅ CDT CLAIM: CDT reclamado exitosamente:", claimResult)
 
     // ✅ USAR tx_hash en lugar de delivery_tx_hash
     const { error: updateError } = await supabase
@@ -130,30 +130,30 @@ export async function POST(request: Request) {
 
     console.log("✅ CDT CLAIM: Compra actualizada exitosamente")
 
-    // ✅ REGISTRAR TRANSACCIÓN SIN username (por ahora)
-    console.log("📝 CDT CLAIM: Registrando transacción")
-    try {
-      const { error: txError } = await supabase.from("transactions").insert([
-        {
-          user_id: user.id,
-          wallet_address: userId,
-          type: "receive",
-          amount: purchase.cdt_amount,
-          token_type: "CDT",
-          tx_hash: claimResult.txHash,
-          status: "success",
-          description: `Reclamación de ${purchase.cdt_amount} CDT del paquete comprado`,
-        },
-      ])
+    // ✅ REGISTRAR TRANSACCIÓN SIN username
+    // console.log("📝 CDT CLAIM: Registrando transacción")
+    // try {
+    //   const { error: txError } = await supabase.from("transactions").insert([
+    //     {
+    //       user_id: user.id,
+    //       wallet_address: userId,
+    //       type: "receive",
+    //       amount: purchase.cdt_amount,
+    //       token_type: "CDT",
+    //       tx_hash: claimResult.txHash,
+    //       status: "success",
+    //       description: `Reclamación de ${purchase.cdt_amount} CDT del paquete comprado`,
+    //     },
+    //   ])
 
-      if (txError) {
-        console.error("⚠️ CDT CLAIM: Error registering transaction (no crítico):", txError)
-      } else {
-        console.log("✅ CDT CLAIM: Transacción registrada exitosamente")
-      }
-    } catch (error) {
-      console.error("⚠️ CDT CLAIM: Error registering transaction (no crítico):", error)
-    }
+    //   if (txError) {
+    //     console.error("⚠️ CDT CLAIM: Error registering transaction:", txError)
+    //   } else {
+    //     console.log("✅ CDT CLAIM: Transacción registrada exitosamente")
+    //   }
+    // } catch (error) {
+    //   console.error("⚠️ CDT CLAIM: Error registering transaction:", error)
+    // }
 
     // Actualizar el total_claimed del usuario
     console.log("📊 CDT CLAIM: Actualizando total_claimed del usuario")

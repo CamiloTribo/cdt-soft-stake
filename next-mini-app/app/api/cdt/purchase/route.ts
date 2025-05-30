@@ -83,31 +83,30 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ CDT PURCHASE: Compra creada exitosamente:", purchase)
 
-    // ✅ REGISTRAR TRANSACCIÓN SIN username
-    console.log("📝 CDT PURCHASE: Registrando transacción")
-    try {
-      const { error: txError } = await supabase.from("transactions").insert([
-        {
-          user_id: user.id,
-          wallet_address: userId,
-          // ❌ QUITADO: username: username || user.username || "",
-          type: "purchase",
-          amount: wldAmount,
-          token_type: "WLD",
-          tx_hash: "", // Vacío - confiamos en pay()
-          status: "success",
-          description: `Compra de ${cdtAmount} CDT por ${wldAmount} WLD`,
-        },
-      ])
+    // ✅ QUITAR REGISTRO EN transactions
+    // console.log("📝 CDT PURCHASE: Registrando transacción")
+    // try {
+    //   const { error: txError } = await supabase.from("transactions").insert([
+    //     {
+    //       user_id: user.id,
+    //       wallet_address: userId,
+    //       type: "purchase",
+    //       amount: wldAmount,
+    //       token_type: "WLD",
+    //       tx_hash: "", // Vacío - confiamos en pay()
+    //       status: "success",
+    //       description: `Compra de ${cdtAmount} CDT por ${wldAmount} WLD`,
+    //     },
+    //   ])
 
-      if (txError) {
-        console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", txError)
-      } else {
-        console.log("✅ CDT PURCHASE: Transacción registrada exitosamente")
-      }
-    } catch (error) {
-      console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", error)
-    }
+    //   if (txError) {
+    //     console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", txError)
+    //   } else {
+    //     console.log("✅ CDT PURCHASE: Transacción registrada exitosamente")
+    //   }
+    // } catch (error) {
+    //   console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", error)
+    // }
 
     // Actualizar estadísticas del usuario (total_purchased)
     console.log("📊 CDT PURCHASE: Actualizando estadísticas del usuario")
