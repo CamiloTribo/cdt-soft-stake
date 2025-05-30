@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 // Variable para controlar el modo mantenimiento - CAMBIA ESTO A false PARA DESACTIVAR
-const MAINTENANCE_MODE = true
+const MAINTENANCE_MODE = false
 
 export default function RootLayout({
   children,

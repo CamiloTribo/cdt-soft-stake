@@ -2,7 +2,7 @@ import axios from "axios"
 import { ethers } from "ethers"
 
 // Configuración de Alchemy - Usamos la variable de entorno para la URL completa
-const ALCHEMY_API_KEY = "w-hTDCI5WQMGz4u1G0FU0XOMGJlmPSDp"
+const ALCHEMY_API_KEY = "xXQVUgS2Q5M6LnRcRbFGI"
 const ALCHEMY_API_URL = `https://worldchain-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
 const CDT_CONTRACT_ADDRESS = "0x3Cb880f7ac84950c369e700deE2778d023b0C52d"
 
