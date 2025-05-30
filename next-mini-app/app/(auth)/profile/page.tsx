@@ -1,9 +1,4 @@
 "use client"
-
-// Vamos a mejorar la página de perfil manteniendo toda la funcionalidad pero mejorando la UI/UX
-
-// Primero, organizamos mejor las importaciones y añadimos algunas utilidades
-import type React from "react"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useWorldAuth } from "next-world-auth/react"
@@ -56,10 +51,6 @@ export default function Profile() {
   const [isCopied, setIsCopied] = useState(false)
   const [cdtPrice, setCdtPrice] = useState<number | null>(null)
   const [lastClaimDate, setLastClaimDate] = useState<string | null>(null)
-  const [referralCode, setReferralCode] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [referralSuccess, setReferralSuccess] = useState(false)
-  const [referralError, setReferralError] = useState("")
 
   // Estado para el país
   const [country, setCountry] = useState("")
@@ -240,54 +231,6 @@ export default function Profile() {
     setTimeout(() => setIsCopied(false), 2000)
   }
 
-  // Función para registrar un referido
-  const handleReferralSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!referralCode.trim()) {
-      setReferralError(t("please_enter_referral_code"))
-      return
-    }
-
-    setIsSubmitting(true)
-    setReferralError("")
-    setReferralSuccess(false)
-
-    try {
-      const identifier = getUserIdentifier()
-      if (!identifier) {
-        throw new Error("No se pudo obtener identificador de usuario")
-      }
-
-      const response = await fetch("/api/referral", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          wallet_address: identifier,
-          referral_code: referralCode,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        setReferralSuccess(true)
-        setReferralCode("")
-        // Actualizar datos para reflejar el nuevo referido
-        fetchUserData()
-      } else {
-        setReferralError(data.error || t("error_registering_referral"))
-      }
-    } catch (error) {
-      console.error("Error registering referral:", error)
-      setReferralError(t("error_processing_request"))
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   // Función para actualizar el país del usuario
   const handleUpdateCountry = async () => {
     const identifier = getUserIdentifier()
@@ -396,7 +339,7 @@ export default function Profile() {
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4ebd0a]/30 to-[#4ebd0a]/10 blur-md"></div>
               <Image
                 src="/TRIBO Wallet sin fondo.png"
-                alt="TRIBO Wallet"
+                alt={t("tribo_wallet")}
                 width={100}
                 height={100}
                 className="relative z-10"
@@ -604,7 +547,8 @@ export default function Profile() {
             {/* Separador */}
             <div className={cardSeparatorClass}></div>
 
-            {/* Formulario para añadir un referido */}
+            {/* ❌ CÓDIGO OBSOLETO - Sistema de códigos */}
+            {/* 
             <div>
               <p className="text-sm text-gray-300 mb-3">{t("invited_by_friend")}</p>
 
@@ -642,6 +586,7 @@ export default function Profile() {
                 )}
               </form>
             </div>
+            */}
           </div>
 
           {/* Selector de país */}
