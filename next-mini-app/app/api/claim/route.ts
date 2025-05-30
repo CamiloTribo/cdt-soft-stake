@@ -170,55 +170,67 @@ export async function POST(request: Request) {
         const referralReward = claimResult.amount * 0.01;
         console.log(`💰 REFERRAL: Calculando 1% de ${claimResult.amount} = ${referralReward} CDT`);
 
-        // 3. Enviar recompensa al referente
-        console.log(`💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username}`);
-        const referralSendResult = await sendRewards(referralData.referrer_id, referralReward);
+        // 2.5. ✅ NUEVO: Obtener dirección de wallet del referente
+        console.log(`🔍 REFERRAL: Obteniendo dirección de wallet del referente ${referralData.referrer_username}...`);
+        const { data: referrerUser, error: referrerError } = await supabase
+          .from("users")
+          .select("address")
+          .eq("id", referralData.referrer_id)
+          .single();
 
-        if (referralSendResult.success) {
-          console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`);
-          
-          // 4. Registrar en la tabla referral_rewards
-          const { error: rewardError } = await supabase.from("referral_rewards").insert({
-            referrer_id: referralData.referrer_id,
-            referred_id: user.id,
-            claim_amount: claimResult.amount,
-            reward_amount: referralReward,
-            tx_hash: referralSendResult.txHash,
-            created_at: new Date().toISOString()
-          });
-
-          if (rewardError) {
-            console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError);
-          } else {
-            console.log("✅ REFERRAL: Recompensa registrada correctamente");
-          }
-
-          // 5. OPCIONAL: Registrar también en transactions para el referente
-          try {
-            const referrerUser = await getUserByAddress(referralData.referrer_id);
-            if (referrerUser) {
-              const { error: txError } = await supabase.from("transactions").insert({
-                user_id: referrerUser.id,
-                type: "referral_reward",
-                amount: referralReward,
-                token_type: "CDT",
-                tx_hash: referralSendResult.txHash,
-                status: "success",
-                description: `Recompensa por referido: ${user.username || user.address}`,
-              });
-
-              if (txError) {
-                console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
-              } else {
-                console.log("✅ REFERRAL: Transacción registrada para el referente");
-              }
-            }
-          } catch (txError) {
-            console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
-          }
-
+        if (referrerError || !referrerUser) {
+          console.error("❌ REFERRAL: No se pudo obtener dirección del referente:", referrerError);
         } else {
-          console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error);
+          // 3. Enviar recompensa al referente
+          console.log(`💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username} (${referrerUser.address})`);
+          const referralSendResult = await sendRewards(referrerUser.address, referralReward); // ✅ CORREGIDO: Usar address en lugar de UUID
+
+          if (referralSendResult.success) {
+            console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`);
+            
+            // 4. Registrar en la tabla referral_rewards
+            const { error: rewardError } = await supabase.from("referral_rewards").insert({
+              referrer_id: referralData.referrer_id,
+              referred_id: user.id,
+              claim_amount: claimResult.amount,
+              reward_amount: referralReward,
+              tx_hash: referralSendResult.txHash,
+              created_at: new Date().toISOString()
+            });
+
+            if (rewardError) {
+              console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError);
+            } else {
+              console.log("✅ REFERRAL: Recompensa registrada correctamente");
+            }
+
+            // 5. OPCIONAL: Registrar también en transactions para el referente
+            try {
+              const referrerUserFull = await getUserByAddress(referrerUser.address);
+              if (referrerUserFull) {
+                const { error: txError } = await supabase.from("transactions").insert({
+                  user_id: referrerUserFull.id,
+                  type: "referral_reward",
+                  amount: referralReward,
+                  token_type: "CDT",
+                  tx_hash: referralSendResult.txHash,
+                  status: "success",
+                  description: `Recompensa por referido: ${user.username || user.address}`,
+                });
+
+                if (txError) {
+                  console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
+                } else {
+                  console.log("✅ REFERRAL: Transacción registrada para el referente");
+                }
+              }
+            } catch (txError) {
+              console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
+            }
+
+          } else {
+            console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error);
+          }
         }
       } else {
         console.log("ℹ️ REFERRAL: El usuario no tiene referente");
