@@ -105,6 +105,7 @@ export function CdtPackageModal({
 
   // Función para reclamar CDT (sin cambios)
   const handleClaim = async () => {
+    console.log("🎁 CDT: handleClaim llamado", { walletAddress, purchaseId }); // ✅ LOG 1
     if (!purchaseId) {
       setError(t("no_purchase_id"))
       return
@@ -116,19 +117,21 @@ export function CdtPackageModal({
 
       console.log(`🎁 CDT: Usuario ${username} reclamando compra ${purchaseId}`)
 
-      const response = await fetch("/api/cdt-purchases/claim", {
+      const response = await fetch("/api/cdt/claim", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId: walletAddress,
-          username: username,
           purchaseId: purchaseId,
         }),
       })
 
+      console.log("🎁 CDT: Respuesta de la API:", response) // ✅ LOG 2
+
       const data = await response.json()
+      console.log("🎁 CDT: Datos de la API:", data) // ✅ LOG 3
 
       if (data.success) {
         console.log("✅ CDT: Reclamación exitosa:", data)
