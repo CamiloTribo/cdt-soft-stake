@@ -1,150 +1,123 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getUserByAddress } from "@/src/lib/supabase"
-import { createClient } from "@supabase/supabase-js"
-
-// Crear cliente de Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import { supabase } from "@/src/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🛒 CDT PURCHASE: Endpoint llamado")
-    const { userId, username, wldAmount, cdtAmount } = await request.json()
+    console.log("🛒 PURCHASE: Endpoint llamado")
+    const { userId, quantity, level } = await request.json() // ✅ Añadir level
 
     // Validar parámetros
-    if (!userId || !wldAmount || !cdtAmount) {
-      console.error("❌ CDT PURCHASE: Parámetros faltantes:", { userId, wldAmount, cdtAmount })
+    if (!userId || !quantity) {
+      console.error("❌ PURCHASE: Parámetros faltantes:", { userId, quantity })
       return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
     }
 
-    // Validar que los amounts sean números válidos
-    if (typeof wldAmount !== "number" || wldAmount <= 0) {
-      console.error("❌ CDT PURCHASE: WLD amount inválido:", wldAmount)
-      return NextResponse.json({ error: "Invalid WLD amount" }, { status: 400 })
+    // Verificar que quantity sea un número válido
+    if (typeof quantity !== "number" || quantity < 1 || quantity > 7) {
+      console.error("❌ PURCHASE: Cantidad inválida:", quantity)
+      return NextResponse.json({ error: "Invalid quantity" }, { status: 400 })
     }
 
-    if (typeof cdtAmount !== "number" || cdtAmount <= 0) {
-      console.error("❌ CDT PURCHASE: CDT amount inválido:", cdtAmount)
-      return NextResponse.json({ error: "Invalid CDT amount" }, { status: 400 })
-    }
+    // Verificar si el usuario existe y obtener su información
+    console.log("🔍 PURCHASE: Buscando usuario con address:", userId)
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("id, address, username") // ✅ Quitar level y boosts_purchased
+      .eq("address", userId)
+      .single()
 
-    // Buscar al usuario usando la función helper
-    console.log("🔍 CDT PURCHASE: Buscando usuario con address:", userId)
-    const user = await getUserByAddress(userId)
-
-    if (!user) {
-      console.error("❌ CDT PURCHASE: Usuario no encontrado")
+    if (userError || !user) {
+      console.error("❌ PURCHASE: Usuario no encontrado:", userError)
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    console.log("✅ CDT PURCHASE: Usuario encontrado:", user)
+    console.log("✅ PURCHASE: Usuario encontrado:", user)
 
-    // Verificar si ya existe una compra pendiente para este usuario
-    console.log("🔍 CDT PURCHASE: Verificando compras pendientes")
-    const { data: existingPurchase, error: existingError } = await supabase
-      .from("cdt_purchases")
-      .select("id")
+    // Verificar que el usuario no exceda el límite de 7 boosts
+    // Obtener el número actual de boosts desde la tabla boosts
+    const { count: currentBoosts, error: countError } = await supabase
+      .from("boosts")
+      .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("is_claimed", false)
-      .maybeSingle()
 
-    if (existingError) {
-      console.error("❌ CDT PURCHASE: Error verificando compras existentes:", existingError)
-      return NextResponse.json({ error: "Failed to verify existing purchases" }, { status: 500 })
+    if (countError) {
+      console.error("❌ PURCHASE: Error al contar boosts:", countError)
+      return NextResponse.json({ error: "Failed to count boosts" }, { status: 500 })
     }
 
-    if (existingPurchase) {
-      console.error("❌ CDT PURCHASE: Usuario ya tiene una compra pendiente")
-      return NextResponse.json({ error: "User already has a pending purchase" }, { status: 400 })
+    const boostCount = currentBoosts || 0
+
+    // ✅ VERIFICACIÓN ADICIONAL: Si ya tienes 7, no puedes comprar más
+    if (boostCount >= 7) {
+      console.error("❌ PURCHASE: Ya tienes el máximo de boosts (7/7)")
+      return NextResponse.json(
+        {
+          error: "You already have the maximum number of boosts (7/7)",
+        },
+        { status: 400 },
+      )
     }
 
-    // Registrar la compra de CDT
-    console.log("🛒 CDT PURCHASE: Registrando compra de CDT")
-    const { data: purchase, error: purchaseError } = await supabase
-      .from("cdt_purchases")
+    // ✅ LÓGICA CORREGIDA: Verificar que después de la compra no exceda 7 total
+    if (boostCount + quantity > 7) {
+      const maxCanBuy = 7 - boostCount
+      console.error(`❌ PURCHASE: Excede límite de boosts. Tienes ${boostCount}/7, máximo puedes comprar ${maxCanBuy}`)
+      return NextResponse.json(
+        {
+          error: `Exceeds maximum boost limit. You have ${boostCount}/7 boosts, you can buy maximum ${maxCanBuy} more.`,
+        },
+        { status: 400 },
+      )
+    }
+
+    // Calcular el precio según el nivel del usuario - ✅ PRECIOS CORREGIDOS
+    const getBoostPrice = (userLevel: number): number => {
+      if (userLevel === 0) return 0.045 // ✅ CORREGIDO: era 0.0123, ahora 0.045
+      if (userLevel === 1) return 0.2 // ✅ CORREGIDO: era 0.123, ahora 0.20
+      if (userLevel === 2) return 2 // ✅ CORREGIDO: era 1.23, ahora 2
+      if (userLevel === 3) return 7 // ✅ CORREGIDO: era 5, ahora 7
+      return 0.045 // ✅ CORREGIDO: Precio por defecto
+    }
+
+    const pricePerBoost = getBoostPrice(level || 0) // ✅ Usar el nivel del request
+    const totalPrice = pricePerBoost * quantity
+
+    // Registrar la compra de boost (sin tx_hash)
+    console.log("🛒 PURCHASE: Registrando compra de boost")
+    const { data: boost, error: boostError } = await supabase
+      .from("boosts")
       .insert({
         user_id: userId,
-        username: username || user.username || "",
-        wld_amount: wldAmount,
-        cdt_amount: cdtAmount,
-        tx_hash: "", // Vacío - no tenemos hash de WLD
-        is_claimed: false,
+        username: user.username || "",
+        // wallet_address: userId, // ✅ Eliminar campo redundante
+        level_at_purchase: level || 0, // ✅ Usar el nivel del request
+        quantity_remaining: quantity,
+        is_active: true,
+        price_paid: totalPrice,
         purchased_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
       })
       .select()
       .single()
 
-    if (purchaseError) {
-      console.error("❌ CDT PURCHASE: Error al crear compra:", purchaseError)
-      return NextResponse.json({ error: "Failed to create purchase" }, { status: 500 })
+    if (boostError) {
+      console.error("❌ PURCHASE: Error al crear boost:", boostError)
+      return NextResponse.json({ error: "Failed to create boost" }, { status: 500 })
     }
 
-    console.log("✅ CDT PURCHASE: Compra creada exitosamente:", purchase)
+    console.log("✅ PURCHASE: Boost creado exitosamente:", boost)
 
-    // ✅ QUITAR REGISTRO EN transactions
-    // console.log("📝 CDT PURCHASE: Registrando transacción")
-    // try {
-    //   const { error: txError } = await supabase.from("transactions").insert([
-    //     {
-    //       user_id: user.id,
-    //       wallet_address: userId,
-    //       type: "purchase",
-    //       amount: wldAmount,
-    //       token_type: "WLD",
-    //       tx_hash: "", // Vacío - confiamos en pay()
-    //       status: "success",
-    //       description: `Compra de ${cdtAmount} CDT por ${wldAmount} WLD`,
-    //     },
-    //   ])
+    // Ya no necesitamos actualizar boosts_purchased en users porque no existe esa columna
+    // Podemos eliminar esta parte o mantener un contador en otra tabla si es necesario
 
-    //   if (txError) {
-    //     console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", txError)
-    //   } else {
-    //     console.log("✅ CDT PURCHASE: Transacción registrada exitosamente")
-    //   }
-    // } catch (error) {
-    //   console.error("⚠️ CDT PURCHASE: Error al registrar transacción (no crítico):", error)
-    // }
-
-    // Actualizar estadísticas del usuario (total_purchased)
-    console.log("📊 CDT PURCHASE: Actualizando estadísticas del usuario")
-    try {
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("total_purchased")
-        .eq("id", user.id)
-        .single()
-
-      if (!userError && userData) {
-        const currentTotal = userData.total_purchased || 0
-        const newTotal = currentTotal + wldAmount
-
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({ total_purchased: newTotal })
-          .eq("id", user.id)
-
-        if (updateError) {
-          console.error("⚠️ CDT PURCHASE: Error updating total_purchased:", updateError)
-        } else {
-          console.log(`✅ CDT PURCHASE: Total purchased updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
-        }
-      }
-    } catch (error) {
-      console.error("⚠️ CDT PURCHASE: Error updating user stats (no crítico):", error)
-    }
-
-    console.log("✅ CDT PURCHASE: Compra completada exitosamente")
+    console.log("✅ PURCHASE: Compra completada exitosamente")
     return NextResponse.json({
       success: true,
-      purchaseId: purchase.id,
-      purchase: purchase,
-      message: `Successfully purchased ${cdtAmount} CDT for ${wldAmount} WLD`,
+      boost: boost,
+      message: `Successfully purchased ${quantity} boost(s). You now have ${boostCount + quantity}/7 boosts.`,
     })
   } catch (error) {
-    console.error("❌ CDT PURCHASE: Error general:", error)
+    console.error("❌ PURCHASE: Error general:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
