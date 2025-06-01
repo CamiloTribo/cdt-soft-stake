@@ -33,37 +33,41 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ PURCHASE: Usuario encontrado:", user)
 
-    // Verificar que el usuario no exceda el límite de 7 boosts
-    const { count: currentBoosts, error: countError } = await supabase
+    // 🔧 CONSULTA CORREGIDA: Contar SOLO boosts ACTIVOS
+    console.log("🔍 PURCHASE: Contando boosts ACTIVOS...")
+    const { count: activeBoosts, error: countError } = await supabase
       .from("boosts")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
+      .eq("is_active", true)  // ✅ SOLO CONTAR ACTIVOS
+      .gt("quantity_remaining", 0)  // ✅ SOLO CON CANTIDAD > 0
 
     if (countError) {
       console.error("❌ PURCHASE: Error al contar boosts:", countError)
       return NextResponse.json({ error: "Failed to count boosts" }, { status: 500 })
     }
 
-    const boostCount = currentBoosts || 0
+    const boostCount = activeBoosts || 0
+    console.log(`📊 PURCHASE: Usuario tiene ${boostCount} boosts ACTIVOS`)
 
-    // ✅ VERIFICACIÓN: Si ya tienes 7, no puedes comprar más
+    // ✅ VERIFICACIÓN: Si ya tienes 7 ACTIVOS, no puedes comprar más
     if (boostCount >= 7) {
-      console.error("❌ PURCHASE: Ya tienes el máximo de boosts (7/7)")
+      console.error("❌ PURCHASE: Ya tienes el máximo de boosts ACTIVOS (7/7)")
       return NextResponse.json(
         {
-          error: "You already have the maximum number of boosts (7/7)",
+          error: "You already have the maximum number of active boosts (7/7)",
         },
         { status: 400 },
       )
     }
 
-    // ✅ LÓGICA CORREGIDA: Verificar que después de la compra no exceda 7 total
+    // ✅ LÓGICA CORREGIDA: Verificar que después de la compra no exceda 7 ACTIVOS total
     if (boostCount + quantity > 7) {
       const maxCanBuy = 7 - boostCount
-      console.error(`❌ PURCHASE: Excede límite de boosts. Tienes ${boostCount}/7, máximo puedes comprar ${maxCanBuy}`)
+      console.error(`❌ PURCHASE: Excede límite de boosts ACTIVOS. Tienes ${boostCount}/7, máximo puedes comprar ${maxCanBuy}`)
       return NextResponse.json(
         {
-          error: `Exceeds maximum boost limit. You have ${boostCount}/7 boosts, you can buy maximum ${maxCanBuy} more.`,
+          error: `Exceeds maximum active boost limit. You have ${boostCount}/7 active boosts, you can buy maximum ${maxCanBuy} more.`,
         },
         { status: 400 },
       )
@@ -109,7 +113,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       boost: boost,
-      message: `Successfully purchased ${quantity} boost(s). You now have ${boostCount + quantity}/7 boosts.`,
+      message: `Successfully purchased ${quantity} boost(s). You now have ${boostCount + quantity}/7 active boosts.`,
     })
   } catch (error) {
     console.error("❌ PURCHASE: Error general:", error)
