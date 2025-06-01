@@ -4,7 +4,7 @@ import { supabase } from "@/src/lib/supabase"
 export async function POST(request: NextRequest) {
   try {
     console.log("🛒 PURCHASE: Endpoint llamado")
-    const { userId, quantity, level } = await request.json() // ✅ Añadir level
+    const { userId, quantity, level } = await request.json()
 
     // Validar parámetros
     if (!userId || !quantity) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     console.log("🔍 PURCHASE: Buscando usuario con address:", userId)
     const { data: user, error: userError } = await supabase
       .from("users")
-      .select("id, address, username") // ✅ Quitar level y boosts_purchased
+      .select("id, address, username")
       .eq("address", userId)
       .single()
 
@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
     console.log("✅ PURCHASE: Usuario encontrado:", user)
 
     // Verificar que el usuario no exceda el límite de 7 boosts
-    // Obtener el número actual de boosts desde la tabla boosts
     const { count: currentBoosts, error: countError } = await supabase
       .from("boosts")
       .select("*", { count: "exact", head: true })
@@ -46,32 +45,50 @@ export async function POST(request: NextRequest) {
     }
 
     const boostCount = currentBoosts || 0
+
+    // ✅ VERIFICACIÓN: Si ya tienes 7, no puedes comprar más
+    if (boostCount >= 7) {
+      console.error("❌ PURCHASE: Ya tienes el máximo de boosts (7/7)")
+      return NextResponse.json(
+        {
+          error: "You already have the maximum number of boosts (7/7)",
+        },
+        { status: 400 },
+      )
+    }
+
+    // ✅ LÓGICA CORREGIDA: Verificar que después de la compra no exceda 7 total
     if (boostCount + quantity > 7) {
-      console.error("❌ PURCHASE: Excede límite de boosts:", boostCount + quantity)
-      return NextResponse.json({ error: "Exceeds maximum boost limit" }, { status: 400 })
+      const maxCanBuy = 7 - boostCount
+      console.error(`❌ PURCHASE: Excede límite de boosts. Tienes ${boostCount}/7, máximo puedes comprar ${maxCanBuy}`)
+      return NextResponse.json(
+        {
+          error: `Exceeds maximum boost limit. You have ${boostCount}/7 boosts, you can buy maximum ${maxCanBuy} more.`,
+        },
+        { status: 400 },
+      )
     }
 
-    // Calcular el precio según el nivel del usuario - ✅ PRECIOS CORREGIDOS
+    // Calcular el precio según el nivel del usuario
     const getBoostPrice = (userLevel: number): number => {
-      if (userLevel === 0) return 0.045  // ✅ CORREGIDO: era 0.0123, ahora 0.045
-      if (userLevel === 1) return 0.20   // ✅ CORREGIDO: era 0.123, ahora 0.20
-      if (userLevel === 2) return 2      // ✅ CORREGIDO: era 1.23, ahora 2
-      if (userLevel === 3) return 7      // ✅ CORREGIDO: era 5, ahora 7
-      return 0.045 // ✅ CORREGIDO: Precio por defecto
+      if (userLevel === 0) return 0.045
+      if (userLevel === 1) return 0.2
+      if (userLevel === 2) return 2
+      if (userLevel === 3) return 7
+      return 0.045
     }
 
-    const pricePerBoost = getBoostPrice(level || 0) // ✅ Usar el nivel del request
+    const pricePerBoost = getBoostPrice(level || 0)
     const totalPrice = pricePerBoost * quantity
 
-    // Registrar la compra de boost (sin tx_hash)
+    // Registrar la compra de boost
     console.log("🛒 PURCHASE: Registrando compra de boost")
     const { data: boost, error: boostError } = await supabase
       .from("boosts")
       .insert({
         user_id: userId,
         username: user.username || "",
-        // wallet_address: userId, // ✅ Eliminar campo redundante
-        level_at_purchase: level || 0, // ✅ Usar el nivel del request
+        level_at_purchase: level || 0,
         quantity_remaining: quantity,
         is_active: true,
         price_paid: totalPrice,
@@ -88,14 +105,11 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ PURCHASE: Boost creado exitosamente:", boost)
 
-    // Ya no necesitamos actualizar boosts_purchased en users porque no existe esa columna
-    // Podemos eliminar esta parte o mantener un contador en otra tabla si es necesario
-
     console.log("✅ PURCHASE: Compra completada exitosamente")
     return NextResponse.json({
       success: true,
       boost: boost,
-      message: `Successfully purchased ${quantity} boost(s)`,
+      message: `Successfully purchased ${quantity} boost(s). You now have ${boostCount + quantity}/7 boosts.`,
     })
   } catch (error) {
     console.error("❌ PURCHASE: Error general:", error)
