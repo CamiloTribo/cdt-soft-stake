@@ -5,6 +5,8 @@ import Image from "next/image"
 import { useTranslation } from "../TranslationProvider"
 import { CdtPackageModal } from "./CdtPackageModal"
 
+export type PackageType = "basic" | "premium"
+
 interface CdtPackageSectionProps {
   walletAddress: string
   username: string
@@ -13,6 +15,17 @@ interface CdtPackageSectionProps {
 export function CdtPackageSection({ walletAddress, username }: CdtPackageSectionProps) {
   const { t } = useTranslation()
   const [showModal, setShowModal] = useState(false)
+  const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null)
+
+  const openModalWithPackage = (packageType: PackageType) => {
+    setSelectedPackage(packageType)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedPackage(null)
+  }
 
   return (
     <>
@@ -22,7 +35,7 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
 
         {/* Contenido principal */}
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Image
@@ -34,7 +47,6 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
                 />
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full animate-ping"></div>
               </div>
-
               <div>
                 <h3 className="text-xl font-bold text-secondary flex items-center">💰 {t("buy_cdt_packages")}</h3>
                 <p className="text-gray-400 text-sm">{t("get_cdt_instantly")}</p>
@@ -42,36 +54,36 @@ export function CdtPackageSection({ walletAddress, username }: CdtPackageSection
             </div>
           </div>
 
-          {/* Información del paquete */}
-          <div className="bg-black/30 rounded-lg p-4 mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-300">{t("package_price")}:</span>
-              <span className="text-secondary font-bold text-lg">0.1 WLD</span>
-            </div>
+          <div className="space-y-4">
+            {/* Botón para Paquete Básico */}
+            <button
+              onClick={() => openModalWithPackage("basic")}
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition-all duration-300"
+              aria-label={t("buy_basic_package_cta_aria_label")} // defaultValue eliminado
+            >
+              {t("buy_basic_package_cta")} {/* defaultValue eliminado */}
+            </button>
 
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">{t("cdt_amount")}:</span>
-              <span className="text-secondary font-bold text-lg">50 CDT</span>
-            </div>
+            {/* Botón para Paquete Premium */}
+            <button
+              onClick={() => openModalWithPackage("premium")}
+              className="w-full bg-gradient-to-r from-secondary to-[#ff4081] text-white font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-secondary/25 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-opacity-75 transition-all duration-300"
+              aria-label={t("buy_premium_package_cta_aria_label")} // defaultValue eliminado
+            >
+              {t("buy_premium_package_cta")} {/* defaultValue eliminado */}
+            </button>
           </div>
-
-          {/* Botón de compra */}
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-full bg-gradient-to-r from-secondary to-[#ff4081] text-white font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-secondary/25 transition-all duration-300"
-          >
-            {t("buy_cdt_package")}
-          </button>
         </div>
       </div>
 
       {/* Modal */}
-      {showModal && (
+      {showModal && selectedPackage && (
         <CdtPackageModal
           isOpen={showModal}
-          onCloseAction={() => setShowModal(false)}
+          onCloseAction={closeModal}
           walletAddress={walletAddress}
           username={username}
+          packageType={selectedPackage} 
         />
       )}
     </>

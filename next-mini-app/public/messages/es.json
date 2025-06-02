@@ -348,7 +348,6 @@
   "transaction_verification_failed": "La verificación de la transacción falló",
   "off": "DESCUENTO",
   "buy_cdt_packages": "Comprar Paquetes CDT",
-"get_cdt_instantly": "Obtén CDT al instante",
 "package_price": "Precio del paquete",
 "cdt_amount": "Cantidad de CDT",
 "buy_cdt_package": "Comprar Paquete CDT",
@@ -367,5 +366,20 @@
   "error_fetching_referral_earnings": "Error al obtener ganancias por referidos",
   "loading_referral_earnings": "Cargando ganancias por referidos...",
   "referral_earnings": "Ganancias por Referidos",
-  "total_earned_from_referrals": "Total ganado por referidos"
+  "total_earned_from_referrals": "Total ganado por referidos",
+  "get_cdt_instantly": "Consigue CDT al instante",
+  "buy_basic_package_cta": "Comprar Paquete Básico (50 CDT)",
+  "buy_basic_package_cta_aria_label": "Comprar Paquete Básico de 50 CDT",
+  "buy_premium_package_cta": "¡Oferta! Paquete Premium (600 CDT)",
+  "buy_premium_package_cta_aria_label": "Comprar Paquete Premium de 600 CDT",
+  "cdt_package_box_alt_basic": "Caja del Paquete Básico de CDT",
+  "buy_premium_package_title": "Comprar Paquete Premium",
+  "premium_package_desc": "¡Invierte 1 WLD y recibe 500 CDT + 100 CDT de bonificación!",
+  "claim_600_cdt": "Reclamar 600 CDT",
+  "cdt_package_box_alt_premium": "Caja del Paquete Premium de CDT",
+  "premium_bonus_text": "Incluye",
+  "cdt_free_gift_suffix": "¡CDT de REGALO!",
+  "cdt_added_to_balance_suffix": "CDT han sido añadidos a tu balance"
 }
+
+

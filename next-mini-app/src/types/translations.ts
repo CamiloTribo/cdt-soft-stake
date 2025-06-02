@@ -364,4 +364,46 @@ export type TranslationKey =
   | "error_fetching_referral_earnings"
   | "loading_referral_earnings"
   | "referral_earnings"
-  | "total_earned_from_referrals";
+  | "total_earned_from_referrals"
+  | "buy_cdt_packages" // Es posible que esta ya la tuvieras, verifica
+  | "get_cdt_instantly" // Es posible que esta ya la tuvieras, verifica
+  | "buy_basic_package_cta"
+  | "buy_basic_package_cta_aria_label"
+  | "buy_premium_package_cta"
+  | "buy_premium_package_cta_aria_label"
+
+  | "buy_cdt_packages"                 // Usada en CdtPackageSection y CdtPackageModal (basic title)
+  | "get_cdt_instantly"              // Usada en CdtPackageSection
+  | "get_cdt_instantly_desc"         // Usada en CdtPackageModal (basic description)
+  | "buy_basic_package_cta"            // Usada en CdtPackageSection (botón)
+  | "buy_basic_package_cta_aria_label" // Usada en CdtPackageSection (botón)
+  | "buy_premium_package_cta"          // Usada en CdtPackageSection (botón)
+  | "buy_premium_package_cta_aria_label" // Usada en CdtPackageSection (botón)
+  | "claim_50_cdt"                     // Usada en CdtPackageModal (basic claim button & packageDetails)
+  | "cdt_package_box_alt_basic"        // Usada en CdtPackageModal (packageDetails)
+  | "buy_premium_package_title"        // Usada en CdtPackageModal (premium title & packageDetails)
+  | "premium_package_desc"             // Usada en CdtPackageModal (premium description & packageDetails)
+  | "claim_600_cdt"                     // Usada en CdtPackageModal (premium claim button & packageDetails)
+  | "cdt_package_box_alt_premium"      // Usada en CdtPackageModal (packageDetails)
+  | "premium_bonus_text"             // Usada en CdtPackageModal (texto del bonus)
+  | "cdt_free_gift_suffix"           // Usada en CdtPackageModal (sufijo del bonus)
+  | "cdt_added_to_balance_suffix"    // Usada en CdtPackageModal (sufijo de CDT añadidos)
+  // ... (asegúrate de que la última clave no tenga un | al final si es la última de la lista, y que haya un ; al final del type)
+  // Claves que ya deberías tener y que usa el modal:
+  | "missing_user_data"
+  | "payment_cancelled_or_failed"
+  | "error_registering_purchase"
+  | "error_processing_purchase"
+  | "no_purchase_id"
+  | "error_claiming_cdt"
+  | "price"
+  | "you_receive"
+  | "confirm_purchase"
+  | "processing_purchase"
+  | "dont_close_window"
+  | "purchase_successful"
+  | "claim_your_cdt_now"
+  | "claiming"
+  | "cdt_claimed"
+  // | "cdt_added_to_balance" // Esta la hemos reemplazado por el sufijo, pero si la usas en otro sitio, mantenla
+  | "enjoy_your_cdt";

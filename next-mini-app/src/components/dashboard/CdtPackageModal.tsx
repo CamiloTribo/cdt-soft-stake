@@ -1,22 +1,46 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { useWorldAuth } from "next-world-auth/react"
 import { Tokens } from "next-world-auth"
 import { useTranslation } from "../TranslationProvider"
 import { showCDTEffect } from "../../utils/cdtEffects"
+import type { PackageType } from "./CdtPackageSection"
+// Corregida la ruta de importación:
+import type { TranslationKey } from "../../types/translations"
+
+interface PackageConfig {
+  wldAmount: number
+  cdtBase: number
+  cdtBonus: number
+  totalCdt: number
+  imageSrc: string
+  titleKey: TranslationKey
+  descriptionKey: TranslationKey
+  numberOnBox: string
+  claimCdtKey: TranslationKey
+  boxAltKey: TranslationKey
+}
 
 interface CdtPackageModalProps {
   isOpen: boolean
   onCloseAction: () => void
   walletAddress: string
   username: string
+  packageType: PackageType
 }
 
-export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username }: CdtPackageModalProps) {
+export function CdtPackageModal({
+  isOpen,
+  onCloseAction,
+  walletAddress,
+  username,
+  packageType,
+}: CdtPackageModalProps) {
   const { t } = useTranslation()
   const { pay } = useWorldAuth()
+  // ... (estados sin cambios)
   const [isLoading, setIsLoading] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [claimReady, setClaimReady] = useState(false)
@@ -25,18 +49,56 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
   const [error, setError] = useState<string | null>(null)
   const [purchaseId, setPurchaseId] = useState<string | null>(null)
 
-  // Constantes del paquete
-  const WLD_AMOUNT = 0.1
-  const CDT_AMOUNT = 50
+  const packageDetails: Record<PackageType, PackageConfig> = useMemo(() => ({
+    basic: {
+      wldAmount: 0.1,
+      cdtBase: 50,
+      cdtBonus: 0,
+      totalCdt: 50,
+      imageSrc: "/BOX_TRIBO VAULT_CDT.png",
+      titleKey: "buy_cdt_package", 
+      descriptionKey: "get_cdt_instantly_desc", 
+      numberOnBox: "50",
+      claimCdtKey: "claim_50_cdt", 
+      boxAltKey: "cdt_package_box_alt_basic", 
+    },
+    premium: {
+      wldAmount: 1.0,
+      cdtBase: 500,
+      cdtBonus: 100,
+      totalCdt: 600,
+      imageSrc: "/BOX_TRIBO_PREMIUM.png",
+      titleKey: "buy_premium_package_title", 
+      descriptionKey: "premium_package_desc", 
+      numberOnBox: "600",
+      claimCdtKey: "claim_600_cdt", 
+      boxAltKey: "cdt_package_box_alt_premium", 
+    },
+  }), []);
 
-  // Función para comprar CDT (CORREGIDA siguiendo patrón de BoostModal)
+  const currentPackage = packageDetails[packageType];
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(false);
+      setPurchaseSuccess(false);
+      setClaimReady(false);
+      setIsClaiming(false);
+      setClaimSuccess(false);
+      setError(null);
+      setPurchaseId(null);
+    }
+  }, [isOpen, packageType]);
+
+  // ... (handlePurchase y handleClaim sin cambios lógicos, solo usan currentPackage)
   const handlePurchase = async () => {
+    if (!currentPackage) return;
+
     try {
-      console.log("🚀 CDT: Iniciando proceso de compra de paquete CDT")
+      console.log(`🚀 CDT: Iniciando proceso de compra de paquete ${packageType}`)
       setIsLoading(true)
       setError(null)
 
-      // Validaciones previas
       if (!walletAddress || !username) {
         console.error("❌ CDT: Datos de usuario faltantes")
         setError(t("missing_user_data"))
@@ -44,26 +106,22 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
         return
       }
 
-      // 1. Pago con World ID
-      console.log("💰 CDT: Iniciando pago con World ID, cantidad:", WLD_AMOUNT, "WLD")
+      console.log("💰 CDT: Iniciando pago con World ID, cantidad:", currentPackage.wldAmount, "WLD")
       const { finalPayload } = await pay({
-        amount: WLD_AMOUNT,
+        amount: currentPackage.wldAmount,
         token: Tokens.WLD,
         recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })
 
       console.log("💰 CDT: Resultado del pago:", finalPayload)
 
-      // ✅ VERIFICACIÓN CORREGIDA - Solo como en BoostModal
       if (!finalPayload || finalPayload.status === "error") {
         console.log("❌ CDT: Pago cancelado o fallido")
         setError(t("payment_cancelled_or_failed"))
         setIsLoading(false)
         return
       }
-
-      // ✅ SI LLEGA AQUÍ = PAGO EXITOSO (como en BoostModal)
-      // 2. Registrar compra en backend
+      
       console.log("🎁 CDT: Pago exitoso, procediendo a registrar la compra")
       const response = await fetch("/api/cdt/purchase", {
         method: "POST",
@@ -73,8 +131,8 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
         body: JSON.stringify({
           userId: walletAddress,
           username: username,
-          wldAmount: WLD_AMOUNT,
-          cdtAmount: CDT_AMOUNT,
+          wldAmount: currentPackage.wldAmount,
+          cdtAmount: currentPackage.totalCdt,
         }),
       })
 
@@ -98,10 +156,8 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
     }
   }
 
-  // Función para reclamar CDT (sin cambios)
   const handleClaim = async () => {
-    console.log("🎁 CDT: handleClaim llamado", { walletAddress, purchaseId }) // ✅ LOG 1
-    if (!purchaseId) {
+    if (!purchaseId || !currentPackage) {
       setError(t("no_purchase_id"))
       return
     }
@@ -109,9 +165,7 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
     try {
       setIsClaiming(true)
       setError(null)
-
-      console.log(`🎁 CDT: Usuario ${username} reclamando compra ${purchaseId}`)
-
+      console.log(`🎁 CDT: Usuario ${username} reclamando compra ${purchaseId} del paquete ${packageType}`)
       const response = await fetch("/api/cdt/claim", {
         method: "POST",
         headers: {
@@ -122,20 +176,11 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
           purchaseId: purchaseId,
         }),
       })
-
-      console.log("🎁 CDT: Respuesta de la API:", response) // ✅ LOG 2
-
       const data = await response.json()
-      console.log("🎁 CDT: Datos de la API:", data) // ✅ LOG 3
-
       if (data.success) {
         console.log("✅ CDT: Reclamación exitosa:", data)
         setClaimSuccess(true)
-
-        // Usar el efecto CDT existente
         showCDTEffect()
-
-        // Cerrar el modal después de 3 segundos
         setTimeout(() => {
           onCloseAction()
         }, 3000)
@@ -151,7 +196,8 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
     }
   }
 
-  if (!isOpen) return null
+
+  if (!isOpen || !currentPackage) return null
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -159,7 +205,7 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
         {!isLoading && !purchaseSuccess ? (
           <>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-secondary">{t("buy_cdt_package")}</h2>
+              <h2 className="text-2xl font-bold text-secondary">{t(currentPackage.titleKey)}</h2>
               <button onClick={onCloseAction} className="text-gray-400 hover:text-white text-xl">
                 ✕
               </button>
@@ -167,25 +213,36 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
 
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <Image src="/BOX_TRIBO VAULT_CDT.png" alt="CDT Package Box" width={120} height={120} />
-                <div className="absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-10 h-10 flex items-center justify-center">
-                  50
+                <Image 
+                  src={currentPackage.imageSrc || "/placeholder.svg"} 
+                  alt={t(currentPackage.boxAltKey)} 
+                  width={120} 
+                  height={120} 
+                />
+                <div className={`absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-auto min-w-[2.5rem] h-10 flex items-center justify-center px-2`}>
+                  {currentPackage.numberOnBox}
                 </div>
               </div>
             </div>
 
             <div className="mb-6">
-              <p className="text-center text-gray-300 mb-4">{t("get_cdt_instantly_desc")}</p>
+              <p className="text-center text-gray-300 mb-4">{t(currentPackage.descriptionKey)}</p>
+              {packageType === 'premium' && currentPackage.cdtBonus > 0 && (
+                <p className="text-center text-green-400 font-bold mb-4">
+                  {/* Linea 232: defaultValue eliminado */}
+                  {t("premium_bonus_text")} {currentPackage.cdtBonus} {t("cdt_free_gift_suffix")}
+                </p>
+              )}
 
               <div className="bg-black/30 rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-300">{t("price")}:</span>
-                  <span className="text-secondary font-bold">0.1 WLD</span>
+                  <span className="text-secondary font-bold">{currentPackage.wldAmount.toFixed(1)} WLD</span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">{t("you_receive")}:</span>
-                  <span className="text-secondary font-bold">50 CDT</span>
+                  <span className="text-secondary font-bold">{currentPackage.totalCdt} CDT</span>
                 </div>
               </div>
 
@@ -204,6 +261,7 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
               </div>
             )}
           </>
+        // ... (resto del JSX sin cambios lógicos, solo las correcciones en t() )
         ) : isLoading ? (
           <div className="text-center py-12">
             <div className="flex justify-center mb-6">
@@ -216,9 +274,14 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">
               <div className="relative">
-                <Image src="/BOX_TRIBO VAULT_CDT.png" alt="CDT Package Box" width={150} height={150} />
-                <div className="absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center animate-pulse">
-                  50
+                <Image 
+                  src={currentPackage.imageSrc || "/placeholder.svg"} 
+                  alt={t(currentPackage.boxAltKey)} 
+                  width={150} 
+                  height={150} 
+                />
+                <div className={`absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-auto min-w-[3rem] h-12 flex items-center justify-center px-2 animate-pulse`}>
+                  {currentPackage.numberOnBox}
                 </div>
               </div>
             </div>
@@ -255,7 +318,7 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
                   {t("claiming")}
                 </span>
               ) : (
-                t("claim_50_cdt")
+                t(currentPackage.claimCdtKey)
               )}
             </button>
 
@@ -269,14 +332,20 @@ export function CdtPackageModal({ isOpen, onCloseAction, walletAddress, username
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">
               <div className="relative animate-bounce">
-                <Image src="/BOX_TRIBO VAULT_CDT.png" alt="CDT Package Box" width={150} height={150} />
-                <div className="absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center">
-                  +50
+                <Image 
+                  src={currentPackage.imageSrc || "/placeholder.svg"} 
+                  alt={t(currentPackage.boxAltKey)} 
+                  width={150} 
+                  height={150} 
+                />
+                <div className={`absolute top-0 right-0 bg-secondary text-white text-lg font-bold rounded-full w-auto min-w-[3rem] h-12 flex items-center justify-center px-2`}>
+                  +{currentPackage.totalCdt}
                 </div>
               </div>
             </div>
             <h3 className="text-2xl font-bold text-secondary mb-2">{t("cdt_claimed")}</h3>
-            <p className="text-gray-300 mb-2">{t("cdt_added_to_balance")}</p>
+            {/* Linea 351: defaultValue eliminado */}
+            <p className="text-gray-300 mb-2">{currentPackage.totalCdt} {t("cdt_added_to_balance_suffix")}</p>
             <p className="text-sm text-gray-400">{t("enjoy_your_cdt")}</p>
           </div>
         ) : null}

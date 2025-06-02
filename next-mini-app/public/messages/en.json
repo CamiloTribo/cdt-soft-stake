@@ -364,6 +364,25 @@
   "error_fetching_referral_earnings": "Error fetching referral earnings",
   "loading_referral_earnings": "Loading referral earnings...",
   "referral_earnings": "Referral Earnings",
-  "total_earned_from_referrals": "Total earned from referrals"
+  "total_earned_from_referrals": "Total earned from referrals",
+
+  "buy_cdt_packages": "Buy CDT Packages",
+  "get_cdt_instantly": "Get CDT instantly",
+  "buy_basic_package_cta": "Buy Basic Package (50 CDT)",
+  "buy_basic_package_cta_aria_label": "Buy Basic Package of 50 CDT",
+  "buy_premium_package_cta": "Offer! Premium Package (600 CDT)",
+  "buy_premium_package_cta_aria_label": "Buy Premium Package of 600 CDT",
+ 
+  "cdt_package_box_alt_basic": "Basic CDT Package Box",
+  "buy_premium_package_title": "Buy Premium Package",
+  "premium_package_desc": "Invest 1 WLD and get 500 CDT + 100 bonus CDT!",
+  "claim_600_cdt": "Claim 600 CDT",
+  "cdt_package_box_alt_premium": "Premium CDT Package Box",
+  "premium_bonus_text": "Includes",
+  "cdt_free_gift_suffix": "FREE Bonus CDT!",
+  "cdt_added_to_balance_suffix": "CDT have been added to your balance"
+
 }
+
+
 
