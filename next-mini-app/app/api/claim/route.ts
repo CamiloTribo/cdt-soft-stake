@@ -11,50 +11,50 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Interfaz para errores con mensaje
 interface ErrorWithMessage {
-  message: string;
+  message: string
 }
 
 // Función para verificar si un error tiene propiedad message
 function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   return (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  );
+    "message" in error &&
+    typeof (error as Record<string, unknown>).message === "string"
+  )
 }
 
 // Función para obtener el mensaje de error
 function getErrorMessage(error: unknown): string {
   if (isErrorWithMessage(error)) {
-    return error.message;
+    return error.message
   }
-  return String(error);
+  return String(error)
 }
 
 // Función de utilidad para reintentos
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
-  let lastError;
-  
+  let lastError
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Intento ${attempt} para ${url}`);
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      console.log(`Intento ${attempt} para ${url}`)
+      const response = await fetch(url, options)
+      if (response.ok) return response
+      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`)
     } catch (error) {
-      console.warn(`Intento ${attempt} falló:`, error);
-      lastError = error;
-      
+      console.warn(`Intento ${attempt} falló:`, error)
+      lastError = error
+
       // Esperar antes de reintentar (backoff exponencial)
       if (attempt < maxRetries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+        await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
   }
-  
-  throw lastError;
+
+  throw lastError
 }
 
 export async function POST(request: Request) {
@@ -74,25 +74,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
     }
 
+    // ✅ VERIFICACIÓN MEJORADA: Solo evitar claims diarios duplicados
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    const { data: recentClaim, error: recentError } = await supabase
+      .from("transactions")
+      .select("created_at, type")
+      .eq("user_id", user.id)
+      .eq("type", "claim") // ← SOLO bloquea recompensas diarias
+      .eq("status", "success") // ← Solo considera transacciones exitosas
+      .gte("created_at", twoHoursAgo)
+      .limit(1)
+
+    if (recentError) {
+      console.error("Error checking recent daily claims:", recentError)
+    } else if (recentClaim && recentClaim.length > 0) {
+      console.log(`🚫 DAILY CLAIM BLOQUEADO: Usuario ${user.id} ya hizo claim diario reciente`)
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Ya has reclamado tus recompensas diarias recientemente. Las recompensas diarias se pueden reclamar cada 24 horas.",
+        },
+        { status: 429 },
+      )
+    }
+
     // Reclamar recompensas
-    let claimResult;
+    let claimResult
     try {
       claimResult = await claimRewards(user.id, wallet_address)
     } catch (error: unknown) {
       console.error("Error en claimRewards:", error)
-      
+
       // Si el error es por un valor decimal inválido, proporcionamos un mensaje más claro
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error)
       if (errorMessage.includes("invalid decimal value")) {
         console.log("Detectado error de valor decimal inválido")
-        
-        return NextResponse.json({
-          success: false,
-          error: "Error al procesar recompensas. Por favor, intenta nuevamente más tarde.",
-          details: "Se ha detectado un valor decimal inválido que será corregido automáticamente."
-        }, { status: 400 })
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Error al procesar recompensas. Por favor, intenta nuevamente más tarde.",
+            details: "Se ha detectado un valor decimal inválido que será corregido automáticamente.",
+          },
+          { status: 400 },
+        )
       }
-      
+
       // Si es otro tipo de error, lo propagamos
       throw error
     }
@@ -155,39 +183,40 @@ export async function POST(request: Request) {
     // ===== INICIO: CÓDIGO PARA RECOMPENSAS DE REFERIDOS =====
     try {
       // 1. Verificar si el usuario tiene un referente
-      console.log("🔍 REFERRAL: Verificando si el usuario tiene referente...");
+      console.log("🔍 REFERRAL: Verificando si el usuario tiene referente...")
       const { data: referralData, error: referralError } = await supabase
         .from("referrals")
         .select("referrer_id, referrer_username")
         .eq("referred_id", user.id)
-        .maybeSingle();
+        .maybeSingle()
 
       if (referralError) {
-        console.error("❌ REFERRAL: Error al buscar referente:", referralError);
-      } 
-      else if (referralData && referralData.referrer_id) {
+        console.error("❌ REFERRAL: Error al buscar referente:", referralError)
+      } else if (referralData && referralData.referrer_id) {
         // 2. Calcular 1% de la recompensa
-        const referralReward = claimResult.amount * 0.01;
-        console.log(`💰 REFERRAL: Calculando 1% de ${claimResult.amount} = ${referralReward} CDT`);
+        const referralReward = claimResult.amount * 0.01
+        console.log(`💰 REFERRAL: Calculando 1% de ${claimResult.amount} = ${referralReward} CDT`)
 
         // 2.5. ✅ NUEVO: Obtener dirección de wallet del referente
-        console.log(`🔍 REFERRAL: Obteniendo dirección de wallet del referente ${referralData.referrer_username}...`);
+        console.log(`🔍 REFERRAL: Obteniendo dirección de wallet del referente ${referralData.referrer_username}...`)
         const { data: referrerUser, error: referrerError } = await supabase
           .from("users")
           .select("address")
           .eq("id", referralData.referrer_id)
-          .single();
+          .single()
 
         if (referrerError || !referrerUser) {
-          console.error("❌ REFERRAL: No se pudo obtener dirección del referente:", referrerError);
+          console.error("❌ REFERRAL: No se pudo obtener dirección del referente:", referrerError)
         } else {
           // 3. Enviar recompensa al referente
-          console.log(`💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username} (${referrerUser.address})`);
-          const referralSendResult = await sendRewards(referrerUser.address, referralReward); // ✅ CORREGIDO: Usar address en lugar de UUID
+          console.log(
+            `💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username} (${referrerUser.address})`,
+          )
+          const referralSendResult = await sendRewards(referrerUser.address, referralReward) // ✅ CORREGIDO: Usar address en lugar de UUID
 
           if (referralSendResult.success) {
-            console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`);
-            
+            console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`)
+
             // 4. Registrar en la tabla referral_rewards
             const { error: rewardError } = await supabase.from("referral_rewards").insert({
               referrer_id: referralData.referrer_id,
@@ -195,18 +224,18 @@ export async function POST(request: Request) {
               claim_amount: claimResult.amount,
               reward_amount: referralReward,
               tx_hash: referralSendResult.txHash,
-              created_at: new Date().toISOString()
-            });
+              created_at: new Date().toISOString(),
+            })
 
             if (rewardError) {
-              console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError);
+              console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError)
             } else {
-              console.log("✅ REFERRAL: Recompensa registrada correctamente");
+              console.log("✅ REFERRAL: Recompensa registrada correctamente")
             }
 
             // 5. OPCIONAL: Registrar también en transactions para el referente
             try {
-              const referrerUserFull = await getUserByAddress(referrerUser.address);
+              const referrerUserFull = await getUserByAddress(referrerUser.address)
               if (referrerUserFull) {
                 const { error: txError } = await supabase.from("transactions").insert({
                   user_id: referrerUserFull.id,
@@ -216,27 +245,26 @@ export async function POST(request: Request) {
                   tx_hash: referralSendResult.txHash,
                   status: "success",
                   description: `Recompensa por referido: ${user.username || user.address}`,
-                });
+                })
 
                 if (txError) {
-                  console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
+                  console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError)
                 } else {
-                  console.log("✅ REFERRAL: Transacción registrada para el referente");
+                  console.log("✅ REFERRAL: Transacción registrada para el referente")
                 }
               }
             } catch (txError) {
-              console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
+              console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError)
             }
-
           } else {
-            console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error);
+            console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error)
           }
         }
       } else {
-        console.log("ℹ️ REFERRAL: El usuario no tiene referente");
+        console.log("ℹ️ REFERRAL: El usuario no tiene referente")
       }
     } catch (referralError) {
-      console.error("❌ REFERRAL: Error general en proceso de recompensa:", referralError);
+      console.error("❌ REFERRAL: Error general en proceso de recompensa:", referralError)
       // No interrumpimos el flujo principal si falla la recompensa
     }
     // ===== FIN: CÓDIGO PARA RECOMPENSAS DE REFERIDOS =====
@@ -244,31 +272,35 @@ export async function POST(request: Request) {
     // Sincronizar el nivel del usuario después del claim
     try {
       // Construir URL absoluta
-      const baseUrl = "https://tribo-vault.vercel.app";
-      const updateLevelUrl = `${baseUrl}/api/update-level`;
-      
+      const baseUrl = "https://tribo-vault.vercel.app"
+      const updateLevelUrl = `${baseUrl}/api/update-level`
+
       // Obtener el balance actual
       const { data: stakingData } = await supabase
         .from("staking_info")
         .select("staked_amount")
         .eq("user_id", user.id)
-        .single();
-        
+        .single()
+
       if (stakingData) {
         // Usar fetchWithRetry para manejar fallos temporales
-        await fetchWithRetry(updateLevelUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        await fetchWithRetry(
+          updateLevelUrl,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              address: wallet_address,
+              staked_amount: stakingData.staked_amount,
+            }),
           },
-          body: JSON.stringify({
-            address: wallet_address,
-            staked_amount: stakingData.staked_amount,
-          }),
-        }, 3); // 3 intentos máximo
+          3,
+        ) // 3 intentos máximo
       }
     } catch (error) {
-      console.error("Error syncing user level after claim:", error);
+      console.error("Error syncing user level after claim:", error)
       // No interrumpimos el flujo principal si falla la sincronización
     }
 
