@@ -379,7 +379,8 @@
   "cdt_package_box_alt_premium": "Caja del Paquete Premium de CDT",
   "premium_bonus_text": "Incluye",
   "cdt_free_gift_suffix": "¡CDT de REGALO!",
-  "cdt_added_to_balance_suffix": "CDT han sido añadidos a tu balance"
+  "cdt_added_to_balance_suffix": "CDT han sido añadidos a tu balance",
+  "limit_reached_short": "Límite Alcanzado"
 }
 
 

@@ -19,7 +19,6 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
   const [availableBoosts, setAvailableBoosts] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // Función para obtener boosts disponibles
   const fetchAvailableBoosts = useCallback(async () => {
     try {
       const response = await fetch(`/api/boosts/available?wallet_address=${walletAddress}`)
@@ -41,28 +40,30 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
     }
   }, [walletAddress, fetchAvailableBoosts])
 
-  // Función para calcular precio original del boost según nivel
+  // Función para calcular precio original del boost según nivel (sin cambios)
   const getOriginalPrice = (level: number): number => {
-    if (level === 0) return 0.05  // Precio original nivel 0
-    if (level === 1) return 0.5   // ✅ Precio original nivel 1 (CORREGIDO)
-    if (level === 2) return 5     // Precio original nivel 2
-    if (level === 3) return 10    // Precio original nivel 3
-    return 0.05 // Precio por defecto
+    if (level === 0) return 0.05
+    if (level === 1) return 0.5 
+    if (level === 2) return 5   
+    if (level === 3) return 10  
+    return 0.05 
   }
 
-  // Función para calcular precio con descuento
+  // Función para calcular precio con descuento (MODIFICADA)
   const getBoostPrice = (level: number): number => {
-    if (level === 0) return 0.045  // ✅ CAMBIADO DE 0.02 A 0.045
-    if (level === 1) return 0.20  // ✅ Precio con descuento nivel 1
-    if (level === 2) return 2
+    if (level === 0) return 0.045
+    if (level === 1) return 0.123 // <--- NUEVO PRECIO NIVEL 1
+    if (level === 2) return 1.23  // <--- NUEVO PRECIO NIVEL 2
     if (level === 3) return 7
-    return 0.045 // ✅ CAMBIADO DE 0.02 A 0.045 (precio por defecto)
+    return 0.045 
   }
 
-  // Función para obtener el porcentaje de descuento según el nivel
+  // Función para obtener el porcentaje de descuento según el nivel (sin cambios, se recalcula sola)
   const getDiscountPercentage = (level: number): number => {
     const originalPrice = getOriginalPrice(level);
     const boostPrice = getBoostPrice(level);
+    // Asegurarse de que originalPrice no sea 0 para evitar división por cero
+    if (originalPrice === 0) return 0; 
     return Math.round(((originalPrice - boostPrice) / originalPrice) * 100);
   }
 
@@ -72,9 +73,18 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
   const originalPrice = getOriginalPrice(userLevel)
   const discountPercentage = getDiscountPercentage(userLevel)
 
-  // Función para formatear el precio sin ceros innecesarios
+  // Función para formatear el precio (MODIFICADA para mostrar más decimales si es necesario)
   const formatPrice = (price: number): string => {
-    return price.toString().replace(/\.0+$/, '')
+    // Si el precio es un entero, no mostrar decimales.
+    // Si tiene decimales, mostrar hasta 3 decimales, eliminando ceros finales innecesarios.
+    if (Number.isInteger(price)) {
+      return price.toString();
+    }
+    // Convertir a string con un número fijo de decimales (ej. 3 para 0.123)
+    // y luego eliminar ceros finales después del punto.
+    let formattedPrice = price.toFixed(3); // Asegura 3 decimales para 0.123
+    formattedPrice = formattedPrice.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1'); // Elimina ceros finales
+    return formattedPrice;
   }
 
   return (
@@ -140,11 +150,12 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
               <p className="text-lg font-bold text-white">
                 <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
                 {formatPrice(boostPrice)} WLD
-                <span className="text-sm text-[#ff1744] ml-2">{discountPercentage}% {t("off")}</span>
+                {discountPercentage > 0 && ( // Solo mostrar descuento si es mayor a 0
+                  <span className="text-sm text-[#ff1744] ml-2">{discountPercentage}% {t("off")}</span>
+                )}
               </p>
             </div>
 
-            {/* BOTÓN HABILITADO */}
             {availableBoosts < 7 && (
               <button
                 onClick={() => setShowModal(true)}
@@ -155,7 +166,6 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
             )}
           </div>
 
-          {/* Mensaje si ya tiene el máximo */}
           {availableBoosts >= 7 && (
             <div className="text-center py-2">
               <p className="text-[#4ebd0a] font-medium">{t("weekly_limit_reached")}</p>
@@ -165,7 +175,6 @@ export function BoostSection({ userLevel, walletAddress, username, hasBoost }: B
         </div>
       </div>
 
-      {/* Modal habilitado */}
       {showModal && (
         <BoostModal
           isOpen={showModal}

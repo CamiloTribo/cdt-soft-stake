@@ -405,5 +405,6 @@ export type TranslationKey =
   | "claim_your_cdt_now"
   | "claiming"
   | "cdt_claimed"
+  | "limit_reached_short"
   // | "cdt_added_to_balance" // Esta la hemos reemplazado por el sufijo, pero si la usas en otro sitio, mantenla
   | "enjoy_your_cdt";

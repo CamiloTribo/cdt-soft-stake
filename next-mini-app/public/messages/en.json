@@ -380,8 +380,8 @@
   "cdt_package_box_alt_premium": "Premium CDT Package Box",
   "premium_bonus_text": "Includes",
   "cdt_free_gift_suffix": "FREE Bonus CDT!",
-  "cdt_added_to_balance_suffix": "CDT have been added to your balance"
-
+  "cdt_added_to_balance_suffix": "CDT have been added to your balance",
+"limit_reached_short": "Limit Reached"
 }
 
 
