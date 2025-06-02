@@ -74,6 +74,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
     }
 
+    // ✅ VERIFICACIÓN ANTI-DUPLICADOS: Evitar claims múltiples
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+    const { data: recentClaim5, error: recentError5 } = await supabase
+      .from("transactions")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .eq("type", "claim")
+      .eq("status", "success")
+      .gte("created_at", fiveMinutesAgo)
+      .limit(1)
+
+    if (recentError5) {
+      console.error("Error checking recent claims:", recentError5)
+    } else if (recentClaim5 && recentClaim5.length > 0) {
+      console.log(`🚫 CLAIM BLOQUEADO: Usuario ${user.id} ya hizo claim reciente`)
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Ya has reclamado recompensas recientemente. Por favor espera unos minutos antes de intentar nuevamente.",
+        },
+        { status: 429 },
+      )
+    }
+
     // ✅ VERIFICACIÓN MEJORADA: Solo evitar claims diarios duplicados
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     const { data: recentClaim, error: recentError } = await supabase
