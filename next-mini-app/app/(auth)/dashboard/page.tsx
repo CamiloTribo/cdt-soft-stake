@@ -577,6 +577,44 @@ export default function Dashboard() {
           hasBoost={hasBoost}
         />
 
+        {/* ✅ NUEVO: Banner AMA TRIBO - Ahora colocado entre BoostSection y ClaimSection */}
+        <div className="mb-6">
+          <Link
+            href="https://discord.gg/bdQrMxKe?event=1378011858883051574"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+          >
+            <div className="relative group">
+              <Image
+                src="/ama-banner.png"
+                alt="TRIBO Special AMA - June 5th, 2025 - 14:00 UTC"
+                width={800}
+                height={400}
+                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* ORDEN INTERCAMBIADO: Ahora ClaimSection */}
         <ClaimSection
           timeRemaining={timeRemaining}
@@ -650,44 +688,6 @@ export default function Dashboard() {
           walletAddress={getUserIdentifier() || ""}
           username={username}
         />
-
-        {/* ✅ NUEVO: Banner AMA TRIBO */}
-        <div className="mb-6">
-          <Link
-            href="https://discord.gg/bdQrMxKe?event=1378011858883051574"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
-          >
-            <div className="relative group">
-              <Image
-                src="/ama-banner.png"
-                alt="TRIBO Special AMA - June 5th, 2025 - 14:00 UTC"
-                width={800}
-                height={400}
-                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14"></path>
-                  <path d="m12 5 7 7-7 7"></path>
-                </svg>
-              </div>
-            </div>
-          </Link>
-        </div>
 
         {/* MOVIDO: LevelSection ahora va después de la nueva sección */}
         <LevelSection stakedAmount={stakedAmount} />
