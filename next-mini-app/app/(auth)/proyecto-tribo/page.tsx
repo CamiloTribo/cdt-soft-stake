@@ -138,6 +138,30 @@ export default function ProyectoTriboPage() {
           </div>
         </div>
 
+        {/* Banner de colaboración con AXO */}
+        <div className="mt-12 relative">
+          <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+            <a
+              href="https://world.org/mini-app?app_id=app_8aeb55d57b7be834fb8d67e2f803d258"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <Image
+                src="/colabs/banner AXO.jpg"
+                alt="AXO Collaboration - Stay Cute Claim Loot"
+                width={1200}
+                height={300}
+                className="w-full h-auto rounded-xl"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-pink-500/30 hover:from-pink-500/20 hover:to-pink-500/40 transition-all duration-300 rounded-xl"></div>
+              <div className="absolute bottom-4 right-4 bg-white/90 text-pink-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                Visit Now
+              </div>
+            </a>
+          </div>
+        </div>
+
         {/* Nuestra Misión - Mejorada con animación */}
         <div ref={(ref) => registerSectionRef("mission", ref)} id="mission" className="scroll-mt-16">
           <ProjectSection
@@ -792,30 +816,6 @@ export default function ProyectoTriboPage() {
 
               <p className="text-center text-gray-300 mt-4 text-sm">{t("invest_future")}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Banner de colaboración con AXO - NUEVO */}
-        <div className="mt-16 relative">
-          <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
-            <a
-              href="https://world.org/mini-app?app_id=app_8aeb55d57b7be834fb8d67e2f803d258"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <Image
-                src="/colabs/banner AXO.jpg"
-                alt="AXO Collaboration - Stay Cute Claim Loot"
-                width={1200}
-                height={300}
-                className="w-full h-auto rounded-xl"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-pink-500/30 hover:from-pink-500/20 hover:to-pink-500/40 transition-all duration-300 rounded-xl"></div>
-              <div className="absolute bottom-4 right-4 bg-white/90 text-pink-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
-                Visit Now
-              </div>
-            </a>
           </div>
         </div>
       </div>
