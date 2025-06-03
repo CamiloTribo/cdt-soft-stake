@@ -105,9 +105,9 @@ export default function ProyectoTriboPage() {
           <h1 className="text-4xl font-bold mb-3 text-white">{t("project_tribo")}</h1>
           <p className="text-gray-300 max-w-2xl text-lg leading-relaxed">{t("project_tribo_subtitle")}</p>
 
-          {/* Navegación rápida */}
+          {/* Navegación rápida - Añadida "collabs" */}
           <div className="flex flex-wrap justify-center gap-3 mt-8">
-            {["mission", "cdt", "roadmap", "community", "next_steps"].map((section) => (
+            {["collabs", "mission", "cdt", "roadmap", "community", "next_steps"].map((section) => (
               <button
                 key={section}
                 onClick={() => {
@@ -123,43 +123,69 @@ export default function ProyectoTriboPage() {
                 }`}
               >
                 {t(
-                  section === "cdt"
-                    ? "what_is_cdt"
-                    : section === "mission"
-                      ? "our_mission"
-                      : section === "roadmap"
-                        ? "our_roadmap"
-                        : section === "community"
-                          ? "join_tribe"
-                          : "next_steps",
+                  section === "collabs"
+                    ? "collabs"
+                    : section === "cdt"
+                      ? "what_is_cdt"
+                      : section === "mission"
+                        ? "our_mission"
+                        : section === "roadmap"
+                          ? "our_roadmap"
+                          : section === "community"
+                            ? "join_tribe"
+                            : "next_steps",
                 )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Banner de colaboración con AXO */}
-        <div className="mt-12 relative">
-          <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
-            <a
-              href="https://world.org/mini-app?app_id=app_8aeb55d57b7be834fb8d67e2f803d258"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <Image
-                src="/colabs/banner AXO.jpg"
-                alt="AXO Collaboration - Stay Cute Claim Loot"
-                width={1200}
-                height={300}
-                className="w-full h-auto rounded-xl"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-pink-500/30 hover:from-pink-500/20 hover:to-pink-500/40 transition-all duration-300 rounded-xl"></div>
-              <div className="absolute bottom-4 right-4 bg-white/90 text-pink-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
-                Visit Now
+        {/* Sección de Colaboraciones */}
+        <div ref={(ref) => registerSectionRef("collabs", ref)} id="collabs" className="scroll-mt-16 mb-16">
+          <ProjectSection
+            title={t("collabs") || "Colaboraciones"}
+            className="transform transition-all duration-500 hover:translate-y-[-5px]"
+            titleClassName="text-tribo-green-DEFAULT text-2xl md:text-3xl"
+          >
+            <p className="text-white mb-8 text-lg text-center">
+              {t("collabs_description") || "Descubre nuestras colaboraciones estratégicas y proyectos aliados"}
+            </p>
+
+            {/* Grid de colaboraciones - Preparado para múltiples banners */}
+            <div className="space-y-6">
+              {/* Banner AXO */}
+              <div className="relative group">
+                <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+                  <a
+                    href="https://world.org/mini-app?app_id=app_8aeb55d57b7be834fb8d67e2f803d258"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Image
+                      src="/colabs/banner AXO.jpg"
+                      alt="AXO Collaboration - Stay Cute Claim Loot"
+                      width={1200}
+                      height={300}
+                      className="w-full h-auto rounded-xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-pink-500/30 hover:from-pink-500/20 hover:to-pink-500/40 transition-all duration-300 rounded-xl"></div>
+                    <div className="absolute bottom-4 right-4 bg-white/90 text-pink-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                      Visit Now
+                    </div>
+                  </a>
+                </div>
               </div>
-            </a>
-          </div>
+
+              {/* Placeholder para futuras colaboraciones */}
+              <div className="text-center py-8 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
+                <p className="text-gray-400 text-lg">
+                  {t("more_collabs_coming") || "Más colaboraciones próximamente..."}
+                </p>
+                <p className="text-gray-500 text-sm mt-2">{t("stay_tuned") || "¡Mantente atento a nuevas alianzas!"}</p>
+              </div>
+            </div>
+          </ProjectSection>
         </div>
 
         {/* Nuestra Misión - Mejorada con animación */}

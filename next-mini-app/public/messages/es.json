@@ -380,7 +380,11 @@
   "premium_bonus_text": "Incluye",
   "cdt_free_gift_suffix": "¡CDT de REGALO!",
   "cdt_added_to_balance_suffix": "CDT han sido añadidos a tu balance",
-  "limit_reached_short": "Límite Alcanzado"
+  "limit_reached_short": "Límite Alcanzado",
+  "collabs": "Colaboraciones",
+  "collabs_description": "Descubre nuestras colaboraciones estratégicas y proyectos aliados",
+  "more_collabs_coming": "Más colaboraciones próximamente...",
+  "stay_tuned": "¡Mantente atento a nuevas alianzas!"
 }
 
 

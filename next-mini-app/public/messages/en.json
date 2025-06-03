@@ -381,7 +381,11 @@
   "premium_bonus_text": "Includes",
   "cdt_free_gift_suffix": "FREE Bonus CDT!",
   "cdt_added_to_balance_suffix": "CDT have been added to your balance",
-"limit_reached_short": "Limit Reached"
+"limit_reached_short": "Limit Reached",
+"collabs": "Collaborations", 
+  "collabs_description": "Discover our strategic collaborations and allied projects",
+  "more_collabs_coming": "More collaborations coming soon...",
+  "stay_tuned": "Stay tuned for new partnerships!"
 }
 
 
