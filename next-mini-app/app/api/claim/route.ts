@@ -1,19 +1,19 @@
-import { NextResponse } from "next/server"
-import { getUserByAddress } from "@/src/lib/supabase"
-import { claimRewards } from "@/src/lib/staking"
-import { sendRewards } from "@/src/lib/blockchain" // ✅ Añadir para referidos
-import { createClient } from "@supabase/supabase-js"
+// src/app/api/claim-route.ts
+import { NextResponse } from "next/server";
+import { getUserByAddress } from "@/src/lib/supabase";
+import { claimRewards } from "@/src/lib/staking";
+import { sendRewards } from "@/src/lib/blockchain"; // ✅ Añadir para referidos
+import { createClient } from "@supabase/supabase-js";
 
 // Crear cliente de Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Interfaz para errores con mensaje
 interface ErrorWithMessage {
-  message: string
+  message: string;
 }
-
 // Función para verificar si un error tiene propiedad message
 function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   return (
@@ -21,61 +21,60 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
     error !== null &&
     "message" in error &&
     typeof (error as Record<string, unknown>).message === "string"
-  )
+  );
 }
-
 // Función para obtener el mensaje de error
 function getErrorMessage(error: unknown): string {
   if (isErrorWithMessage(error)) {
-    return error.message
+    return error.message;
   }
-  return String(error)
+  return String(error);
 }
 
 // Función de utilidad para reintentos
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
-  let lastError
+  let lastError;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Intento ${attempt} para ${url}`)
-      const response = await fetch(url, options)
-      if (response.ok) return response
-      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`)
+      console.log(`Intento ${attempt} para ${url}`);
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      lastError = new Error(`HTTP error ${response.status}: ${response.statusText}`);
     } catch (error) {
-      console.warn(`Intento ${attempt} falló:`, error)
-      lastError = error
+      console.warn(`Intento ${attempt} falló:`, error);
+      lastError = error;
 
       // Esperar antes de reintentar (backoff exponencial)
       if (attempt < maxRetries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
-        await new Promise((resolve) => setTimeout(resolve, delay))
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
 
-  throw lastError
+  throw lastError;
 }
 
 export async function POST(request: Request) {
   try {
     // Obtener la dirección de wallet del body
-    const body = await request.json()
-    const { wallet_address } = body
+    const body = await request.json();
+    const { wallet_address } = body;
 
     if (!wallet_address) {
-      return NextResponse.json({ success: false, error: "Wallet address is required" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Wallet address is required" }, { status: 400 });
     }
 
     // Buscar al usuario por su dirección de wallet
-    const user = await getUserByAddress(wallet_address)
+    const user = await getUserByAddress(wallet_address);
 
     if (!user) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
-    // ✅ VERIFICACIÓN ANTI-DUPLICADOS: Evitar claims múltiples
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+    // ✅ VERIFICACIÓN ANTI-DUPLICADOS: Evitar claims múltiples en los últimos 5 minutos
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
     const { data: recentClaim5, error: recentError5 } = await supabase
       .from("transactions")
       .select("created_at")
@@ -83,58 +82,56 @@ export async function POST(request: Request) {
       .eq("type", "claim")
       .eq("status", "success")
       .gte("created_at", fiveMinutesAgo)
-      .limit(1)
+      .limit(1);
 
     if (recentError5) {
-      console.error("Error checking recent claims:", recentError5)
+      console.error("Error checking recent claims:", recentError5);
     } else if (recentClaim5 && recentClaim5.length > 0) {
-      console.log(`🚫 CLAIM BLOQUEADO: Usuario ${user.id} ya hizo claim reciente`)
+      console.log(`🚫 CLAIM BLOQUEADO: Usuario ${user.id} ya hizo claim reciente`);
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Ya has reclamado recompensas recientemente. Por favor espera unos minutos antes de intentar nuevamente.",
+          error: "Ya has reclamado recompensas recientemente. Por favor espera unos minutos antes de intentar nuevamente.",
         },
-        { status: 429 },
-      )
+        { status: 429 }
+      );
     }
 
-    // ✅ VERIFICACIÓN MEJORADA: Solo evitar claims diarios duplicados
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    // ✅ VERIFICACIÓN MEJORADA: Solo evitar claims diarios duplicados (últimas 2 horas)
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     const { data: recentClaim, error: recentError } = await supabase
       .from("transactions")
       .select("created_at, type")
       .eq("user_id", user.id)
-      .eq("type", "claim") // ← SOLO bloquea recompensas diarias
-      .eq("status", "success") // ← Solo considera transacciones exitosas
+      .eq("type", "claim")
+      .eq("status", "success")
       .gte("created_at", twoHoursAgo)
-      .limit(1)
+      .limit(1);
 
     if (recentError) {
-      console.error("Error checking recent daily claims:", recentError)
+      console.error("Error checking recent daily claims:", recentError);
     } else if (recentClaim && recentClaim.length > 0) {
-      console.log(`🚫 DAILY CLAIM BLOQUEADO: Usuario ${user.id} ya hizo claim diario reciente`)
+      console.log(`🚫 DAILY CLAIM BLOQUEADO: Usuario ${user.id} ya hizo claim diario reciente`);
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Ya has reclamado tus recompensas diarias recientemente. Las recompensas diarias se pueden reclamar cada 24 horas.",
+          error: "Ya has reclamado tus recompensas diarias recientemente. Las recompensas diarias se pueden reclamar cada 24 horas.",
         },
-        { status: 429 },
-      )
+        { status: 429 }
+      );
     }
 
-    // Reclamar recompensas
-    let claimResult
+    // Reclamar recompensas (parte principal)
+    let claimResult;
     try {
-      claimResult = await claimRewards(user.id, wallet_address)
+      claimResult = await claimRewards(user.id, wallet_address);
     } catch (error: unknown) {
-      console.error("Error en claimRewards:", error)
+      console.error("Error en claimRewards:", error);
 
       // Si el error es por un valor decimal inválido, proporcionamos un mensaje más claro
-      const errorMessage = getErrorMessage(error)
+      const errorMessage = getErrorMessage(error);
       if (errorMessage.includes("invalid decimal value")) {
-        console.log("Detectado error de valor decimal inválido")
+        console.log("Detectado error de valor decimal inválido");
 
         return NextResponse.json(
           {
@@ -142,12 +139,12 @@ export async function POST(request: Request) {
             error: "Error al procesar recompensas. Por favor, intenta nuevamente más tarde.",
             details: "Se ha detectado un valor decimal inválido que será corregido automáticamente.",
           },
-          { status: 400 },
-        )
+          { status: 400 }
+        );
       }
 
       // Si es otro tipo de error, lo propagamos
-      throw error
+      throw error;
     }
 
     // Verificación mejorada del resultado
@@ -158,11 +155,11 @@ export async function POST(request: Request) {
           error: "Failed to claim rewards",
           details: claimResult ? `Amount: ${claimResult.amount}, TxHash: ${claimResult.txHash}` : "No result",
         },
-        { status: 400 },
-      )
+        { status: 400 }
+      );
     }
 
-    // Registrar la transacción
+    // Registrar la transacción en la tabla transactions
     const { error: txError } = await supabase.from("transactions").insert([
       {
         user_id: user.id,
@@ -173,74 +170,74 @@ export async function POST(request: Request) {
         status: "success",
         description: "Reclamación de recompensas diarias",
       },
-    ])
+    ]);
 
     if (txError) {
-      console.error("Error registering transaction:", txError)
+      console.error("Error registering transaction:", txError);
       // Continuamos aunque falle el registro de la transacción
     }
 
-    // MEJORA: Actualizar el total_claimed del usuario de manera más eficiente
+    // ===== MEJORA: Actualizar total_claimed del usuario =====
     // Obtenemos el total_claimed actual para asegurarnos de tener el valor más reciente
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("total_claimed")
       .eq("id", user.id)
-      .single()
+      .single();
 
     if (userError) {
-      console.error("Error getting current total_claimed:", userError)
+      console.error("Error getting current total_claimed:", userError);
     } else {
       // Calculamos el nuevo total_claimed
-      const currentTotal = userData.total_claimed || 0
-      const newTotal = currentTotal + claimResult.amount
+      const currentTotal = userData.total_claimed || 0;
+      const newTotal = currentTotal + claimResult.amount;
 
       // Actualizamos directamente con el nuevo valor
-      const { error: updateError } = await supabase.from("users").update({ total_claimed: newTotal }).eq("id", user.id)
+      const { error: updateError } = await supabase.from("users").update({ total_claimed: newTotal }).eq("id", user.id);
 
       if (updateError) {
-        console.error("Error updating total_claimed:", updateError)
+        console.error("Error updating total_claimed:", updateError);
       } else {
-        console.log(`Total claimed updated for user ${user.id}: ${currentTotal} -> ${newTotal}`)
+        console.log(`Total claimed updated for user ${user.id}: ${currentTotal} -> ${newTotal}`);
       }
     }
 
     // ===== INICIO: CÓDIGO PARA RECOMPENSAS DE REFERIDOS =====
     try {
       // 1. Verificar si el usuario tiene un referente
-      console.log("🔍 REFERRAL: Verificando si el usuario tiene referente...")
+      console.log("🔍 REFERRAL: Verificando si el usuario tiene referente...");
       const { data: referralData, error: referralError } = await supabase
         .from("referrals")
         .select("referrer_id, referrer_username")
         .eq("referred_id", user.id)
-        .maybeSingle()
+        .maybeSingle();
 
       if (referralError) {
-        console.error("❌ REFERRAL: Error al buscar referente:", referralError)
+        console.error("❌ REFERRAL: Error al buscar referente:", referralError);
       } else if (referralData && referralData.referrer_id) {
         // 2. Calcular 1% de la recompensa
-        const referralReward = claimResult.amount * 0.01
-        console.log(`💰 REFERRAL: Calculando 1% de ${claimResult.amount} = ${referralReward} CDT`)
+        const referralReward = claimResult.amount * 0.01;
+        console.log(`💰 REFERRAL: Calculando 1% de ${claimResult.amount} = ${referralReward} CDT`);
 
         // 2.5. ✅ NUEVO: Obtener dirección de wallet del referente
-        console.log(`🔍 REFERRAL: Obteniendo dirección de wallet del referente ${referralData.referrer_username}...`)
+        console.log(`🔍 REFERRAL: Obteniendo dirección de wallet del referente ${referralData.referrer_username}...`);
         const { data: referrerUser, error: referrerError } = await supabase
           .from("users")
           .select("address")
           .eq("id", referralData.referrer_id)
-          .single()
+          .single();
 
         if (referrerError || !referrerUser) {
-          console.error("❌ REFERRAL: No se pudo obtener dirección del referente:", referrerError)
+          console.error("❌ REFERRAL: No se pudo obtener dirección del referente:", referrerError);
         } else {
           // 3. Enviar recompensa al referente
           console.log(
-            `💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username} (${referrerUser.address})`,
-          )
-          const referralSendResult = await sendRewards(referrerUser.address, referralReward) // ✅ CORREGIDO: Usar address en lugar de UUID
+            `💸 REFERRAL: Enviando ${referralReward} CDT al referente ${referralData.referrer_username} (${referrerUser.address})`
+          );
+          const referralSendResult = await sendRewards(referrerUser.address, referralReward); // ✅ CORREGIDO
 
           if (referralSendResult.success) {
-            console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`)
+            console.log(`✅ REFERRAL: Recompensa enviada exitosamente. Hash: ${referralSendResult.txHash}`);
 
             // 4. Registrar en la tabla referral_rewards
             const { error: rewardError } = await supabase.from("referral_rewards").insert({
@@ -250,17 +247,17 @@ export async function POST(request: Request) {
               reward_amount: referralReward,
               tx_hash: referralSendResult.txHash,
               created_at: new Date().toISOString(),
-            })
+            });
 
             if (rewardError) {
-              console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError)
+              console.error("❌ REFERRAL: Error al registrar recompensa:", rewardError);
             } else {
-              console.log("✅ REFERRAL: Recompensa registrada correctamente")
+              console.log("✅ REFERRAL: Recompensa registrada correctamente");
             }
 
             // 5. OPCIONAL: Registrar también en transactions para el referente
             try {
-              const referrerUserFull = await getUserByAddress(referrerUser.address)
+              const referrerUserFull = await getUserByAddress(referrerUser.address);
               if (referrerUserFull) {
                 const { error: txError } = await supabase.from("transactions").insert({
                   user_id: referrerUserFull.id,
@@ -270,26 +267,26 @@ export async function POST(request: Request) {
                   tx_hash: referralSendResult.txHash,
                   status: "success",
                   description: `Recompensa por referido: ${user.username || user.address}`,
-                })
+                });
 
                 if (txError) {
-                  console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError)
+                  console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
                 } else {
-                  console.log("✅ REFERRAL: Transacción registrada para el referente")
+                  console.log("✅ REFERRAL: Transacción registrada para el referente");
                 }
               }
             } catch (txError) {
-              console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError)
+              console.error("⚠️ REFERRAL: Error al registrar transacción (no crítico):", txError);
             }
           } else {
-            console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error)
+            console.error("❌ REFERRAL: Error al enviar recompensa:", referralSendResult.error);
           }
         }
       } else {
-        console.log("ℹ️ REFERRAL: El usuario no tiene referente")
+        console.log("ℹ️ REFERRAL: El usuario no tiene referente");
       }
     } catch (referralError) {
-      console.error("❌ REFERRAL: Error general en proceso de recompensa:", referralError)
+      console.error("❌ REFERRAL: Error general en proceso de recompensa:", referralError);
       // No interrumpimos el flujo principal si falla la recompensa
     }
     // ===== FIN: CÓDIGO PARA RECOMPENSAS DE REFERIDOS =====
@@ -297,15 +294,15 @@ export async function POST(request: Request) {
     // Sincronizar el nivel del usuario después del claim
     try {
       // Construir URL absoluta
-      const baseUrl = "https://tribo-vault.vercel.app"
-      const updateLevelUrl = `${baseUrl}/api/update-level`
+      const baseUrl = "https://tribo-vault.vercel.app";
+      const updateLevelUrl = `${baseUrl}/api/update-level`;
 
       // Obtener el balance actual
       const { data: stakingData } = await supabase
         .from("staking_info")
         .select("staked_amount")
         .eq("user_id", user.id)
-        .single()
+        .single();
 
       if (stakingData) {
         // Usar fetchWithRetry para manejar fallos temporales
@@ -321,11 +318,11 @@ export async function POST(request: Request) {
               staked_amount: stakingData.staked_amount,
             }),
           },
-          3,
-        ) // 3 intentos máximo
+          3
+        ); // 3 intentos máximo
       }
     } catch (error) {
-      console.error("Error syncing user level after claim:", error)
+      console.error("Error syncing user level after claim:", error);
       // No interrumpimos el flujo principal si falla la sincronización
     }
 
@@ -333,15 +330,15 @@ export async function POST(request: Request) {
       success: true,
       message: "¡Recompensas reclamadas correctamente!",
       amount: claimResult.amount, // Añadimos la cantidad reclamada en la respuesta
-    })
+    });
   } catch (error: unknown) {
-    console.error("Error in claim API:", error)
+    console.error("Error in claim API:", error);
     return NextResponse.json(
       {
         success: false,
         error: isErrorWithMessage(error) ? error.message : "Internal server error",
       },
-      { status: 500 },
-    )
+      { status: 500 }
+    );
   }
 }
