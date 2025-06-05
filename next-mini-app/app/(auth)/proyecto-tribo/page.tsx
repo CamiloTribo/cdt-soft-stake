@@ -177,6 +177,30 @@ export default function ProyectoTriboPage() {
                 </div>
               </div>
 
+              {/* Banner Drop Wallet */}
+              <div className="relative group">
+                <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+                  <a
+                    href="https://world.org/mini-app?app_id=app_459cd0d0d3125864ea42bd4c19d1986c&path=tribovault"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Image
+                      src="/colabs/banner-drop-wallet.jpg"
+                      alt="Drop Wallet Collaboration - Up to 10 HUB"
+                      width={1200}
+                      height={300}
+                      className="w-full h-auto rounded-xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-yellow-500/30 hover:from-orange-500/20 hover:to-yellow-500/40 transition-all duration-300 rounded-xl"></div>
+                    <div className="absolute bottom-4 right-4 bg-white/90 text-orange-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                      Claim Now
+                    </div>
+                  </a>
+                </div>
+              </div>
+
               {/* Placeholder para futuras colaboraciones */}
               <div className="text-center py-8 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
                 <p className="text-gray-400 text-lg">
