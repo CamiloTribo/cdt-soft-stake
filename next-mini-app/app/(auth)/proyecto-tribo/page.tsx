@@ -153,6 +153,25 @@ export default function ProyectoTriboPage() {
 
             {/* Grid de colaboraciones - Preparado para múltiples banners */}
             <div className="space-y-6">
+              {/* Banner HumanFi Swap - NUEVO PRIMER BANNER */}
+              <div className="relative group">
+                <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+                  <a href={swapLink} target="_blank" rel="noopener noreferrer" className="block">
+                    <Image
+                      src="/colabs/banner-humanfi-swap.png"
+                      alt="TRIBO VAULT x HUMAN LABS - Swap CDT"
+                      width={1200}
+                      height={300}
+                      className="w-full h-auto rounded-xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-green-500/20 hover:from-red-500/20 hover:to-green-500/30 transition-all duration-300 rounded-xl"></div>
+                    <div className="absolute bottom-4 right-4 bg-white/90 text-red-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                      Click & Swap
+                    </div>
+                  </a>
+                </div>
+              </div>
+
               {/* Banner AXO */}
               <div className="relative group">
                 <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
@@ -187,7 +206,7 @@ export default function ProyectoTriboPage() {
                     className="block"
                   >
                     <Image
-                      src="/colabs/banner-drop-wallet.jpg"
+                      src="/colabs/banner-drop-wallet.png"
                       alt="Drop Wallet Collaboration - Up to 10 HUB"
                       width={1200}
                       height={300}
