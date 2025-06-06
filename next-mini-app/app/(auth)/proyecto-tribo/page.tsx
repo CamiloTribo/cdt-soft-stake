@@ -200,7 +200,7 @@ export default function ProyectoTriboPage() {
               <div className="relative group">
                 <div className="relative z-10 overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:scale-[1.02]">
                   <a
-                    href="https://world.org/mini-app?app_id=app_459cd0d0d3125864ea42bd4c19d1986c&path=tribovault"
+                    href="https://worldcoin.org/mini-app?app_id=app_459cd0d0d3125864ea42bd4c19d1986c&path=/dlink/tribovault"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block"
