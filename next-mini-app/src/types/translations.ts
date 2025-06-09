@@ -437,4 +437,5 @@ export type TranslationKey =
 | "continue"
 | "daily_treasure_notification"
 | "turn_for_treasure"
+| "payment_method"
 | "next_treasure_in";
