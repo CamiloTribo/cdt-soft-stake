@@ -1,4 +1,4 @@
-import { supabase, type StakingInfo, hasAvailableBoosts, applyBoost } from "./supabase"
+import { supabase, type StakingInfo, hasAvailableBoosts, applyBoost, confirmBoostUsage } from "./supabase"
 import { getCDTBalance, sendRewards } from "./blockchain"
 import { getDailyRateForAmount } from "./levels"
 import type { TranslationKey } from "../types/translations"
@@ -171,29 +171,49 @@ export async function claimRewards(
     const hasBoost = await hasAvailableBoosts(userAddress)
     let boosted = false
     let finalRewardAmount = rewardAmount
+    let boostId: string | undefined
 
-    // Si tiene boost, duplicar la recompensa y registrar el uso
+    // Si tiene boost, preparar la aplicación (sin confirmar aún)
     if (hasBoost) {
       // Obtener el username del usuario
       const { data: userData } = await supabase.from("users").select("username").eq("address", userAddress).single()
       const username = userData?.username || null
 
-      // Aplicar el boost
+      // ✅ PREPARAR el boost (sin aplicarlo definitivamente)
       const boostResult = await applyBoost(userAddress, username, rewardAmount)
 
-      if (boostResult.success) {
+      if (boostResult.success && boostResult.boostId) {
         finalRewardAmount = boostResult.boostedAmount
-        boosted = true
-        console.log(`Boost aplicado: ${rewardAmount} -> ${finalRewardAmount} CDT para ${userAddress}`)
+        boostId = boostResult.boostId
+        console.log(`🚀 Boost preparado: ${rewardAmount} -> ${finalRewardAmount} CDT`)
       }
     }
 
-    console.log(
-      `Enviando ${finalRewardAmount} CDT a ${userAddress} (tasa: ${dailyRate * 100}%, boost: ${boosted ? "Sí" : "No"})`,
-    )
+    console.log(`Enviando ${finalRewardAmount} CDT a ${userAddress}`)
 
-    // Enviar recompensas a través de la blockchain
+    // ✅ PRIMERO: Enviar recompensas a través de la blockchain
     const sendResult = await sendRewards(userAddress, finalRewardAmount)
+
+    // ✅ VERIFICAR si la transacción fue exitosa
+    if (!sendResult.success || !sendResult.txHash) {
+      console.error("❌ Error en sendRewards - Boost NO se aplicará:", sendResult.error)
+      return { success: false, amount: 0, txHash: null, boosted: false }
+    }
+
+    // ✅ SOLO SI LA TRANSACCIÓN FUE EXITOSA: Confirmar el uso del boost
+    if (boostId) {
+      const { data: userData } = await supabase.from("users").select("username").eq("address", userAddress).single()
+      const username = userData?.username || null
+
+      const boostConfirmed = await confirmBoostUsage(boostId, userAddress, username, rewardAmount)
+      boosted = boostConfirmed
+
+      if (boostConfirmed) {
+        console.log(`✅ Boost confirmado exitosamente`)
+      } else {
+        console.error(`❌ Error confirmando boost - pero transacción fue exitosa`)
+      }
+    }
 
     // Verificar si la transacción fue exitosa
     if (!sendResult.success || !sendResult.txHash) {

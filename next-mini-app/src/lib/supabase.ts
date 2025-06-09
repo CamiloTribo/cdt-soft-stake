@@ -140,7 +140,7 @@ export async function updateVerificationLevel(userId: string, verificationLevel:
 export async function getUserAvailableBoosts(userId: string): Promise<number> {
   try {
     console.log(`🔍 getUserAvailableBoosts: Buscando boosts para userId: ${userId}`)
-    
+
     const { data, error } = await supabase
       .from("boosts")
       .select("quantity_remaining")
@@ -153,9 +153,12 @@ export async function getUserAvailableBoosts(userId: string): Promise<number> {
       return 0
     }
 
-    const total = data.reduce((total: number, boost: { quantity_remaining: number }) => total + boost.quantity_remaining, 0)
+    const total = data.reduce(
+      (total: number, boost: { quantity_remaining: number }) => total + boost.quantity_remaining,
+      0,
+    )
     console.log(`✅ getUserAvailableBoosts: Total boosts disponibles: ${total}`)
-    
+
     return total
   } catch (error) {
     console.error("💥 getUserAvailableBoosts: Error general:", error)
@@ -199,7 +202,7 @@ export async function applyBoost(
   userId: string,
   username: string | null,
   claimAmount: number,
-): Promise<{ success: boolean; boostedAmount: number }> {
+): Promise<{ success: boolean; boostedAmount: number; boostId?: string }> {
   try {
     console.log(`🚀 BOOST APPLY: ===== INICIANDO APLICACIÓN DE BOOST =====`)
     console.log(`🚀 BOOST APPLY: userId: ${userId}`)
@@ -218,83 +221,90 @@ export async function applyBoost(
       .order("purchased_at", { ascending: true })
       .limit(1)
 
-    console.log(`🔍 BOOST APPLY: Query error:`, boostError)
-    console.log(`🔍 BOOST APPLY: Query result:`, boostData)
-
-    if (boostError) {
-      console.error(`❌ BOOST APPLY: Error en consulta de boosts:`, boostError)
-      return { success: false, boostedAmount: claimAmount }
-    }
-
-    if (!boostData || boostData.length === 0) {
-      console.log(`❌ BOOST APPLY: No se encontraron boosts disponibles para ${userId}`)
+    if (boostError || !boostData || boostData.length === 0) {
+      console.log(`❌ BOOST APPLY: No se encontraron boosts disponibles`)
       return { success: false, boostedAmount: claimAmount }
     }
 
     const boost = boostData[0]
     const boostId = boost.id
     const currentQuantity = boost.quantity_remaining
-    
-    console.log(`✅ BOOST APPLY: Boost encontrado!`)
-    console.log(`✅ BOOST APPLY: - ID: ${boostId}`)
-    console.log(`✅ BOOST APPLY: - Cantidad actual: ${currentQuantity}`)
-    console.log(`✅ BOOST APPLY: - Nivel de compra: ${boost.level_at_purchase}`)
-    console.log(`✅ BOOST APPLY: - Fecha de compra: ${boost.purchased_at}`)
+
+    console.log(`✅ BOOST APPLY: Boost encontrado - ID: ${boostId}, Cantidad: ${currentQuantity}`)
+
+    // 2. ✅ SOLO RETORNAMOS LA INFORMACIÓN, NO MODIFICAMOS NADA AÚN
+    const finalAmount = claimAmount * 2
+    console.log(`🎯 BOOST APPLY: Boost preparado - Cantidad con boost: ${finalAmount}`)
+
+    return {
+      success: true,
+      boostedAmount: finalAmount,
+      boostId: boostId, // ✅ Devolvemos el ID para confirmar después
+    }
+  } catch (error) {
+    console.error(`💥 BOOST APPLY: Error general:`, error)
+    return { success: false, boostedAmount: claimAmount }
+  }
+}
+
+// ✅ NUEVA FUNCIÓN: Confirmar el uso del boost SOLO si la transacción fue exitosa
+export async function confirmBoostUsage(
+  boostId: string,
+  userId: string,
+  username: string | null,
+  claimAmount: number,
+): Promise<boolean> {
+  try {
+    console.log(`✅ CONFIRM BOOST: Confirmando uso del boost ${boostId}`)
+
+    // 1. Obtener datos actuales del boost
+    const { data: boostData, error: fetchError } = await supabase
+      .from("boosts")
+      .select("quantity_remaining")
+      .eq("id", boostId)
+      .single()
+
+    if (fetchError || !boostData) {
+      console.error(`❌ CONFIRM BOOST: Error obteniendo boost:`, fetchError)
+      return false
+    }
+
+    const currentQuantity = boostData.quantity_remaining
+    const newQuantity = currentQuantity - 1
 
     // 2. Registrar el uso del boost
-    console.log(`📝 BOOST APPLY: Paso 2 - Registrando uso en boost_usage...`)
-    const usageData = {
+    const { error: usageError } = await supabase.from("boost_usage").insert({
       boost_id: boostId,
       user_id: userId,
       username: username,
       claim_amount_base: claimAmount,
       claim_amount_boosted: claimAmount * 2,
-    }
-    console.log(`📝 BOOST APPLY: Datos a insertar:`, usageData)
-
-    const { error: usageError } = await supabase.from("boost_usage").insert(usageData)
+    })
 
     if (usageError) {
-      console.error(`❌ BOOST APPLY: Error registrando uso en boost_usage:`, usageError)
-      return { success: false, boostedAmount: claimAmount }
+      console.error(`❌ CONFIRM BOOST: Error registrando uso:`, usageError)
+      return false
     }
-    console.log(`✅ BOOST APPLY: Uso registrado correctamente en boost_usage`)
 
     // 3. Actualizar la cantidad de boosts restantes
-    const newQuantity = currentQuantity - 1
-    console.log(`🔄 BOOST APPLY: Paso 3 - Actualizando cantidad de boosts`)
-    console.log(`🔄 BOOST APPLY: Cantidad anterior: ${currentQuantity}`)
-    console.log(`🔄 BOOST APPLY: Cantidad nueva: ${newQuantity}`)
-    console.log(`🔄 BOOST APPLY: Será activo: ${newQuantity > 0}`)
-    
-    const updateData = {
-      quantity_remaining: newQuantity,
-      is_active: newQuantity > 0
-    }
-    console.log(`🔄 BOOST APPLY: Datos de actualización:`, updateData)
-
     const { error: updateError } = await supabase
       .from("boosts")
-      .update(updateData)
+      .update({
+        quantity_remaining: newQuantity,
+        is_active: newQuantity > 0,
+      })
       .eq("id", boostId)
 
     if (updateError) {
-      console.error(`❌ BOOST APPLY: Error actualizando cantidad de boost:`, updateError)
-      return { success: false, boostedAmount: claimAmount }
+      console.error(`❌ CONFIRM BOOST: Error actualizando boost:`, updateError)
+      return false
     }
 
-    const finalAmount = claimAmount * 2
-    console.log(`🎉 BOOST APPLY: ===== BOOST APLICADO EXITOSAMENTE =====`)
-    console.log(`🎉 BOOST APPLY: Cantidad original: ${claimAmount}`)
-    console.log(`🎉 BOOST APPLY: Cantidad con boost: ${finalAmount}`)
-    console.log(`🎉 BOOST APPLY: Boosts restantes: ${newQuantity}`)
-    console.log(`🎉 BOOST APPLY: ===============================================`)
-
-    return { success: true, boostedAmount: finalAmount }
+    console.log(`🎉 CONFIRM BOOST: Boost confirmado exitosamente - Restantes: ${newQuantity}`)
+    return true
   } catch (error) {
-    console.error(`💥 BOOST APPLY: Error general en applyBoost:`, error)
-    console.error(`💥 BOOST APPLY: Stack trace:`, error instanceof Error ? error.stack : 'No stack trace')
-    return { success: false, boostedAmount: claimAmount }
+    console.error(`💥 CONFIRM BOOST: Error general:`, error)
+    return false
   }
 }
 
@@ -324,7 +334,7 @@ export async function invalidateBoostsOnLevelUp(userId: string, newLevel: number
 export async function hasAvailableBoosts(userId: string): Promise<boolean> {
   try {
     console.log(`🔍 hasAvailableBoosts: Verificando boosts para userId: ${userId}`)
-    
+
     const { count, error } = await supabase
       .from("boosts")
       .select("*", { count: "exact", head: true })
@@ -339,7 +349,7 @@ export async function hasAvailableBoosts(userId: string): Promise<boolean> {
 
     const hasBoosts = count !== null && count > 0
     console.log(`✅ hasAvailableBoosts: Usuario ${userId} tiene boosts: ${hasBoosts} (count: ${count})`)
-    
+
     return hasBoosts
   } catch (error) {
     console.error("💥 hasAvailableBoosts: Error general:", error)
@@ -353,7 +363,7 @@ export async function hasAvailableBoosts(userId: string): Promise<boolean> {
 export async function getPendingCdtPurchases(userId: string): Promise<CdtPurchase[]> {
   try {
     console.log(`🔍 getPendingCdtPurchases: Buscando compras pendientes para userId: ${userId}`)
-    
+
     const { data, error } = await supabase
       .from("cdt_purchases")
       .select("*")
@@ -378,7 +388,7 @@ export async function getPendingCdtPurchases(userId: string): Promise<CdtPurchas
 export async function getCdtPurchaseHistory(userId: string): Promise<CdtPurchase[]> {
   try {
     console.log(`🔍 getCdtPurchaseHistory: Obteniendo historial para userId: ${userId}`)
-    
+
     const { data, error } = await supabase
       .from("cdt_purchases")
       .select("*")
@@ -407,7 +417,7 @@ export async function getCdtPurchaseStats(userId: string): Promise<{
 }> {
   try {
     console.log(`📊 getCdtPurchaseStats: Obteniendo estadísticas para userId: ${userId}`)
-    
+
     const { data, error } = await supabase
       .from("cdt_purchases")
       .select("wld_amount, cdt_amount, is_claimed")
@@ -428,7 +438,7 @@ export async function getCdtPurchaseStats(userId: string): Promise<{
         }
         return acc
       },
-      { totalPurchases: 0, totalWldSpent: 0, totalCdtPurchased: 0, pendingClaims: 0 }
+      { totalPurchases: 0, totalWldSpent: 0, totalCdtPurchased: 0, pendingClaims: 0 },
     )
 
     console.log(`✅ getCdtPurchaseStats: Estadísticas calculadas:`, stats)
