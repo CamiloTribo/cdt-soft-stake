@@ -34,7 +34,7 @@ export default function Home() {
   // Estado para el país
   const [country, setCountry] = useState("")
 
-  // Estados para el tesoro diario - SIMPLIFICADOS
+  // Estados para el tesoro diario
   const [hasDailyTreasure, setHasDailyTreasure] = useState(false)
   const [showTreasureModal, setShowTreasureModal] = useState(false)
   const [treasureAmount, setTreasureAmount] = useState(0)
@@ -69,50 +69,65 @@ export default function Home() {
     }
   }, [])
 
-  // ✅ SÚPER SIMPLIFICADO: Verificar tesoro diario
+  // Verificar si el usuario puede reclamar el tesoro diario
   const checkDailyTreasure = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) {
-      console.log("❌ [SIMPLE] No hay identifier")
-      return false
+      console.log("🔍 [FRONTEND] No hay identifier, saltando check de tesoro")
+      setHasDailyTreasure(false)
+      return
     }
 
     try {
-      console.log("🔍 [SIMPLE] Verificando tesoro para:", identifier)
+      console.log("🔍 [FRONTEND] Verificando tesoro diario para:", identifier)
 
       const response = await fetch(`/api/daily-treasure/check?wallet_address=${identifier}`)
-      const data = await response.json()
+      console.log("🔍 [FRONTEND] Respuesta del API:", response.status)
 
-      console.log("📊 [SIMPLE] Respuesta completa:", data)
+      if (response.ok) {
+        const data = await response.json()
+        console.log("🔍 [FRONTEND] Datos recibidos del API:", data)
 
-      const available = data.available === true
-      console.log("✅ [SIMPLE] Tesoro disponible:", available)
+        const isAvailable = data.available === true
+        console.log("🔍 [FRONTEND] Tesoro disponible (parsed):", isAvailable)
 
-      setHasDailyTreasure(available)
-      return available
+        setHasDailyTreasure(isAvailable)
+        console.log("🔍 [FRONTEND] Estado hasDailyTreasure actualizado a:", isAvailable)
+      } else {
+        console.error("🔍 [FRONTEND] Error en respuesta:", response.status)
+        setHasDailyTreasure(false)
+      }
     } catch (error) {
-      console.error("❌ [SIMPLE] Error:", error)
-      return false
+      console.error("🔍 [FRONTEND] Error checking daily treasure:", error)
+      setHasDailyTreasure(false)
     }
   }, [getUserIdentifier])
 
-  // ✅ SIMPLIFICADO: Reclamar tesoro
+  // ✅ CORREGIDO: Función para reclamar el tesoro diario
   const handleClaimTreasure = async () => {
     const identifier = getUserIdentifier()
-    if (!identifier) return
+    if (!identifier) {
+      console.error("🎁 [FRONTEND] No hay identifier para reclamar")
+      return
+    }
 
     try {
-      console.log("🎁 [SIMPLE] Reclamando tesoro...")
+      console.log("🎁 [FRONTEND] Iniciando reclamo de tesoro...")
       setIsClaimingTreasure(true)
+      setTreasureClaimError(null)
 
-      // Obtener username
+      // ✅ CORREGIDO: Obtener el username del usuario actual
       const userResponse = await fetch(`/api/username?wallet_address=${identifier}`)
       const userData = await userResponse.json()
       const currentUsername = userData.username || ""
 
+      console.log("🎁 [FRONTEND] Username obtenido:", currentUsername)
+
       const response = await fetch("/api/daily-treasure/claim", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           userId: identifier,
           username: currentUsername,
@@ -120,48 +135,81 @@ export default function Home() {
       })
 
       const data = await response.json()
-      console.log("🎁 [SIMPLE] Resultado claim:", data)
+      console.log("🎁 [FRONTEND] Respuesta del claim:", data)
 
       if (response.ok && data.success) {
         setTreasureAmount(data.amount)
         setTreasureClaimSuccess(true)
         setHasDailyTreasure(false)
-        console.log("✅ [SIMPLE] Tesoro reclamado:", data.amount)
+        console.log("🎁 [FRONTEND] Tesoro reclamado exitosamente:", data.amount)
+
+        // ✅ NUEVO: Verificar tesoro de nuevo después del claim
+        setTimeout(() => {
+          checkDailyTreasure()
+        }, 1000)
       } else {
-        setTreasureClaimError(data.error || "error")
-        console.error("❌ [SIMPLE] Error en claim:", data.error)
+        setTreasureClaimError(data.error || "unknown_error")
+        console.error("🎁 [FRONTEND] Error en claim:", data.error)
       }
     } catch (error) {
-      console.error("❌ [SIMPLE] Error claiming:", error)
-      setTreasureClaimError("error")
+      console.error("🎁 [FRONTEND] Error claiming treasure:", error)
+      setTreasureClaimError("unexpected_error")
     } finally {
       setIsClaimingTreasure(false)
     }
   }
 
-  // Cerrar modal
+  // Cerrar el modal del tesoro
   const handleCloseTreasureModal = () => {
-    console.log("🔒 [SIMPLE] Cerrando modal")
+    console.log("🎁 [FRONTEND] Cerrando modal de tesoro")
     setShowTreasureModal(false)
     setTreasureClaimSuccess(false)
     setTreasureClaimError(null)
+
+    // ✅ CORREGIDO: No bloquear el acceso, continuar flujo normal
+    if (!hasDailyTreasure) {
+      console.log("🔓 [FRONTEND] No hay más tesoro, continuando flujo normal")
+      // No hacer nada especial, el usuario puede seguir usando la app
+    }
   }
 
-  // Cargar contadores al inicio
+  // Cargar contadores de usuarios al inicio
   useEffect(() => {
     fetchUserCounts()
   }, [fetchUserCounts])
 
-  // ✅ SIMPLIFICADO: Verificar tesoro cuando se muestra el dial
+  // Verificar tesoro diario cuando el usuario está autenticado
   useEffect(() => {
-    if (showVault && isAuthenticated && session?.isAuthenticatedWallet) {
-      console.log("🎯 [SIMPLE] Dial visible, verificando tesoro...")
+    console.log(
+      "🔍 [FRONTEND] useEffect tesoro - isAuthenticated:",
+      isAuthenticated,
+      "isAuthenticatedWallet:",
+      session?.isAuthenticatedWallet,
+      "showVault:",
+      showVault,
+    )
+
+    if (isAuthenticated && session?.isAuthenticatedWallet && showVault) {
+      console.log("🔍 [FRONTEND] Condiciones cumplidas, verificando tesoro...")
       checkDailyTreasure()
+    } else {
+      console.log("🔍 [FRONTEND] Condiciones no cumplidas para verificar tesoro")
     }
-  }, [showVault, isAuthenticated, session?.isAuthenticatedWallet, checkDailyTreasure])
+  }, [isAuthenticated, session?.isAuthenticatedWallet, showVault, checkDailyTreasure])
+
+  // Log cuando cambia hasDailyTreasure
+  useEffect(() => {
+    console.log("🎁 [FRONTEND] *** hasDailyTreasure cambió a:", hasDailyTreasure, "***")
+  }, [hasDailyTreasure])
+
+  // Log cuando cambia showTreasureModal
+  useEffect(() => {
+    console.log("🎁 [FRONTEND] *** showTreasureModal cambió a:", showTreasureModal, "***")
+  }, [showTreasureModal])
 
   // Verificar si hay un código de referido en la cookie
   useEffect(() => {
+    // Función para obtener una cookie por nombre
     const getCookie = (name: string) => {
       if (typeof document === "undefined") return null
       const value = `; ${document.cookie}`
@@ -170,10 +218,14 @@ export default function Home() {
       return null
     }
 
+    // Obtener el código de referido de la cookie
     const cookieReferralCode = getCookie("referral_code")
+
     if (cookieReferralCode) {
       console.log("Código de referido encontrado en cookie:", cookieReferralCode)
       setReferralCode(cookieReferralCode)
+
+      // Borrar la cookie después de usarla
       document.cookie = "referral_code=; Max-Age=0; path=/;"
     }
   }, [])
@@ -188,6 +240,7 @@ export default function Home() {
         console.log("Código de referido detectado en URL:", refCode)
         localStorage.setItem("referral_code", refCode)
 
+        // Registrar el click para estadísticas
         fetch("/api/referral-click", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -197,20 +250,23 @@ export default function Home() {
     }
   }, [])
 
-  // Mostrar dial después de verificación
+  // Efecto para mostrar el dial después de la verificación
   useEffect(() => {
+    // Si el usuario está autenticado con World ID, mostrar el dial
     if (isAuthenticated && session?.isAuthenticatedWorldID) {
-      console.log("✅ [SIMPLE] Usuario verificado, mostrando dial")
+      console.log("✅ [FRONTEND] Usuario verificado con World ID, mostrando dial")
       setShowVault(true)
     }
   }, [isAuthenticated, session])
 
   // Iniciar verificación de World ID automáticamente
   useEffect(() => {
+    // Solo iniciar si no está cargando, no está autenticado y no se ha iniciado antes
     if (!isLoading && !isAuthenticated && !worldIDInitiated.current) {
       console.log("Iniciando verificación de World ID automáticamente")
       worldIDInitiated.current = true
 
+      // Pequeño retraso para asegurar que todo esté cargado
       const timer = setTimeout(() => {
         signInWorldID({ state: "verification" })
       }, 500)
@@ -219,15 +275,21 @@ export default function Home() {
     }
   }, [isLoading, isAuthenticated, signInWorldID])
 
-  // Actualizar nivel de verificación
+  // Efecto para actualizar el nivel de verificación
   useEffect(() => {
+    // Solo ejecutar si el usuario está autenticado
     if (isAuthenticated && session?.user?.walletAddress) {
+      // Siempre asignamos "human" como nivel de verificación
       const verificationLevel = "human"
+
       console.log("Actualizando nivel de verificación:", verificationLevel)
 
+      // Actualizar el nivel de verificación en la base de datos
       fetch("/api/update-verification", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           wallet_address: session.user.walletAddress,
           verification_level: verificationLevel,
@@ -238,6 +300,7 @@ export default function Home() {
             console.error("Error updating verification level")
           } else {
             console.log("Nivel de verificación actualizado correctamente")
+            // Actualizar contadores después de verificación
             fetchUserCounts()
           }
         })
@@ -278,9 +341,12 @@ export default function Home() {
 
       console.log("Guardando username:", username, "para wallet:", identifier)
 
+      // Primero guardamos el username
       const response = await fetch("/api/username", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           wallet_address: identifier,
           username: username,
@@ -291,11 +357,14 @@ export default function Home() {
       console.log("Respuesta al guardar username:", data)
 
       if (response.ok && data.success) {
+        // Si se seleccionó un país, lo guardamos
         if (country) {
           try {
             const countryResponse = await fetch("/api/update-country", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+              },
               body: JSON.stringify({
                 wallet_address: identifier,
                 country: country,
@@ -307,9 +376,11 @@ export default function Home() {
             }
           } catch (error) {
             console.error("Error al guardar el país:", error)
+            // No bloqueamos el flujo si falla la actualización del país
           }
         }
 
+        // Verificar referido en localStorage primero, luego en cookie
         const savedReferralCode = localStorage.getItem("referral_code") || referralCode
 
         if (savedReferralCode) {
@@ -317,7 +388,9 @@ export default function Home() {
             console.log("Registrando código de referido:", savedReferralCode)
             const referralResponse = await fetch("/api/referral", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+              },
               body: JSON.stringify({
                 wallet_address: identifier,
                 referral_code: savedReferralCode,
@@ -330,15 +403,20 @@ export default function Home() {
               console.log("Código de referido registrado con éxito")
             }
 
+            // Limpiar el código guardado en localStorage
             localStorage.removeItem("referral_code")
           } catch (error) {
             console.error("Error al registrar el código de referido:", error)
+            // No bloqueamos el flujo si falla el registro del referido
           }
         }
 
         console.log("Username guardado correctamente, redirigiendo a dashboard")
+
+        // Mostrar confeti
         setShowConfetti(true)
 
+        // Añadir un pequeño retraso antes de redirigir
         setTimeout(() => {
           router.push("/dashboard")
         }, 2000)
@@ -354,7 +432,7 @@ export default function Home() {
     }
   }
 
-  // Función para verificar username y redirigir
+  // Función para verificar si el usuario tiene username y redirigir al dashboard
   const handleContinueToDashboard = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) {
@@ -379,37 +457,33 @@ export default function Home() {
     }
   }, [getUserIdentifier, router])
 
-  // Verificar username cuando está autenticado
+  // Verificar si el usuario tiene username cuando está autenticado
   useEffect(() => {
     if (isAuthenticated && session?.isAuthenticatedWallet) {
       handleContinueToDashboard()
     }
   }, [isAuthenticated, session, handleContinueToDashboard])
 
-  // ✅ SÚPER SIMPLIFICADO: Manejar desbloqueo del dial
-  const handleVaultUnlock = async () => {
-    console.log("🔓 [SIMPLE] *** DIAL DESBLOQUEADO ***")
+  // ✅ CORREGIDO: Función para manejar el desbloqueo de la caja fuerte
+  const handleVaultUnlock = () => {
+    console.log("🔓 [FRONTEND] *** DIAL DESBLOQUEADO ***")
+    console.log("🔓 [FRONTEND] hasDailyTreasure:", hasDailyTreasure)
 
-    // ✅ TEMPORAL: SIEMPRE mostrar modal para testing
-    console.log("🎁 [SIMPLE] *** MOSTRANDO MODAL SIEMPRE (TESTING) ***")
-    setTreasureAmount(1.5) // Valor de prueba
-    setShowTreasureModal(true)
-
-    // También verificar tesoro real en paralelo
-    const hasRealTreasure = await checkDailyTreasure()
-    console.log("🔍 [SIMPLE] Tesoro real disponible:", hasRealTreasure)
-  }
-
-  // ✅ BOTÓN DE EMERGENCIA: Forzar modal
-  const forceModal = () => {
-    console.log("🚨 [EMERGENCY] Forzando modal...")
-    setTreasureAmount(2.0)
-    setShowTreasureModal(true)
+    // ✅ CORREGIDO: Solo mostrar modal si hay tesoro disponible
+    if (hasDailyTreasure) {
+      console.log("🎁 [FRONTEND] *** HAY TESORO DISPONIBLE - ABRIENDO MODAL ***")
+      setShowTreasureModal(true)
+      // El premio se genera en el backend, no aquí
+    } else {
+      console.log("🔓 [FRONTEND] No hay tesoro disponible, continuando flujo normal")
+      // Continuar con el flujo normal (ir al dashboard o lo que corresponda)
+      setShowVault(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header simplificado */}
+      {/* Header simplificado para la página de inicio */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
@@ -420,16 +494,30 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Notificación de tesoro */}
-      {showVault && (
-        <div className="fixed top-16 left-0 right-0 z-30 py-2 bg-yellow-500/80 backdrop-blur-md">
+      {/* ✅ CORREGIDO: Notificación de tesoro diario - Solo cuando hay dial */}
+      {isAuthenticated && session?.isAuthenticatedWallet && showVault && (
+        <div
+          className={`fixed top-16 left-0 right-0 z-30 py-2 ${
+            hasDailyTreasure ? "bg-yellow-500/80" : "bg-gray-600/80"
+          } backdrop-blur-md`}
+        >
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-black font-medium">🎁 TESORO DIARIO DISPONIBLE - Gira el dial para reclamar 🎁</p>
+            <p className="text-black font-medium">
+              {hasDailyTreasure ? (
+                <>
+                  🎁 {t("daily_treasure_available")} - {t("daily_treasure_notification")} 🎁
+                </>
+              ) : (
+                <>
+                  ⏰ {t("daily_treasure_claimed")} - {t("daily_treasure_notification")} ⏰
+                </>
+              )}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Contenido principal */}
+      {/* Contenido principal centrado verticalmente */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 pt-16 pb-20">
         {isLoading ? (
           <div className="flex items-center justify-center">
@@ -437,35 +525,38 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {/* Mostrar el dial después de la verificación */}
             {showVault ? (
               <div className="flex flex-col items-center">
-                {/* Dial con efecto */}
+                {/* Contenedor del dial con efecto de tesoro */}
                 <div className="relative">
-                  <DailyTreasureEffect active={true} />
+                  {/* ✅ CORREGIDO: Solo mostrar efecto cuando hay tesoro */}
+                  <DailyTreasureEffect active={hasDailyTreasure} />
+                  {/* Dial normal */}
                   <VaultDial onUnlockAction={handleVaultUnlock} />
-                  <div className="absolute -top-4 -right-4 bg-yellow-500 text-black rounded-full w-8 h-8 flex items-center justify-center animate-bounce">
-                    🎁
-                  </div>
+                  {/* ✅ CORREGIDO: Solo mostrar indicador cuando hay tesoro */}
+                  {hasDailyTreasure && (
+                    <div className="absolute -top-4 -right-4 bg-yellow-500 text-black rounded-full w-8 h-8 flex items-center justify-center animate-bounce">
+                      🎁
+                    </div>
+                  )}
                 </div>
+                <p className="text-center text-gray-400 mt-8">
+                  {hasDailyTreasure ? t("turn_for_treasure") : t("turn_to_unlock")}
+                </p>
 
-                <p className="text-center text-gray-400 mt-8">🎁 Gira para reclamar tu tesoro diario</p>
-
-                {/* Debug simplificado */}
+                {/* Debug info (temporal) */}
                 <div className="mt-4 text-xs text-gray-500 text-center space-y-1">
-                  <div>hasDailyTreasure: {hasDailyTreasure.toString()}</div>
-                  <div>showTreasureModal: {showTreasureModal.toString()}</div>
+                  <div>Debug: hasDailyTreasure = {hasDailyTreasure.toString()}</div>
+                  <div>Debug: showTreasureModal = {showTreasureModal.toString()}</div>
                 </div>
-
-                {/* Botón de emergencia */}
-                <button onClick={forceModal} className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md font-bold">
-                  🚨 FORZAR MODAL
-                </button>
               </div>
             ) : (
               <>
-                {/* Resto del contenido igual... */}
+                {/* Sección de mascota y autenticación */}
                 {(!isAuthenticated || !showUsernameForm) && (
                   <div className="w-full flex flex-col items-center justify-center">
+                    {/* Mascota DETECTRIBER - Con bocadillo siempre visible */}
                     <div className="detectriber-container flex justify-center mb-8 w-full">
                       <div className="speech-bubble">
                         <p className="text-center text-sm break-words">
@@ -491,6 +582,7 @@ export default function Home() {
                       </div>
                     </div>
 
+                    {/* Botón de conectar wallet */}
                     <button
                       onClick={signInWallet}
                       className="w-full max-w-xs px-6 py-4 bg-[#4ebd0a] hover:bg-[#3fa008] text-black font-medium rounded-full transition-colors text-lg shadow-lg shadow-[#4ebd0a]/20"
@@ -499,6 +591,7 @@ export default function Home() {
                       {session?.isAuthenticatedWallet ? "✓ Wallet conectada" : t("sign_in")}
                     </button>
 
+                    {/* Botón para continuar al dashboard si está autenticado */}
                     {isAuthenticated && session?.isAuthenticatedWallet && (
                       <button
                         onClick={handleContinueToDashboard}
@@ -510,9 +603,10 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Username Form */}
+                {/* Username Form - Solo se muestra si el usuario está autenticado pero no tiene username */}
                 {isAuthenticated && session?.isAuthenticatedWallet && showUsernameForm && (
                   <div className="w-full max-w-md flex flex-col items-center mb-20">
+                    {/* Imagen decorativa arriba del formulario - reducimos tamaño */}
                     <div className="mb-4">
                       <Image
                         src="/Jefe Tribo Discord.png"
@@ -541,6 +635,7 @@ export default function Home() {
                         />
                       </div>
 
+                      {/* Selector de país */}
                       <div className="mb-4">
                         <label htmlFor="country" className="block text-sm font-medium text-[#4ebd0a] mb-2">
                           {t("select_your_country")}
@@ -570,6 +665,7 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* Confeti cuando se guarda el username */}
                 {showConfetti && <Confetti />}
               </>
             )}
@@ -577,7 +673,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* ✅ MODAL DEL TESORO */}
+      {/* ✅ MODAL DEL TESORO DIARIO */}
       <DailyTreasureModal
         isOpen={showTreasureModal}
         onClose={handleCloseTreasureModal}
@@ -588,9 +684,10 @@ export default function Home() {
         error={treasureClaimError}
       />
 
-      {/* Barra inferior */}
+      {/* Barra inferior fija con contador de usuarios y países */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-2 px-4 z-30">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
+          {/* Contador de usuarios verificados */}
           <div className="flex items-center bg-[#4ebd0a]/10 px-4 py-2 rounded-full border border-[#4ebd0a]/30">
             <div className="h-8 w-8 flex items-center justify-center bg-[#4ebd0a]/20 rounded-full mr-2">
               <svg
@@ -620,11 +717,13 @@ export default function Home() {
               </span>
             </span>
           </div>
+
+          {/* Contador de países */}
           <CountryCounter />
         </div>
       </div>
 
-      {/* Estilos */}
+      {/* Estilos globales */}
       <style jsx global>{`
         html,
         body {
@@ -636,7 +735,7 @@ export default function Home() {
         .detectriber-container {
           margin-top: 2rem;
           position: relative;
-          padding-top: 3rem;
+          padding-top: 3rem; /* Espacio para el bocadillo */
         }
         
         .speech-bubble {
