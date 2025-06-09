@@ -447,18 +447,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CORREGIDO: Notificación de tesoro diario - SIEMPRE visible cuando está autenticado */}
-      {isAuthenticated && session?.isAuthenticatedWallet && (
-        <div className="fixed top-16 left-0 right-0 z-30 bg-yellow-500/80 backdrop-blur-md py-2">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-black font-medium">
-              🎁 {hasDailyTreasure ? t("daily_treasure_available") : t("daily_treasure_claimed")} -{" "}
-              {t("daily_treasure_notification")} 🎁
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Contenido principal centrado verticalmente */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 pt-16 pb-20">
         {isLoading ? (
@@ -470,6 +458,15 @@ export default function Home() {
             {/* Mostrar el dial de la caja fuerte después de la verificación */}
             {showVault ? (
               <div className="flex flex-col items-center">
+                {/* CORREGIDO: Notificación del tesoro encima del dial */}
+                {isAuthenticated && session?.isAuthenticatedWallet && (
+                  <div className="mb-6 bg-yellow-500/80 backdrop-blur-md py-2 px-4 rounded-full">
+                    <p className="text-black font-medium text-center">
+                      🎁 {hasDailyTreasure ? t("daily_treasure_available") : t("daily_treasure_claimed")} 🎁
+                    </p>
+                  </div>
+                )}
+
                 {/* NUEVO: Contenedor del dial con efecto de tesoro */}
                 <div className="relative">
                   {/* Efecto de partículas doradas cuando hay tesoro disponible */}

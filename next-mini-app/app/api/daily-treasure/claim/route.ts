@@ -13,42 +13,40 @@ export async function POST(request: Request) {
     console.log("🚀 [API] Iniciando reclamo de tesoro diario...")
 
     const body = await request.json()
-    const { userId } = body // Siguiendo tu patrón exacto
+    const { wallet_address } = body
 
-    console.log("📝 [API] Datos recibidos:", { userId })
+    console.log("📝 [API] Datos recibidos:", { wallet_address })
 
-    if (!userId) {
-      console.error("❌ [API] Falta userId")
-      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
+    if (!wallet_address) {
+      console.error("❌ [API] Falta wallet_address")
+      return NextResponse.json({ success: false, error: "Missing required parameters" }, { status: 400 })
     }
 
-    // Verificar que el usuario existe (igual que en CDT claim)
+    // Verificar que el usuario existe
     console.log("👤 [API] Verificando usuario en base de datos...")
-    const user = await getUserByAddress(userId)
+    const user = await getUserByAddress(wallet_address)
     if (!user) {
-      console.error("❌ [API] Usuario no encontrado:", userId)
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      console.error("❌ [API] Usuario no encontrado:", wallet_address)
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
     }
 
     console.log("✅ [API] Usuario verificado:", user.username || user.address)
 
-    // Verificar si ya reclamó hoy
+    // ✅ CAMBIADO: Verificar en daily_treasures en lugar de transactions
     console.log("🔍 [API] Verificando si ya reclamó hoy...")
     const today = new Date()
     today.setUTCHours(0, 0, 0, 0)
 
     const { data: existingClaim, error: claimError } = await supabase
-      .from("transactions")
+      .from("daily_treasures")
       .select("*")
-      .eq("user_id", userId)
-      .eq("type", "daily_treasure")
-      .gte("created_at", today.toISOString())
+      .eq("user_id", wallet_address)
+      .gte("claimed_at", today.toISOString())
       .single()
 
     if (claimError && claimError.code !== "PGRST116") {
-      // PGRST116 = no rows found
       console.error("❌ [API] Error verificando reclamo existente:", claimError)
-      return NextResponse.json({ error: "Database error" }, { status: 500 })
+      return NextResponse.json({ success: false, error: "Database error" }, { status: 500 })
     }
 
     if (existingClaim) {
@@ -67,9 +65,9 @@ export async function POST(request: Request) {
     const prizeAmount = generateTreasurePrize()
     console.log(`🎁 [API] Premio generado: ${prizeAmount} CDT`)
 
-    // Procesar el reclamo (siguiendo patrón de CDT claim)
+    // Procesar el reclamo
     console.log("💰 [API] Procesando reclamo del tesoro...")
-    const result = await claimDailyTreasure(userId, user.username, prizeAmount)
+    const result = await claimDailyTreasure(wallet_address, user.username, prizeAmount)
 
     if (!result.success || !result.txHash) {
       console.error("❌ [API] Error en el reclamo:", result.error)
@@ -82,10 +80,24 @@ export async function POST(request: Request) {
       )
     }
 
-    // Registrar transacción en DB (igual que CDT claim)
+    // ✅ NUEVO: Registrar en daily_treasures Y en transactions
+    console.log("📝 [API] Registrando en daily_treasures...")
+    const { error: treasureError } = await supabase.from("daily_treasures").insert({
+      user_id: wallet_address,
+      username: user.username,
+      reward_amount: prizeAmount,
+      reward_type: "cdt",
+      claimed_at: new Date().toISOString(),
+    })
+
+    if (treasureError) {
+      console.error("❌ [API] Error registrando en daily_treasures:", treasureError)
+    }
+
+    // También registrar en transactions para historial
     console.log("📝 [API] Registrando transacción...")
     const { error: updateError } = await supabase.from("transactions").insert({
-      user_id: userId,
+      user_id: wallet_address,
       type: "daily_treasure",
       amount: prizeAmount,
       token_type: "CDT",
@@ -96,10 +108,9 @@ export async function POST(request: Request) {
 
     if (updateError) {
       console.error("❌ [API] Error registrando transacción:", updateError)
-      // No fallamos porque el CDT ya se envió
     }
 
-    // Actualizar total_claimed del usuario (igual que CDT claim)
+    // Actualizar total_claimed del usuario
     console.log("📊 [API] Actualizando total_claimed del usuario")
     try {
       const { data: userData, error: userError } = await supabase

@@ -15,15 +15,15 @@ const TOTAL_PROBABILITY = TREASURE_PRIZES.reduce((sum, prize) => sum + prize.pro
 
 /**
  * Verifica si un usuario puede reclamar el tesoro diario
- * @param userId ID del usuario (wallet address)
+ * @param wallet_address Dirección de wallet del usuario
  * @returns {Promise<boolean>} True si puede reclamar, false si no
  */
-export async function canClaimDailyTreasure(userId: string): Promise<boolean> {
+export async function canClaimDailyTreasure(wallet_address: string): Promise<boolean> {
   try {
-    console.log("🔍 [LIB] Verificando disponibilidad de tesoro diario para:", userId)
+    console.log("🔍 [LIB] Verificando disponibilidad de tesoro diario para:", wallet_address)
 
     // Verificar que el usuario existe
-    const user = await getUserByAddress(userId)
+    const user = await getUserByAddress(wallet_address)
     if (!user) {
       console.error("❌ [LIB] Usuario no encontrado")
       return false
@@ -41,12 +41,12 @@ export async function canClaimDailyTreasure(userId: string): Promise<boolean> {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+    // ✅ CAMBIADO: Usar tabla daily_treasures en lugar de transactions
     const { data, error } = await supabase
-      .from("transactions")
+      .from("daily_treasures")
       .select("id")
-      .eq("type", "daily_treasure")
-      .eq("user_id", userId)
-      .gte("created_at", today.toISOString())
+      .eq("user_id", wallet_address)
+      .gte("claimed_at", today.toISOString())
       .limit(1)
 
     if (error) {
@@ -56,7 +56,7 @@ export async function canClaimDailyTreasure(userId: string): Promise<boolean> {
 
     // Si no hay datos, puede reclamar
     const canClaim = !data || data.length === 0
-    console.log(`✅ [LIB] Tesoro diario disponible para ${userId}: ${canClaim}`)
+    console.log(`✅ [LIB] Tesoro diario disponible para ${wallet_address}: ${canClaim}`)
     return canClaim
   } catch (error) {
     console.error("❌ [LIB] Error inesperado verificando tesoro diario:", error)
@@ -97,22 +97,22 @@ export function generateTreasurePrize(): number {
 
 /**
  * Procesa el reclamo del tesoro diario
- * @param userId ID del usuario (wallet address)
+ * @param wallet_address Dirección de wallet del usuario
  * @param username Nombre de usuario
  * @param prizeAmount Cantidad de CDT ganada
  * @returns {Promise<{success: boolean, txHash?: string, error?: string}>}
  */
 export async function claimDailyTreasure(
-  userId: string,
+  wallet_address: string,
   username: string | null,
   prizeAmount: number,
 ): Promise<{ success: boolean; txHash?: string; error?: string }> {
   try {
-    console.log(`🚀 [LIB] Procesando reclamo de tesoro diario para ${userId}`)
+    console.log(`🚀 [LIB] Procesando reclamo de tesoro diario para ${wallet_address}`)
     console.log(`💰 [LIB] Premio a enviar: ${prizeAmount} CDT`)
 
     // Verificar si puede reclamar
-    const canClaim = await canClaimDailyTreasure(userId)
+    const canClaim = await canClaimDailyTreasure(wallet_address)
     if (!canClaim) {
       console.log("❌ [LIB] Usuario ya ha reclamado hoy")
       return { success: false, error: "already_claimed" }
@@ -120,7 +120,7 @@ export async function claimDailyTreasure(
 
     // Enviar los CDT al usuario (usando la misma función que el claim normal)
     console.log("🔗 [LIB] Enviando CDT a través de blockchain...")
-    const { success, txHash, error } = await sendRewards(userId, prizeAmount)
+    const { success, txHash, error } = await sendRewards(wallet_address, prizeAmount)
 
     if (!success || !txHash) {
       console.error("❌ [LIB] Error enviando CDT:", error)
