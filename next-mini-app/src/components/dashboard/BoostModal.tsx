@@ -1,8 +1,10 @@
+// next-mini-app/src/components/dashboard/BoostModal.tsx
 "use client"
 
 import { useState } from "react"
 import Image from "next/image"
-import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js"
+import { useWorldAuth } from "next-world-auth/react"
+import { Tokens } from "next-world-auth"
 import { useTranslation } from "../TranslationProvider"
 
 interface BoostModalProps {
@@ -20,17 +22,18 @@ export function BoostModal({
   onCloseAction,
   userLevel,
   walletAddress,
+  // username, // Sigue comentado para ESLint si no se usa directamente aquí
   currentBoosts,
   onPurchaseSuccessAction,
 }: BoostModalProps) {
   const { t } = useTranslation()
+  const { pay } = useWorldAuth()
   const [quantity, setQuantity] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selectedToken, setSelectedToken] = useState<'WLD' | 'USDCE'>('USDCE') // Default a USDC
 
-  // Función para calcular precio original del boost según nivel
+  // Función para calcular precio original del boost según nivel (sin cambios)
   const getOriginalPrice = (level: number): number => {
     if (level === 0) return 0.05
     if (level === 1) return 0.5 
@@ -39,21 +42,16 @@ export function BoostModal({
     return 0.05
   }
 
-  // Función para calcular precio con descuento
+  // Función para calcular precio con descuento (MODIFICADA)
   const getBoostPrice = (level: number): number => {
     if (level === 0) return 0.045
-    if (level === 1) return 0.123
-    if (level === 2) return 1.23
+    if (level === 1) return 0.123 // <--- NUEVO PRECIO NIVEL 1
+    if (level === 2) return 1.23  // <--- NUEVO PRECIO NIVEL 2
     if (level === 3) return 7
     return 0.045
   }
 
-  // Función para convertir precio WLD a USDC (aproximadamente 1 WLD = 2 USDC)
-  const convertToUSDC = (wldPrice: number): number => {
-    return wldPrice * 2 // Ajusta esta tasa según el precio real
-  }
-
-  // Función para obtener el porcentaje de descuento según el nivel
+  // Función para obtener el porcentaje de descuento según el nivel (sin cambios, se recalcula sola)
   const getDiscountPercentage = (level: number): number => {
     const originalPrice = getOriginalPrice(level);
     const boostPrice = getBoostPrice(level);
@@ -61,16 +59,11 @@ export function BoostModal({
     return Math.round(((originalPrice - boostPrice) / originalPrice) * 100);
   }
 
-  const boostPriceWLD = getBoostPrice(userLevel)
-  const originalPriceWLD = getOriginalPrice(userLevel)
-  
-  // Precios en la moneda seleccionada
-  const boostPrice = selectedToken === 'WLD' ? boostPriceWLD : convertToUSDC(boostPriceWLD)
-  const originalPrice = selectedToken === 'WLD' ? originalPriceWLD : convertToUSDC(originalPriceWLD)
-  
+  const boostPrice = getBoostPrice(userLevel)
+  const originalPrice = getOriginalPrice(userLevel)
   const totalPrice = boostPrice * quantity
   const totalOriginalPrice = originalPrice * quantity
-  const maxQuantity = Math.min(7 - currentBoosts, 7)
+  const maxQuantity = Math.min(7 - currentBoosts, 7) // No puede comprar más de 7 en total o lo que le falte para 7
   const discountPercentage = getDiscountPercentage(userLevel)
 
   const handlePurchase = async () => {
@@ -79,32 +72,19 @@ export function BoostModal({
       setIsLoading(true)
       setError(null)
 
-      // Crear referencia de pago
-      const res = await fetch("/api/initiate-payment", {
-        method: "POST",
-      })
-      const { id } = await res.json()
-
+      // Redondear totalPrice a un número razonable de decimales para el pago (ej. 5)
       const amountToPay = parseFloat(totalPrice.toFixed(5));
 
-      console.log(`💰 BOOST: Iniciando pago con ${selectedToken}, cantidad:`, amountToPay)
-
-      // Usar MiniKit.commandsAsync.pay con múltiples opciones
-      const result = await MiniKit.commandsAsync.pay({
-        reference: id,
-        to: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
-        tokens: [
-          {
-            symbol: selectedToken === 'WLD' ? Tokens.WLD : Tokens.USDCE,
-            token_amount: tokenToDecimals(amountToPay, selectedToken === 'WLD' ? Tokens.WLD : Tokens.USDCE).toString(),
-          }
-        ],
-        description: `Boost purchase - ${quantity} boost(s)`,
+      console.log("💰 BOOST: Iniciando pago con World ID, cantidad:", amountToPay, "WLD")
+      const { finalPayload } = await pay({
+        amount: amountToPay, // Usar el monto redondeado
+        token: Tokens.WLD,
+        recipient: process.env.NEXT_PUBLIC_CENTRAL_WALLET || "0x8a89B684145849cc994be122ddEc5b268CAE0cB6",
       })
 
-      console.log("💰 BOOST: Resultado del pago:", result.finalPayload)
+      console.log("💰 BOOST: Resultado del pago:", finalPayload)
 
-      if (!result.finalPayload || result.finalPayload.status === 'error') {
+      if (!finalPayload || finalPayload.status === 'error') {
         console.log("❌ BOOST: Pago cancelado o fallido")
         setError(t("payment_cancelled_or_failed"))
         setIsLoading(false)
@@ -121,10 +101,7 @@ export function BoostModal({
         body: JSON.stringify({
           userId: walletAddress,
           quantity,
-          level: userLevel,
-          paymentReference: id,
-          token: selectedToken,
-          amount: amountToPay
+          level: userLevel 
         }),
       })
 
@@ -135,7 +112,7 @@ export function BoostModal({
         console.log("✅ BOOST: Compra registrada exitosamente!")
         setPurchaseSuccess(true)
         setTimeout(() => {
-          onPurchaseSuccessAction()
+          onPurchaseSuccessAction() // Para refrescar los boosts disponibles en BoostSection
           onCloseAction()
         }, 2000)
       } else {
@@ -152,12 +129,13 @@ export function BoostModal({
 
   if (!isOpen) return null
 
+  // Función para formatear el precio (MODIFICADA para mostrar más decimales si es necesario)
   const formatPrice = (price: number): string => {
     if (Number.isInteger(price)) {
       return price.toString();
     }
-    let formattedPrice = price.toFixed(selectedToken === 'USDCE' ? 2 : 3);
-    formattedPrice = formattedPrice.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+    let formattedPrice = price.toFixed(3); // Asegura hasta 3 decimales
+    formattedPrice = formattedPrice.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1'); // Elimina ceros finales
     return formattedPrice;
   }
 
@@ -180,49 +158,12 @@ export function BoostModal({
             <div className="mb-6">
               <p className="text-center text-gray-300 mb-4">{t("multiply_x2_next_rewards")}</p>
 
-              {/* Selector de método de pago */}
-              <div className="bg-black/30 rounded-lg p-4 mb-4">
-                <p className="text-gray-300 mb-3 text-sm">{t("payment_method") || "Método de pago"}:</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelectedToken('USDCE')}
-                    className={`flex-1 p-3 rounded-lg border transition-all ${
-                      selectedToken === 'USDCE' 
-                        ? 'border-[#4ebd0a] bg-[#4ebd0a]/10 text-[#4ebd0a]' 
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-lg">💵</div>
-                      <div className="text-sm font-medium">USDC</div>
-                      <div className="text-xs opacity-75">Estable</div>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setSelectedToken('WLD')}
-                    className={`flex-1 p-3 rounded-lg border transition-all ${
-                      selectedToken === 'WLD' 
-                        ? 'border-[#4ebd0a] bg-[#4ebd0a]/10 text-[#4ebd0a]' 
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-lg">🌍</div>
-                      <div className="text-sm font-medium">WLD</div>
-                      <div className="text-xs opacity-75">Worldcoin</div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
               <div className="bg-black/30 rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-300">{t("price_per_boost")}:</span>
                   <span className="text-[#4ebd0a] font-bold">
-                    <span className="line-through text-gray-500 mr-2">
-                      {formatPrice(originalPrice)} {selectedToken === 'USDCE' ? 'USDC' : 'WLD'}
-                    </span>
-                    {formatPrice(boostPrice)} {selectedToken === 'USDCE' ? 'USDC' : 'WLD'}
+                    <span className="line-through text-gray-500 mr-2">{formatPrice(originalPrice)} WLD</span>
+                    {formatPrice(boostPrice)} WLD 
                     {discountPercentage > 0 && (
                        <span className="text-sm text-[#ff1744] ml-1">({discountPercentage}% {t("off")})</span>
                     )}
@@ -241,7 +182,7 @@ export function BoostModal({
                 <div className="text-2xl font-bold w-16 text-center">{quantity}</div>
                 <button
                   onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
-                  disabled={quantity >= maxQuantity || quantity >= 7}
+                  disabled={quantity >= maxQuantity || quantity >= 7} // No permitir más de 7 o el maxQuantity
                   className="w-10 h-10 rounded-full border border-gray-600 flex items-center justify-center text-xl disabled:opacity-50 hover:border-[#4ebd0a] transition-colors"
                 >
                   +
@@ -251,19 +192,18 @@ export function BoostModal({
               <div className="text-center mb-6">
                 <p className="text-sm text-gray-300">{t("total_to_pay")}:</p>
                 <p className="text-3xl font-bold text-[#4ebd0a]">
-                  <span className="line-through text-gray-500 text-xl mr-2">
-                    {formatPrice(totalOriginalPrice)} {selectedToken === 'USDCE' ? 'USDC' : 'WLD'}
-                  </span>
-                  {formatPrice(totalPrice)} {selectedToken === 'USDCE' ? 'USDC' : 'WLD'}
+                  <span className="line-through text-gray-500 text-xl mr-2">{formatPrice(totalOriginalPrice)} WLD</span>
+                  {formatPrice(totalPrice)} WLD
                 </p>
               </div>
 
               <button
                 onClick={handlePurchase}
-                disabled={isLoading || maxQuantity === 0}
+                disabled={isLoading || maxQuantity === 0} // Deshabilitar si no puede comprar ninguno
                 className="w-full bg-gradient-to-r from-[#4ebd0a] to-[#6dd00f] text-black font-bold py-3 px-6 rounded-full hover:shadow-lg hover:shadow-[#4ebd0a]/25 transition-all duration-300 disabled:opacity-50"
               >
-                {maxQuantity === 0 ? t("limit_reached_short") : t("confirm_purchase")}
+                {maxQuantity === 0 ? t("limit_reached_short") : t("confirm_purchase")} 
+                {/* Cambiar texto si el límite es 0 */}
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-2">{t("max_7_boosts_per_wallet")}</p>
@@ -272,6 +212,7 @@ export function BoostModal({
             {error && <div className="text-red-500 text-sm text-center mt-2">{error}</div>}
           </>
         ) : isLoading ? (
+          // ... (resto del JSX sin cambios)
           <div className="text-center py-12">
             <div className="flex justify-center mb-6">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4ebd0a]"></div>
