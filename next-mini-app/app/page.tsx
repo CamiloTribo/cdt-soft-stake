@@ -9,6 +9,8 @@ import { LanguageSelector } from "../src/components/LanguageSelector"
 import VaultDial from "../src/components/VaultDial"
 import { CountrySelector } from "../src/components/CountrySelector"
 import { CountryCounter } from "../src/components/CountryCounter"
+import { DailyTreasureEffect } from "../src/components/DailyTreasureEffect"
+import { DailyTreasureModal } from "../src/components/DailyTreasureModal"
 // Importar MiniKit
 // import { MiniKit, Permission, type RequestPermissionInput } from "@worldcoin/minikit-js"
 
@@ -50,6 +52,14 @@ export default function Home() {
   // Estado para el país
   const [country, setCountry] = useState("")
 
+  // NUEVO: Estados para el tesoro diario
+  const [hasDailyTreasure, setHasDailyTreasure] = useState(false)
+  const [showTreasureModal, setShowTreasureModal] = useState(false)
+  const [treasureAmount, setTreasureAmount] = useState(0)
+  const [isClaimingTreasure, setIsClaimingTreasure] = useState(false)
+  const [treasureClaimSuccess, setTreasureClaimSuccess] = useState(false)
+  const [treasureClaimError, setTreasureClaimError] = useState<string | null>(null)
+
   // Referencia para controlar si ya se inició la verificación
   const worldIDInitiated = useRef(false)
 
@@ -80,10 +90,78 @@ export default function Home() {
     }
   }, [])
 
+  // NUEVO: Verificar si el usuario puede reclamar el tesoro diario
+  const checkDailyTreasure = useCallback(async () => {
+    const identifier = getUserIdentifier()
+    if (!identifier) return
+
+    try {
+      const response = await fetch(`/api/daily-treasure/check?wallet=${identifier}`)
+      if (response.ok) {
+        const data = await response.json()
+        setHasDailyTreasure(data.available)
+      }
+    } catch (error) {
+      console.error("Error checking daily treasure:", error)
+      setHasDailyTreasure(false)
+    }
+  }, [getUserIdentifier])
+
+  // NUEVO: Función para reclamar el tesoro diario
+  const handleClaimTreasure = async () => {
+    const identifier = getUserIdentifier()
+    if (!identifier) return
+
+    try {
+      setIsClaimingTreasure(true)
+      setTreasureClaimError(null)
+
+      const response = await fetch("/api/daily-treasure/claim", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet_address: identifier,
+          username: username,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setTreasureAmount(data.amount)
+        setTreasureClaimSuccess(true)
+        setHasDailyTreasure(false)
+      } else {
+        setTreasureClaimError(data.error || "unknown_error")
+      }
+    } catch (error) {
+      console.error("Error claiming treasure:", error)
+      setTreasureClaimError("unexpected_error")
+    } finally {
+      setIsClaimingTreasure(false)
+    }
+  }
+
+  // NUEVO: Cerrar el modal del tesoro
+  const handleCloseTreasureModal = () => {
+    setShowTreasureModal(false)
+    setTreasureClaimSuccess(false)
+    setTreasureClaimError(null)
+  }
+
   // Cargar contadores de usuarios al inicio
   useEffect(() => {
     fetchUserCounts()
   }, [fetchUserCounts])
+
+  // NUEVO: Verificar tesoro diario cuando el usuario está autenticado
+  useEffect(() => {
+    if (isAuthenticated && session?.isAuthenticatedWorldID) {
+      checkDailyTreasure()
+    }
+  }, [isAuthenticated, session, checkDailyTreasure])
 
   // NUEVO: Verificar si hay un código de referido en la cookie
   useEffect(() => {
@@ -390,9 +468,15 @@ export default function Home() {
     }
   }, [isAuthenticated, session, handleContinueToDashboard])
 
-  // Función para manejar el desbloqueo de la caja fuerte
+  // MODIFICADO: Función para manejar el desbloqueo de la caja fuerte
   const handleVaultUnlock = () => {
-    setShowVault(false)
+    // Si hay tesoro diario disponible, mostrar el modal
+    if (hasDailyTreasure) {
+      setShowTreasureModal(true)
+    } else {
+      // Si no hay tesoro, continuar con el flujo normal
+      setShowVault(false)
+    }
   }
 
   return (
@@ -408,6 +492,15 @@ export default function Home() {
         </div>
       </div>
 
+      {/* NUEVO: Notificación de tesoro diario */}
+      {hasDailyTreasure && (
+        <div className="fixed top-16 left-0 right-0 z-30 bg-yellow-500/80 backdrop-blur-md py-2">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <p className="text-black font-medium">🎁 {t("daily_treasure_notification")} 🎁</p>
+          </div>
+        </div>
+      )}
+
       {/* Contenido principal centrado verticalmente */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 pt-16 pb-20">
         {isLoading ? (
@@ -419,8 +512,17 @@ export default function Home() {
             {/* Mostrar el dial de la caja fuerte después de la verificación */}
             {showVault ? (
               <div className="flex flex-col items-center">
-                <VaultDial onUnlockAction={handleVaultUnlock} />
-                <p className="text-center text-gray-400 mt-8">{t("turn_to_unlock")}</p>
+                {/* NUEVO: Contenedor del dial con efecto de tesoro */}
+                <div className="relative">
+                  {/* Efecto de partículas doradas cuando hay tesoro disponible */}
+                  <DailyTreasureEffect active={hasDailyTreasure} />
+
+                  {/* Dial normal */}
+                  <VaultDial onUnlockAction={handleVaultUnlock} />
+                </div>
+                <p className="text-center text-gray-400 mt-8">
+                  {hasDailyTreasure ? t("turn_for_treasure") : t("turn_to_unlock")}
+                </p>
               </div>
             ) : (
               <>
@@ -546,6 +648,17 @@ export default function Home() {
         )}
       </main>
 
+      {/* NUEVO: Modal del tesoro diario */}
+      <DailyTreasureModal
+        isOpen={showTreasureModal}
+        onClose={handleCloseTreasureModal}
+        onClaim={handleClaimTreasure}
+        prizeAmount={treasureAmount}
+        isLoading={isClaimingTreasure}
+        isSuccess={treasureClaimSuccess}
+        error={treasureClaimError}
+      />
+
       {/* Barra inferior fija con contador de usuarios y países */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-2 px-4 z-30">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -657,6 +770,39 @@ export default function Home() {
           100% {
             transform: translateY(100vh) rotate(720deg);
             opacity: 0;
+          }
+        }
+        
+        /* NUEVO: Animación para partículas flotantes */
+        @keyframes float {
+          0% {
+            transform: translateY(0) translateX(0);
+            opacity: 0.2;
+          }
+          50% {
+            transform: translateY(-20px) translateX(10px);
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateY(0) translateX(0);
+            opacity: 0.2;
+          }
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 0.6;
           }
         }
       `}</style>

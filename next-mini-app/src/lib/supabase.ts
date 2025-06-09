@@ -54,6 +54,17 @@ export type CdtPurchase = {
   created_at: string
 }
 
+// Tipo para la tabla daily_treasures
+export type DailyTreasure = {
+  id: string
+  user_id: string
+  username?: string | null
+  reward_amount: number
+  reward_type: string
+  claimed_at: string
+  created_at: string
+}
+
 // Función para obtener un usuario por su dirección de wallet
 export async function getUserByAddress(address: string): Promise<User | null> {
   try {
@@ -446,6 +457,94 @@ export async function getCdtPurchaseStats(userId: string): Promise<{
   } catch (error) {
     console.error("💥 getCdtPurchaseStats: Error general:", error)
     return { totalPurchases: 0, totalWldSpent: 0, totalCdtPurchased: 0, pendingClaims: 0 }
+  }
+}
+
+// ==================== FUNCIONES PARA TESORO DIARIO ====================
+
+// Función para verificar si el usuario puede reclamar tesoro hoy
+export async function canClaimDailyTreasure(userId: string): Promise<boolean> {
+  try {
+    console.log(`🔍 canClaimDailyTreasure: Verificando para userId: ${userId}`)
+
+    const today = new Date().toISOString().split("T")[0] // YYYY-MM-DD
+
+    const { data, error } = await supabase
+      .from("daily_treasures")
+      .select("id")
+      .eq("user_id", userId)
+      .gte("claimed_at", `${today}T00:00:00.000Z`)
+      .lt("claimed_at", `${today}T23:59:59.999Z`)
+      .limit(1)
+
+    if (error) {
+      console.error("❌ canClaimDailyTreasure: Error checking daily treasure:", error)
+      return false
+    }
+
+    const canClaim = !data || data.length === 0
+    console.log(`✅ canClaimDailyTreasure: Usuario ${userId} puede reclamar: ${canClaim}`)
+
+    return canClaim
+  } catch (error) {
+    console.error("💥 canClaimDailyTreasure: Error general:", error)
+    return false
+  }
+}
+
+// Función para registrar tesoro diario reclamado
+export async function recordDailyTreasure(
+  userId: string,
+  username: string | null,
+  rewardAmount: number,
+  rewardType = "cdt",
+): Promise<boolean> {
+  try {
+    console.log(`💰 recordDailyTreasure: Registrando tesoro para userId: ${userId}, cantidad: ${rewardAmount}`)
+
+    const { error } = await supabase.from("daily_treasures").insert({
+      user_id: userId,
+      username: username,
+      reward_amount: rewardAmount,
+      reward_type: rewardType,
+      claimed_at: new Date().toISOString(),
+    })
+
+    if (error) {
+      console.error("❌ recordDailyTreasure: Error recording daily treasure:", error)
+      return false
+    }
+
+    console.log(`✅ recordDailyTreasure: Tesoro registrado exitosamente`)
+    return true
+  } catch (error) {
+    console.error("💥 recordDailyTreasure: Error general:", error)
+    return false
+  }
+}
+
+// Función para obtener historial de tesoros diarios
+export async function getDailyTreasureHistory(userId: string): Promise<DailyTreasure[]> {
+  try {
+    console.log(`📊 getDailyTreasureHistory: Obteniendo historial para userId: ${userId}`)
+
+    const { data, error } = await supabase
+      .from("daily_treasures")
+      .select("*")
+      .eq("user_id", userId)
+      .order("claimed_at", { ascending: false })
+      .limit(30) // Últimos 30 tesoros
+
+    if (error) {
+      console.error("❌ getDailyTreasureHistory: Error fetching treasure history:", error)
+      return []
+    }
+
+    console.log(`✅ getDailyTreasureHistory: Encontrados ${data?.length || 0} tesoros`)
+    return data || []
+  } catch (error) {
+    console.error("💥 getDailyTreasureHistory: Error general:", error)
+    return []
   }
 }
 
