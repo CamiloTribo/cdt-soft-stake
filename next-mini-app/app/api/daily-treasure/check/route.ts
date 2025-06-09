@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
     console.log("✅ [API] Usuario verificado:", user.username || user.address)
 
-    // Verificar si puede reclamar el tesoro diario (user_id = wallet_address)
+    // Verificar si puede reclamar el tesoro diario
     console.log("🏆 [API] Verificando disponibilidad de tesoro...")
     const available = await canClaimDailyTreasure(wallet_address)
 
