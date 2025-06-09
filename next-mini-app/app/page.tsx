@@ -41,9 +41,11 @@ export default function Home() {
   const [isClaimingTreasure, setIsClaimingTreasure] = useState(false)
   const [treasureClaimSuccess, setTreasureClaimSuccess] = useState(false)
   const [treasureClaimError, setTreasureClaimError] = useState<string | null>(null)
+  const [isCheckingTreasure, setIsCheckingTreasure] = useState(false)
 
   // Referencia para controlar si ya se inició la verificación
   const worldIDInitiated = useRef(false)
+  const treasureChecked = useRef(false)
 
   // Función para obtener un identificador único del usuario
   const getUserIdentifier = useCallback(() => {
@@ -69,17 +71,18 @@ export default function Home() {
     }
   }, [])
 
-  // Verificar si el usuario puede reclamar el tesoro diario
+  // ✅ MEJORADO: Verificar si el usuario puede reclamar el tesoro diario
   const checkDailyTreasure = useCallback(async () => {
     const identifier = getUserIdentifier()
     if (!identifier) {
       console.log("🔍 [FRONTEND] No hay identifier, saltando check de tesoro")
       setHasDailyTreasure(false)
-      return
+      return false
     }
 
     try {
       console.log("🔍 [FRONTEND] Verificando tesoro diario para:", identifier)
+      setIsCheckingTreasure(true)
 
       const response = await fetch(`/api/daily-treasure/check?wallet_address=${identifier}`)
       console.log("🔍 [FRONTEND] Respuesta del API:", response.status)
@@ -91,15 +94,25 @@ export default function Home() {
         const isAvailable = data.available === true
         console.log("🔍 [FRONTEND] Tesoro disponible (parsed):", isAvailable)
 
+        // Actualizar estado inmediatamente
         setHasDailyTreasure(isAvailable)
         console.log("🔍 [FRONTEND] Estado hasDailyTreasure actualizado a:", isAvailable)
+
+        // Marcar como verificado
+        treasureChecked.current = true
+
+        return isAvailable
       } else {
         console.error("🔍 [FRONTEND] Error en respuesta:", response.status)
         setHasDailyTreasure(false)
+        return false
       }
     } catch (error) {
       console.error("🔍 [FRONTEND] Error checking daily treasure:", error)
       setHasDailyTreasure(false)
+      return false
+    } finally {
+      setIsCheckingTreasure(false)
     }
   }, [getUserIdentifier])
 
@@ -116,7 +129,7 @@ export default function Home() {
       setIsClaimingTreasure(true)
       setTreasureClaimError(null)
 
-      // ✅ CORREGIDO: Obtener el username del usuario actual
+      // Obtener el username del usuario actual
       const userResponse = await fetch(`/api/username?wallet_address=${identifier}`)
       const userData = await userResponse.json()
       const currentUsername = userData.username || ""
@@ -143,7 +156,7 @@ export default function Home() {
         setHasDailyTreasure(false)
         console.log("🎁 [FRONTEND] Tesoro reclamado exitosamente:", data.amount)
 
-        // ✅ NUEVO: Verificar tesoro de nuevo después del claim
+        // Verificar tesoro de nuevo después del claim
         setTimeout(() => {
           checkDailyTreasure()
         }, 1000)
@@ -165,12 +178,6 @@ export default function Home() {
     setShowTreasureModal(false)
     setTreasureClaimSuccess(false)
     setTreasureClaimError(null)
-
-    // ✅ CORREGIDO: No bloquear el acceso, continuar flujo normal
-    if (!hasDailyTreasure) {
-      console.log("🔓 [FRONTEND] No hay más tesoro, continuando flujo normal")
-      // No hacer nada especial, el usuario puede seguir usando la app
-    }
   }
 
   // Cargar contadores de usuarios al inicio
@@ -178,7 +185,7 @@ export default function Home() {
     fetchUserCounts()
   }, [fetchUserCounts])
 
-  // Verificar tesoro diario cuando el usuario está autenticado
+  // ✅ MEJORADO: Verificar tesoro diario cuando el usuario está autenticado
   useEffect(() => {
     console.log(
       "🔍 [FRONTEND] useEffect tesoro - isAuthenticated:",
@@ -189,7 +196,11 @@ export default function Home() {
       showVault,
     )
 
-    if (isAuthenticated && session?.isAuthenticatedWallet && showVault) {
+    // Solo verificar si:
+    // 1. El usuario está autenticado
+    // 2. Se muestra el dial
+    // 3. No se ha verificado antes
+    if (isAuthenticated && session?.isAuthenticatedWallet && showVault && !treasureChecked.current) {
       console.log("🔍 [FRONTEND] Condiciones cumplidas, verificando tesoro...")
       checkDailyTreasure()
     } else {
@@ -250,14 +261,20 @@ export default function Home() {
     }
   }, [])
 
-  // Efecto para mostrar el dial después de la verificación
+  // ✅ MEJORADO: Efecto para mostrar el dial después de la verificación
   useEffect(() => {
     // Si el usuario está autenticado con World ID, mostrar el dial
     if (isAuthenticated && session?.isAuthenticatedWorldID) {
       console.log("✅ [FRONTEND] Usuario verificado con World ID, mostrando dial")
       setShowVault(true)
+
+      // Verificar tesoro inmediatamente cuando se muestra el dial
+      if (!treasureChecked.current) {
+        console.log("✅ [FRONTEND] Verificando tesoro al mostrar dial")
+        checkDailyTreasure()
+      }
     }
-  }, [isAuthenticated, session])
+  }, [isAuthenticated, session, checkDailyTreasure])
 
   // Iniciar verificación de World ID automáticamente
   useEffect(() => {
@@ -465,19 +482,48 @@ export default function Home() {
   }, [isAuthenticated, session, handleContinueToDashboard])
 
   // ✅ CORREGIDO: Función para manejar el desbloqueo de la caja fuerte
-  const handleVaultUnlock = () => {
+  const handleVaultUnlock = async () => {
     console.log("🔓 [FRONTEND] *** DIAL DESBLOQUEADO ***")
-    console.log("🔓 [FRONTEND] hasDailyTreasure:", hasDailyTreasure)
 
-    // ✅ CORREGIDO: Solo mostrar modal si hay tesoro disponible
+    // Verificar tesoro si no se ha verificado antes
+    if (!treasureChecked.current) {
+      console.log("🔓 [FRONTEND] Verificando tesoro al desbloquear...")
+      const hasAvailableTreasure = await checkDailyTreasure()
+      console.log("🔓 [FRONTEND] Resultado de verificación:", hasAvailableTreasure)
+    }
+
+    console.log("🔓 [FRONTEND] Estado actual - hasDailyTreasure:", hasDailyTreasure)
+
+    // ✅ IMPORTANTE: Mostrar modal si hay tesoro disponible
     if (hasDailyTreasure) {
       console.log("🎁 [FRONTEND] *** HAY TESORO DISPONIBLE - ABRIENDO MODAL ***")
       setShowTreasureModal(true)
-      // El premio se genera en el backend, no aquí
     } else {
-      console.log("🔓 [FRONTEND] No hay tesoro disponible, continuando flujo normal")
-      // Continuar con el flujo normal (ir al dashboard o lo que corresponda)
-      setShowVault(false)
+      console.log("🔓 [FRONTEND] No hay tesoro disponible, verificando de nuevo...")
+
+      // Intentar verificar una vez más
+      const hasAvailableTreasure = await checkDailyTreasure()
+
+      if (hasAvailableTreasure) {
+        console.log("🎁 [FRONTEND] *** TESORO ENCONTRADO EN SEGUNDA VERIFICACIÓN - ABRIENDO MODAL ***")
+        setShowTreasureModal(true)
+      } else {
+        console.log("🔓 [FRONTEND] Definitivamente no hay tesoro, continuando flujo normal")
+        // No hacer nada especial, el usuario puede seguir usando la app
+      }
+    }
+  }
+
+  // ✅ NUEVO: Función para forzar verificación de tesoro (para debugging)
+  const forceCheckTreasure = async () => {
+    console.log("🔧 [FRONTEND] Forzando verificación de tesoro...")
+    const result = await checkDailyTreasure()
+    console.log("🔧 [FRONTEND] Resultado forzado:", result)
+
+    // Si hay tesoro disponible, mostrar modal inmediatamente
+    if (result) {
+      console.log("🎁 [FRONTEND] *** TESORO ENCONTRADO EN VERIFICACIÓN FORZADA - ABRIENDO MODAL ***")
+      setShowTreasureModal(true)
     }
   }
 
@@ -494,7 +540,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ✅ CORREGIDO: Notificación de tesoro diario - Solo cuando hay dial */}
+      {/* ✅ MEJORADO: Notificación de tesoro diario - Solo cuando hay dial */}
       {isAuthenticated && session?.isAuthenticatedWallet && showVault && (
         <div
           className={`fixed top-16 left-0 right-0 z-30 py-2 ${
@@ -530,11 +576,11 @@ export default function Home() {
               <div className="flex flex-col items-center">
                 {/* Contenedor del dial con efecto de tesoro */}
                 <div className="relative">
-                  {/* ✅ CORREGIDO: Solo mostrar efecto cuando hay tesoro */}
+                  {/* Solo mostrar efecto cuando hay tesoro */}
                   <DailyTreasureEffect active={hasDailyTreasure} />
                   {/* Dial normal */}
                   <VaultDial onUnlockAction={handleVaultUnlock} />
-                  {/* ✅ CORREGIDO: Solo mostrar indicador cuando hay tesoro */}
+                  {/* Solo mostrar indicador cuando hay tesoro */}
                   {hasDailyTreasure && (
                     <div className="absolute -top-4 -right-4 bg-yellow-500 text-black rounded-full w-8 h-8 flex items-center justify-center animate-bounce">
                       🎁
@@ -545,11 +591,21 @@ export default function Home() {
                   {hasDailyTreasure ? t("turn_for_treasure") : t("turn_to_unlock")}
                 </p>
 
-                {/* Debug info (temporal) */}
+                {/* Debug info */}
                 <div className="mt-4 text-xs text-gray-500 text-center space-y-1">
                   <div>Debug: hasDailyTreasure = {hasDailyTreasure.toString()}</div>
                   <div>Debug: showTreasureModal = {showTreasureModal.toString()}</div>
+                  <div>Debug: treasureChecked = {treasureChecked.current.toString()}</div>
                 </div>
+
+                {/* ✅ NUEVO: Botón para forzar verificación */}
+                <button
+                  onClick={forceCheckTreasure}
+                  className="mt-4 px-4 py-2 bg-yellow-500 text-black rounded-md font-bold"
+                  disabled={isCheckingTreasure}
+                >
+                  {isCheckingTreasure ? "Verificando..." : "VERIFICAR TESORO"}
+                </button>
               </div>
             ) : (
               <>
