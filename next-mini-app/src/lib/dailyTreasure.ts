@@ -44,7 +44,7 @@ export async function canClaimDailyTreasure(wallet_address: string): Promise<boo
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-    // Buscar reclamos en las últimas 24 horas
+    // ✅ CORREGIDO: Buscar reclamos en las últimas 24 horas
     const { data, error } = await supabase
       .from("daily_treasures")
       .select("id, claimed_at")
@@ -65,6 +65,8 @@ export async function canClaimDailyTreasure(wallet_address: string): Promise<boo
       const lastClaim = new Date(data[0].claimed_at)
       const hoursRemaining = 24 - Math.floor((Date.now() - lastClaim.getTime()) / (1000 * 60 * 60))
       console.log(`⏰ [LIB] Último reclamo: ${lastClaim.toISOString()}, faltan ${hoursRemaining}h para el próximo`)
+    } else {
+      console.log(`🎁 [LIB] Usuario nunca ha reclamado o han pasado más de 24h`)
     }
 
     console.log(`✅ [LIB] Tesoro diario disponible para ${wallet_address}: ${canClaim}`)
@@ -170,14 +172,16 @@ export async function claimDailyTreasure(
         console.log("✅ [LIB] Tesoro diario registrado correctamente")
       }
 
-      // Registrar en transactions
+      // ✅ CORREGIDO: Registrar en transactions con los campos correctos
       const { error: txError } = await supabase.from("transactions").insert({
         user_id: userId,
         username: username,
-        tx_type: "daily_treasure",
+        type: "daily_treasure", // ✅ CAMBIO: usar 'type' en lugar de 'tx_type'
         amount: prizeAmount,
+        token_type: "CDT",
         tx_hash: txHash,
-        status: "completed",
+        status: "success",
+        description: "Premio del tesoro diario",
       })
 
       if (txError) {
