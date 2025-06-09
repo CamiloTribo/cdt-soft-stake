@@ -2,25 +2,26 @@ import { NextResponse } from "next/server"
 import { getUserByAddress } from "@/src/lib/supabase"
 import { canClaimDailyTreasure } from "@/src/lib/dailyTreasure"
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
     console.log("🔍 [API] Verificando disponibilidad de tesoro diario...")
 
-    const body = await request.json()
-    const { userId } = body // Siguiendo tu patrón de CDT claim
+    // Obtener wallet address de los query params (como en tus otras APIs)
+    const { searchParams } = new URL(request.url)
+    const wallet = searchParams.get("wallet")
 
-    console.log("📝 [API] Datos recibidos:", { userId })
+    console.log("📝 [API] Datos recibidos:", { wallet })
 
-    if (!userId) {
-      console.error("❌ [API] Falta userId")
-      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
+    if (!wallet) {
+      console.error("❌ [API] Falta wallet address")
+      return NextResponse.json({ error: "Wallet address is required" }, { status: 400 })
     }
 
     // Verificar que el usuario existe
     console.log("👤 [API] Verificando usuario en base de datos...")
-    const user = await getUserByAddress(userId)
+    const user = await getUserByAddress(wallet)
     if (!user) {
-      console.error("❌ [API] Usuario no encontrado:", userId)
+      console.error("❌ [API] Usuario no encontrado:", wallet)
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
 
     // Verificar si puede reclamar el tesoro diario
     console.log("🏆 [API] Verificando disponibilidad de tesoro...")
-    const available = await canClaimDailyTreasure(userId)
+    const available = await canClaimDailyTreasure(wallet)
 
     console.log(`📊 [API] Resultado: tesoro ${available ? "disponible" : "no disponible"}`)
 
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
       available,
       user: {
         username: user.username,
-        address: user.address, // ✅ Usar 'address' como en tu User type
+        address: user.address,
       },
     })
   } catch (error) {
