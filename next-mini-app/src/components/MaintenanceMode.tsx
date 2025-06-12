@@ -20,9 +20,9 @@ export default function MaintenanceMode() {
 
         {/* Mensaje */}
         <div className="space-y-4 text-gray-300">
-          <p className="text-lg">Estamos experimentando problemas técnicos con nuestro proveedor de blockchain.</p>
+          <p className="text-lg">La WORLDCOIN APP y TODAS LAS MINI APPS estan experimentando errores.</p>
           <p>
-            Hemos pausado temporalmente todas las operaciones para proteger tus fondos y evitar transacciones erróneas.
+            Hemos pausado temporalmente la app y todas las operaciones para proteger tus fondos y evitar transacciones erróneas.
           </p>
           <p className="text-sm text-gray-400">Trabajamos para solucionarlo lo antes posible.</p>
         </div>
