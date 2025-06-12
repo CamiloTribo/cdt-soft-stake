@@ -9,20 +9,32 @@ import MaintenanceMode from "../src/components/MaintenanceMode"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Tribo Vault",
-  description: "Gana un 0.1% diario stakeando tus tokens CDT",
+  title: "Tribo Vault - Mantenimiento",
+  description: "Sistema temporalmente en mantenimiento",
 }
 
-// Variable para controlar el modo mantenimiento - CAMBIA ESTO A false PARA DESACTIVAR
+// 🚨 MODO MANTENIMIENTO ACTIVO - Cambiar a false para desactivar
 const MAINTENANCE_MODE = true
+
+// Forzar no-cache para el modo mantenimiento
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Log para debug
+  console.log("🔧 MAINTENANCE_MODE:", MAINTENANCE_MODE)
+
   return (
     <html lang="es">
+      <head>
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+      </head>
       <body className={`${inter.className} bg-black text-white`}>
         <TranslationProvider>
           <WorldAuthProvider>{MAINTENANCE_MODE ? <MaintenanceMode /> : children}</WorldAuthProvider>
