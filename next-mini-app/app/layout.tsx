@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 // 🚨 MODO MANTENIMIENTO ACTIVO - Cambiar a false para desactivar
-const MAINTENANCE_MODE = true
+const MAINTENANCE_MODE = false
 
 // Forzar no-cache para el modo mantenimiento
 export const dynamic = "force-dynamic"
